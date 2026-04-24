@@ -18,8 +18,8 @@ type FormData = z.infer<typeof schema>
 
 // Dummy credentials for demo
 const DEMO_CREDENTIALS = [
-  { role: 'Admin', email: 'admin@kaapilibre.com', password: 'admin123456', color: '#d4a853' },
-  { role: 'Subadmin', email: 'subadmin@kaapilibre.com', password: 'subadmin123456', color: '#60a5fa' },
+  { role: 'Admin', email: '', password: '', color: '#d4a853' },
+  { role: 'Subadmin', email: '', password: '', color: '#60a5fa' },
 ]
 
 export default function LoginPage() {

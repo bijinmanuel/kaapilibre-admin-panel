@@ -1,10 +1,11 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import Image from 'next/image'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
 import { useAuthStore } from '@/store/authStore'
-import { Coffee, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 const ROUTE_META: Record<string, { title: string; feature: string }> = {
   '/dashboard':  { title: 'Dashboard',  feature: 'dashboard' },
@@ -63,13 +64,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0d0c0a' }}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: '#d4a853' }}>
-            <Coffee className="w-6 h-6" style={{ color: '#1a1713' }} />
+      <div className="min-h-screen flex items-center justify-center bg-[#0d0c0a]">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative w-20 h-20">
+            {/* Soft glowing background behind logo */}
+            <div className="absolute inset-0 bg-[#d4a853]/10 blur-2xl rounded-full animate-pulse" />
+            
+            <div className="relative w-full h-full p-2 bg-gradient-to-b from-[#1a1713] to-black border border-white/5 rounded-2xl shadow-2xl flex items-center justify-center overflow-hidden">
+              <Image 
+                src="/brand/logo_kaapilibre.png" 
+                alt="KaapiLibre Logo" 
+                width={64} 
+                height={64} 
+                priority
+                className="object-contain"
+              />
+            </div>
           </div>
-          <Loader2 className="w-5 h-5 animate-spin" style={{ color: '#d4a853' }} />
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Loading KaapiLibre Admin...</p>
+          
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin text-[#d4a853]/60" />
+            <p className="text-[10px] uppercase tracking-[0.2em] font-medium text-white/20">
+              Initializing Admin Portal
+            </p>
+          </div>
         </div>
       </div>
     )
