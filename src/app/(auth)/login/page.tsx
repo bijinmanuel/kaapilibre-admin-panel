@@ -62,6 +62,9 @@ export default function LoginPage() {
             src="/brand/HUMMERS_W.png"
             alt="Branding Background"
             fill
+            sizes="50vw"
+            priority
+            loading="eager"
             className="object-cover opacity-95 grayscale hover:grayscale-0 transition-all duration-700"
           />
           <div className="absolute inset-0 bg-[#131008]/40 backdrop-blur-[2px]" />
@@ -73,6 +76,7 @@ export default function LoginPage() {
               src="/brand/logo.png"
               alt="KaapiLibre Logo"
               fill
+              sizes="40px"
               className="object-contain"
             />
           </div>
@@ -110,6 +114,7 @@ export default function LoginPage() {
                 src="/brand/logo.png"
                 alt="KaapiLibre Logo"
                 fill
+                sizes="36px"
                 className="object-contain"
               />
             </div>

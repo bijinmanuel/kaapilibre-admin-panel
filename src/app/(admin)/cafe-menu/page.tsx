@@ -47,7 +47,7 @@ export default function CafeMenuPage() {
 
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          {/* <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -62,11 +62,11 @@ export default function CafeMenuPage() {
             className="px-4 py-2.5 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
             <option value="">All Categories</option>
-            <option value="Coffee">Coffee</option>
-            <option value="Tea">Tea</option>
-            <option value="Food">Food</option>
-            <option value="Dessert">Dessert</option>
+            <option value="Coffee Beans">Coffee Beans</option>
+            <option value="Equipment">Equipment</option>
             <option value="Other">Other</option>
+            {/* <option value="Dessert">Dessert</option>
+            <option value="Other">Other</option> */}
           </select>
         </div>
       </div>
@@ -84,7 +84,7 @@ export default function CafeMenuPage() {
                   <Coffee className="w-5 h-5" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     onClick={() => setEditingProduct(product)}
                     className="p-1.5 hover:bg-accent rounded-md transition-colors text-muted-foreground"
                   >
@@ -122,11 +122,11 @@ export default function CafeMenuPage() {
       </div>
 
       {(showAdd || editingProduct) && (
-        <AddCafeProductModal 
+        <AddCafeProductModal
           onClose={() => {
             setShowAdd(false)
             setEditingProduct(null)
-          }} 
+          }}
           initialData={editingProduct || undefined}
         />
       )}

@@ -25,7 +25,7 @@ export function OrdersDonutChart({ data, isLoading }: Props) {
       {isLoading ? (
         <div className="h-52 rounded-lg bg-muted animate-pulse" />
       ) : (
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={200} minWidth={0} debounce={100}>
           <PieChart>
             <Pie data={data || []} dataKey="count" nameKey="status" cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={2}>
               {data?.map((entry) => (

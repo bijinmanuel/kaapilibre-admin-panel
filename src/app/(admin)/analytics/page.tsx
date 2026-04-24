@@ -91,7 +91,7 @@ export default function AnalyticsPage() {
           {topLoading ? (
             <div className="h-48 rounded bg-muted animate-pulse" />
           ) : (
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={200} minWidth={0} debounce={100}>
               <BarChart data={topChartData} layout="vertical" margin={{ left: 0, right: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false}
@@ -111,7 +111,7 @@ export default function AnalyticsPage() {
           {growthLoading ? (
             <div className="h-48 rounded bg-muted animate-pulse" />
           ) : (
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={200} minWidth={0} debounce={100}>
               <LineChart data={growthChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />

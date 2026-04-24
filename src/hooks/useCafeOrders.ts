@@ -57,3 +57,14 @@ export function useUpdateCafeOrderStatus() {
     onError: (e: Error) => toast.error(e.message),
   })
 }
+
+export function useGlobalCafeAnalytics() {
+  return useQuery({
+    queryKey: ['cafe/orders/analytics'],
+    queryFn: async () => {
+      const res = await api.get('/cafe/orders/analytics') as ApiResponse<any>
+      return res.data
+    },
+    staleTime: 1000 * 60 * 5,
+  })
+}

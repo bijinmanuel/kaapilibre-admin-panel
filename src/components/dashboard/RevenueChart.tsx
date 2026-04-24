@@ -55,7 +55,7 @@ export function RevenueChart({ data, period, onPeriodChange, isLoading }: Props)
       {isLoading ? (
         <div className="h-64 rounded-lg bg-muted animate-pulse" />
       ) : (
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={260} minWidth={0} debounce={100}>
           <LineChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />

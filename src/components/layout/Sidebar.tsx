@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { icon: Store,           label: 'Cafes',      href: '/cafes',      feature: 'cafe' },
   { icon: Coffee,          label: 'Cafe Menu',   href: '/cafe-menu',  feature: 'cafe-products' },
   { icon: Coffee,          label: 'Cafe Orders', href: '/cafe-orders', feature: 'cafe-orders' },
+  { icon: BarChart3,       label: 'Cafe Analytics', href: '/cafe-dashboard', feature: 'cafe-orders' },
   { icon: Package,         label: 'Products',   href: '/products',   feature: 'products' },
   { icon: Users,           label: 'Customers',  href: '/customers',  feature: 'customers' },
   { icon: Archive,         label: 'Inventory',  href: '/inventory',  feature: 'inventory' },

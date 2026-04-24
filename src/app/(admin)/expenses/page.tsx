@@ -155,7 +155,7 @@ export default function ExpensesPage() {
           <h4 className="text-lg font-bold text-foreground mb-6">Category Breakdown</h4>
           <div className="h-[250px] w-full min-h-[250px]">
             {mounted && (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
               <PieChart>
                 <Pie
                   data={pieData}
