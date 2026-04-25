@@ -6,12 +6,15 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useCafes } from '@/hooks/useCafes'
 import { CreateCafeModal } from '@/components/cafes/CreateCafeModal'
 import { useAuthStore } from '@/store/authStore'
+import { EditCafeModal } from '@/components/cafes/EditCafeModal'
+import type { Cafe } from '@/types'
 
 export default function CafesPage() {
   const router = useRouter()
   const { user } = useAuthStore()
   const { data: cafes, isLoading } = useCafes()
   const [showCreate, setShowCreate] = useState(false)
+  const [editingCafe, setEditingCafe] = useState<Cafe | null>(null)
 
   return (
     <>
@@ -47,7 +50,13 @@ export default function CafesPage() {
                 <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform">
                   <Store className="w-6 h-6" />
                 </div>
-                <button className="p-1 hover:bg-accent rounded-md transition-colors">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setEditingCafe(cafe)
+                  }}
+                  className="p-1 hover:bg-accent rounded-md transition-colors"
+                >
                   <MoreVertical className="w-4 h-4 text-muted-foreground" />
                 </button>
               </div>
@@ -94,6 +103,12 @@ export default function CafesPage() {
       </div>
 
       {showCreate && <CreateCafeModal onClose={() => setShowCreate(false)} />}
+      {editingCafe && (
+        <EditCafeModal 
+          cafe={editingCafe} 
+          onClose={() => setEditingCafe(null)} 
+        />
+      )}
     </>
   )
 }

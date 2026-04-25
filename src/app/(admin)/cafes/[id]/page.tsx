@@ -12,12 +12,15 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, Cell, LineChart, Line
 } from 'recharts'
+import { EditCafeModal } from '@/components/cafes/EditCafeModal'
+import { Settings } from 'lucide-react'
 
 export default function CafeDetailsPage() {
   const { id } = useParams()
   const router = useRouter()
   const { data: analytics, isLoading } = useCafeAnalytics(id as string)
   const [mounted, setMounted] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -41,8 +44,16 @@ export default function CafeDetailsPage() {
         title={cafe.name}
         description="Detailed performance and sales analytics"
         action={
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 text-green-500 text-xs font-bold uppercase tracking-wider">
-            <Clock className="w-3.5 h-3.5" /> Live Tracking
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowEdit(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border text-sm font-medium hover:bg-accent transition-all"
+            >
+              <Settings className="w-4 h-4" /> Edit Cafe
+            </button>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 text-green-500 text-xs font-bold uppercase tracking-wider h-fit">
+              <Clock className="w-3.5 h-3.5" /> Live Tracking
+            </div>
           </div>
         }
       />
@@ -174,6 +185,13 @@ export default function CafeDetailsPage() {
           </div>
         </div>
       </div>
+
+      {showEdit && analytics?.cafe && (
+        <EditCafeModal 
+          cafe={analytics.cafe} 
+          onClose={() => setShowEdit(false)} 
+        />
+      )}
     </>
   )
 }
