@@ -50,7 +50,7 @@ export function useCreateCafe() {
 export function useUpdateCafe() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Cafe> }) => 
+    mutationFn: ({ id, data }: { id: string; data: Partial<Cafe> }) =>
       api.patch(`/cafe/${id}`, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['cafes'] })

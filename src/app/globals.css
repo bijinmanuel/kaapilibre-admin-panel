@@ -78,6 +78,18 @@
   --radius-xl: calc(var(--radius) + 8px);
 }
 
+/* American Typewriter Font */
+@supports (font-family: "American Typewriter") {
+  /* Use system American Typewriter if available */
+}
+
+/* Fallback: Use monospace fonts that resemble typewriter */
+.typewriter {
+  font-family: "American Typewriter", "Courier New", "Courier", monospace;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
 * {
   box-sizing: border-box;
   border-color: var(--border);
@@ -166,4 +178,30 @@ button {
   transition: all 0.15s;
   border: none;
   background: none;
+}
+
+
+
+
+
+
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  height: 100%;
+  /* or a fixed height like 400px */
+  display: flex;
+  flex-direction: column;
+}
+
+.inv-table thead,
+.inv-table tfoot {
+  flex-shrink: 0;
+}
+
+.inv-table tbody {
+  flex: 1;
+  /* takes all remaining space between thead and tfoot */
+  overflow-y: auto;
+  /* scrolls if rows overflow */
 }

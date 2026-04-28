@@ -50,7 +50,7 @@ export default function CafesPage() {
                 <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform">
                   <Store className="w-6 h-6" />
                 </div>
-                <button 
+                <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setEditingCafe(cafe)
@@ -104,9 +104,9 @@ export default function CafesPage() {
 
       {showCreate && <CreateCafeModal onClose={() => setShowCreate(false)} />}
       {editingCafe && (
-        <EditCafeModal 
-          cafe={editingCafe} 
-          onClose={() => setEditingCafe(null)} 
+        <EditCafeModal
+          cafe={editingCafe}
+          onClose={() => setEditingCafe(null)}
         />
       )}
     </>

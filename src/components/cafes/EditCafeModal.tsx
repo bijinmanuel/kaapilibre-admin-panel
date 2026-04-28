@@ -97,7 +97,7 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
 
           <div className="pt-2">
             <label className="flex items-center gap-3 cursor-pointer group">
-              <div 
+              <div
                 onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
                 className={`w-10 h-5 rounded-full transition-colors relative ${formData.isActive ? 'bg-green-500' : 'bg-muted'}`}
               >
