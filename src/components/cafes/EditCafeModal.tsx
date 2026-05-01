@@ -78,7 +78,7 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
           <div className="space-y-1">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Cafe Name</label>
             <div className="relative">
-              <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              {/* <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
               <input
                 required
                 value={formData.name}
@@ -92,7 +92,7 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
           <div className="space-y-1">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Location</label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              {/* <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
               <input
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
@@ -106,7 +106,7 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
             <div className="space-y-1">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Contact</label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                {/* <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
                 <input
                   value={formData.contactNumber}
                   onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
@@ -119,7 +119,7 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
             <div className="space-y-1">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                {/* <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
                 <input
                   type="email"
                   value={formData.email}

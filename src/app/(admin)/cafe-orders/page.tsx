@@ -57,40 +57,43 @@ export default function CafeOrdersPage() {
 
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="relative flex-1 min-w-[300px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          {/* <Search className="absolute left-3  top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" /> */}
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search orders by number or items..."
-            className="w-full pl-10 pr-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-        >
-          <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-        
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-          />
-          <span className="text-muted-foreground">to</span>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-          />
+        <div className='relative flex-1 flex items-center gap-3'>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+            />
+            <span className="text-muted-foreground">to</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+            />
+          </div>
         </div>
+
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -114,64 +117,63 @@ export default function CafeOrdersPage() {
                     {formatDateTime(order.createdAt)}
                   </div>
                 </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-lg font-bold text-foreground">{formatCurrency(order.totalAmount)}</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                        <CreditCard className="w-3 h-3" />
-                        {order.paymentMethod}
-                      </div>
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-widest ${
-                        order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
-                      }`}>
-                        {order.paymentStatus}
-                      </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-lg font-bold text-foreground">{formatCurrency(order.totalAmount)}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <CreditCard className="w-3 h-3" />
+                      {order.paymentMethod}
                     </div>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-widest ${order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
+                      }`}>
+                      {order.paymentStatus}
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                <div className="space-y-2 mb-4">
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        <span className="font-medium text-foreground">{item.qty}x</span> {item.name}
-                      </span>
-                      <span className="text-foreground/80">{formatCurrency(item.subtotal)}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-2 mb-4">
+                {order.items.map((item, idx) => (
+                  <div key={idx} className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      <span className="font-medium text-foreground">{item.qty}x</span> {item.name}
+                    </span>
+                    <span className="text-foreground/80">{formatCurrency(item.subtotal)}</span>
+                  </div>
+                ))}
+              </div>
 
-                <div className="flex gap-2 pt-4 border-t border-border">
-                  {order.status === 'pending' && (
-                    <>
-                      <button
-                        onClick={() => updateStatus({ id: order._id, status: 'completed' })}
-                        className="flex-1 py-2 rounded-lg bg-green-500/10 text-green-500 text-xs font-semibold hover:bg-green-500 hover:text-white transition-all"
-                      >
-                        Complete
-                      </button>
-                      <button
-                        onClick={() => updateStatus({ id: order._id, status: 'cancelled' })}
-                        className="px-3 py-2 rounded-lg bg-red-500/10 text-red-500 text-xs font-semibold hover:bg-red-500 hover:text-white transition-all"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  )}
-                  {order.status === 'completed' && order.paymentStatus === 'pending' && (
+              <div className="flex gap-2 pt-4 border-t border-border">
+                {order.status === 'pending' && (
+                  <>
                     <button
-                      onClick={() => updatePaymentStatus({ id: order._id, paymentStatus: 'paid' })}
-                      className="flex-1 py-2 rounded-lg bg-orange-500/10 text-orange-500 text-xs font-semibold hover:bg-orange-500 hover:text-white transition-all"
+                      onClick={() => updateStatus({ id: order._id, status: 'completed' })}
+                      className="flex-1 py-2 rounded-lg bg-green-500/10 text-green-500 text-xs font-semibold hover:bg-green-500 hover:text-white transition-all"
                     >
-                      Mark as Paid
+                      Complete
                     </button>
-                  )}
-                  {order.status === 'completed' && order.paymentStatus === 'paid' && (
-                    <div className="flex-1 py-2 rounded-lg bg-green-500/5 text-green-500/60 text-[10px] font-bold uppercase tracking-widest text-center">
-                      Payment Received
-                    </div>
-                  )}
-                </div>
+                    <button
+                      onClick={() => updateStatus({ id: order._id, status: 'cancelled' })}
+                      className="px-3 py-2 rounded-lg bg-red-500/10 text-red-500 text-xs font-semibold hover:bg-red-500 hover:text-white transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+                {order.status === 'completed' && order.paymentStatus === 'pending' && (
+                  <button
+                    onClick={() => updatePaymentStatus({ id: order._id, paymentStatus: 'paid' })}
+                    className="flex-1 py-2 rounded-lg bg-orange-500/10 text-orange-500 text-xs font-semibold hover:bg-orange-500 hover:text-white transition-all"
+                  >
+                    Mark as Paid
+                  </button>
+                )}
+                {order.status === 'completed' && order.paymentStatus === 'paid' && (
+                  <div className="flex-1 py-2 rounded-lg bg-green-500/5 text-green-500/60 text-[10px] font-bold uppercase tracking-widest text-center">
+                    Payment Received
+                  </div>
+                )}
+              </div>
             </div>
           ))
         ) : (

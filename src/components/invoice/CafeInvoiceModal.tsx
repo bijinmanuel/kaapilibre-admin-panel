@@ -12,14 +12,14 @@ interface CafeInvoiceModalProps {
 }
 
 export function CafeInvoiceModal({ order, onClose }: CafeInvoiceModalProps) {
-  const iframeRef    = useRef<HTMLIFrameElement>(null)
-  const [sending,    setSending]    = useState(false)
-  const [sent,       setSent]       = useState(false)
-  const [showEmail,  setShowEmail]  = useState(false)
-  const [loaded,     setLoaded]     = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [showEmail, setShowEmail] = useState(false)
+  const [loaded, setLoaded] = useState(false)
 
   const cafe = order.cafeId as Cafe
-  const [emailTo,    setEmailTo]    = useState(cafe?.email || '')
+  const [emailTo, setEmailTo] = useState(cafe?.email || '')
 
   const invoiceNumber = getInvoiceNumber(order.orderNumber)
   const invoiceHTML = generateCafeInvoiceHTML(order)
@@ -99,7 +99,9 @@ export function CafeInvoiceModal({ order, onClose }: CafeInvoiceModalProps) {
               <ExternalLink className="w-4 h-4" /> Open
             </button>
 
-            <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:scale-[1.02] transition-all">
+            <button onClick={handlePrint}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium"
+              style={{ background: '#d4a853', color: '#1a1713' }}>
               <Printer className="w-4 h-4" /> Print / PDF
             </button>
 
