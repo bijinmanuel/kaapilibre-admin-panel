@@ -127,7 +127,7 @@ export default function ProductsPage() {
                 <p className="text-xs text-muted-foreground mt-0.5">{product.origin} · {product.variety}</p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-sm font-semibold" style={{ color: product.isActive ? '#d4a853' : 'var(--muted-foreground)' }}>
-                    from {formatCurrency(product.prices['100g'])}
+                    from {formatCurrency(product.prices['250g'])}
                   </span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button

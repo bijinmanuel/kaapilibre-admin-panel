@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, Plus, Coffee, Calendar, CreditCard, MoreVertical } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { useCafeOrders, useUpdateCafeOrderStatus } from '@/hooks/useCafeOrders'
+import { useCafeOrders, useUpdateCafeOrderStatus, useUpdateCafeOrderPaymentStatus } from '@/hooks/useCafeOrders'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import type { CafeOrderStatus } from '@/types'
@@ -18,6 +18,8 @@ const useDebounce = (val: string, ms = 350) => {
 export default function CafeOrdersPage() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [page, setPage] = useState(1)
   const debouncedSearch = useDebounce(search)
@@ -25,11 +27,14 @@ export default function CafeOrdersPage() {
   const { data, isLoading } = useCafeOrders({
     search: debouncedSearch || undefined,
     status: status || undefined,
+    from: fromDate || undefined,
+    to: toDate || undefined,
     page,
     limit: 20,
   })
 
   const { mutate: updateStatus } = useUpdateCafeOrderStatus()
+  const { mutate: updatePaymentStatus } = useUpdateCafeOrderPaymentStatus()
 
   const orders = data?.data || []
   const meta = data?.meta
@@ -70,6 +75,22 @@ export default function CafeOrdersPage() {
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
         </select>
+        
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+          />
+          <span className="text-muted-foreground">to</span>
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -93,42 +114,64 @@ export default function CafeOrdersPage() {
                     {formatDateTime(order.createdAt)}
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-lg font-bold text-foreground">{formatCurrency(order.totalAmount)}</span>
-                  <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                    <CreditCard className="w-3 h-3" />
-                    {order.paymentMethod}
+                  <div className="flex flex-col items-end">
+                    <span className="text-lg font-bold text-foreground">{formatCurrency(order.totalAmount)}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                        <CreditCard className="w-3 h-3" />
+                        {order.paymentMethod}
+                      </div>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-widest ${
+                        order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
+                      }`}>
+                        {order.paymentStatus}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-2 mb-4">
-                {order.items.map((item, idx) => (
-                  <div key={idx} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      <span className="font-medium text-foreground">{item.qty}x</span> {item.name}
-                    </span>
-                    <span className="text-foreground/80">{formatCurrency(item.subtotal)}</span>
-                  </div>
-                ))}
-              </div>
+                <div className="space-y-2 mb-4">
+                  {order.items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        <span className="font-medium text-foreground">{item.qty}x</span> {item.name}
+                      </span>
+                      <span className="text-foreground/80">{formatCurrency(item.subtotal)}</span>
+                    </div>
+                  ))}
+                </div>
 
-              {order.status === 'pending' && (
                 <div className="flex gap-2 pt-4 border-t border-border">
-                  <button
-                    onClick={() => updateStatus({ id: order._id, status: 'completed' })}
-                    className="flex-1 py-2 rounded-lg bg-green-500/10 text-green-500 text-xs font-semibold hover:bg-green-500 hover:text-white transition-all"
-                  >
-                    Mark Completed
-                  </button>
-                  <button
-                    onClick={() => updateStatus({ id: order._id, status: 'cancelled' })}
-                    className="px-3 py-2 rounded-lg bg-red-500/10 text-red-500 text-xs font-semibold hover:bg-red-500 hover:text-white transition-all"
-                  >
-                    Cancel
-                  </button>
+                  {order.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => updateStatus({ id: order._id, status: 'completed' })}
+                        className="flex-1 py-2 rounded-lg bg-green-500/10 text-green-500 text-xs font-semibold hover:bg-green-500 hover:text-white transition-all"
+                      >
+                        Complete
+                      </button>
+                      <button
+                        onClick={() => updateStatus({ id: order._id, status: 'cancelled' })}
+                        className="px-3 py-2 rounded-lg bg-red-500/10 text-red-500 text-xs font-semibold hover:bg-red-500 hover:text-white transition-all"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  )}
+                  {order.status === 'completed' && order.paymentStatus === 'pending' && (
+                    <button
+                      onClick={() => updatePaymentStatus({ id: order._id, paymentStatus: 'paid' })}
+                      className="flex-1 py-2 rounded-lg bg-orange-500/10 text-orange-500 text-xs font-semibold hover:bg-orange-500 hover:text-white transition-all"
+                    >
+                      Mark as Paid
+                    </button>
+                  )}
+                  {order.status === 'completed' && order.paymentStatus === 'paid' && (
+                    <div className="flex-1 py-2 rounded-lg bg-green-500/5 text-green-500/60 text-[10px] font-bold uppercase tracking-widest text-center">
+                      Payment Received
+                    </div>
+                  )}
                 </div>
-              )}
             </div>
           ))
         ) : (

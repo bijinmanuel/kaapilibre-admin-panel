@@ -9,18 +9,18 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useProduct, useUpdateProduct, useCreateProduct, useDeleteProduct, useToggleProduct, useUploadProductImage, useDeleteProductImage, useSetPrimaryImage } from '@/hooks/useProducts'
 
 const schema = z.object({
-  name:     z.string().min(2, 'Name required'),
-  origin:   z.string().min(1, 'Origin required'),
-  region:   z.string().min(1, 'Region required'),
-  variety:  z.enum(['Arabica', 'Robusta']),
-  process:  z.enum(['Washed', 'Natural', 'Honey']),
+  name: z.string().min(2, 'Name required'),
+  origin: z.string().min(1, 'Origin required'),
+  region: z.string().min(1, 'Region required'),
+  variety: z.enum(['Arabica', 'Robusta']),
+  process: z.enum(['Washed', 'Natural', 'Honey']),
   altitude: z.string().min(1, 'Altitude required'),
-  roast:    z.string().min(1, 'Roast required'),
-  story:    z.string().min(10, 'Story must be at least 10 characters'),
-  badge:    z.string().optional(),
-  price100: z.preprocess(v => parseFloat(String(v)), z.number().positive('Must be > 0')),
+  roast: z.string().min(1, 'Roast required'),
+  story: z.string().min(10, 'Story must be at least 10 characters'),
+  badge: z.string().optional(),
   price250: z.preprocess(v => parseFloat(String(v)), z.number().positive('Must be > 0')),
   price500: z.preprocess(v => parseFloat(String(v)), z.number().positive('Must be > 0')),
+  price1kg: z.preprocess(v => parseFloat(String(v)), z.number().positive('Must be > 0')),
 })
 
 // The URL param is either "new" or a MongoDB _id
@@ -36,17 +36,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   // The actual MongoDB _id to use for all mutations
   const productId = product?._id ?? urlParam
 
-  const create      = useCreateProduct()
-  const update      = useUpdateProduct()
-  const del         = useDeleteProduct()
-  const toggle      = useToggleProduct()
-  const uploadImage    = useUploadProductImage()
-  const deleteImage    = useDeleteProductImage()
-  const setPrimary     = useSetPrimaryImage()
+  const create = useCreateProduct()
+  const update = useUpdateProduct()
+  const del = useDeleteProduct()
+  const toggle = useToggleProduct()
+  const uploadImage = useUploadProductImage()
+  const deleteImage = useDeleteProductImage()
+  const setPrimary = useSetPrimaryImage()
 
   const [flavourNotes, setFlavourNotes] = useState<string[]>([])
-  const [noteInput, setNoteInput]       = useState('')
-  const [showDelete, setShowDelete]     = useState(false)
+  const [noteInput, setNoteInput] = useState('')
+  const [showDelete, setShowDelete] = useState(false)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<any>({
     resolver: zodResolver(schema),
@@ -56,18 +56,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     if (product) {
       reset({
-        name:     product.name,
-        origin:   product.origin,
-        region:   product.region,
-        variety:  product.variety,
-        process:  product.process,
+        name: product.name,
+        origin: product.origin,
+        region: product.region,
+        variety: product.variety,
+        process: product.process,
         altitude: product.altitude,
-        roast:    product.roast,
-        story:    product.story,
-        badge:    product.badge || '',
-        price100: product.prices['100g'],
+        roast: product.roast,
+        story: product.story,
+        badge: product.badge || '',
         price250: product.prices['250g'],
         price500: product.prices['500g'],
+        price1kg: product.prices['1kg'],
       })
       setFlavourNotes(product.flavourNotes || [])
     }
@@ -81,9 +81,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       badge: data.badge || undefined,
       flavourNotes,
       prices: {
-        '100g': data.price100,
         '250g': data.price250,
         '500g': data.price500,
+        '1kg': data.price1kg,
       },
     }
     if (isNew) {
@@ -221,11 +221,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">Prices (₹) *</p>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">100g</label>
-                  <input type="number" min={1} step={1} {...register('price100')} placeholder="350" />
-                  <ErrorMsg field="price100" />
-                </div>
-                <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1.5">250g</label>
                   <input type="number" min={1} step={1} {...register('price250')} placeholder="750" />
                   <ErrorMsg field="price250" />
@@ -234,6 +229,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <label className="text-xs font-medium text-muted-foreground block mb-1.5">500g</label>
                   <input type="number" min={1} step={1} {...register('price500')} placeholder="1400" />
                   <ErrorMsg field="price500" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">1kg</label>
+                  <input type="number" min={1} step={1} {...register('price1kg')} placeholder="2600" />
+                  <ErrorMsg field="price1kg" />
                 </div>
               </div>
             </div>
@@ -394,7 +394,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div className="rounded-xl border border-border bg-card p-5">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">Stock levels</p>
               <div className="space-y-3">
-                {(['100g', '250g', '500g'] as const).map(w => {
+                {(['250g', '500g', '1kg'] as const).map(w => {
                   const v = product.stock?.[w]
                   const low = v && v.qty <= v.reorderAt
                   return (

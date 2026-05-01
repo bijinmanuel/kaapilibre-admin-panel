@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { X, Store, MapPin, Phone, Mail } from 'lucide-react'
-import { useCreateCafe } from '@/hooks/useCafes'
+import { X, Store, MapPin, Phone, Mail, Upload, Loader2 } from 'lucide-react'
+import { useCreateCafe, useUploadCafeLogo } from '@/hooks/useCafes'
 
 export function CreateCafeModal({ onClose }: { onClose: () => void }) {
   const [formData, setFormData] = useState({
@@ -10,14 +10,32 @@ export function CreateCafeModal({ onClose }: { onClose: () => void }) {
     contactNumber: '',
     email: '',
   })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
 
-  const { mutate: createCafe, isPending } = useCreateCafe()
+  const { mutateAsync: createCafe, isPending: isCreating } = useCreateCafe()
+  const { mutateAsync: uploadLogo, isPending: isUploading } = useUploadCafeLogo()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      setPreview(URL.createObjectURL(file))
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    createCafe(formData, {
-      onSuccess: onClose
-    })
+    try {
+      const res = await createCafe(formData)
+      const newCafe = (res as any).data
+      if (selectedFile && newCafe?._id) {
+        await uploadLogo({ id: newCafe._id, file: selectedFile })
+      }
+      onClose()
+    } catch (err) {
+      // toast handled in hook
+    }
   }
 
   return (
@@ -33,16 +51,34 @@ export function CreateCafeModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Logo Upload */}
+          <div className="flex flex-col items-center gap-4 mb-2">
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden transition-all group-hover:border-primary/40">
+                {preview ? (
+                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <Store className="w-8 h-8 text-muted-foreground/40" />
+                )}
+              </div>
+              <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                <Upload className="w-5 h-5 text-white" />
+                <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+              </label>
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Cafe Logo</p>
+          </div>
+
           <div className="space-y-1">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Cafe Name</label>
             <div className="relative">
-              {/* <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
+              <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g. Downtown Branch"
-                className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
           </div>
@@ -50,12 +86,12 @@ export function CreateCafeModal({ onClose }: { onClose: () => void }) {
           <div className="space-y-1">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Location</label>
             <div className="relative">
-              {/* <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="Full address"
-                className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
           </div>
@@ -64,12 +100,12 @@ export function CreateCafeModal({ onClose }: { onClose: () => void }) {
             <div className="space-y-1">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Contact</label>
               <div className="relative">
-                {/* <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   value={formData.contactNumber}
                   onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
                   placeholder="+91..."
-                  className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
@@ -77,13 +113,13 @@ export function CreateCafeModal({ onClose }: { onClose: () => void }) {
             <div className="space-y-1">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Email</label>
               <div className="relative">
-                {/* <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="cafe@example.com"
-                  className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
@@ -92,11 +128,13 @@ export function CreateCafeModal({ onClose }: { onClose: () => void }) {
           <div className="pt-4">
             <button
               type="submit"
-              disabled={isPending}
-              className="w-full py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99]"
+              disabled={isCreating || isUploading}
+              className="w-full h-12 rounded-xl font-bold text-sm transition-all disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
               style={{ background: '#d4a853', color: '#1a1713' }}
             >
-              {isPending ? 'Adding...' : 'Add Cafe'}
+              {(isCreating || isUploading) ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> {isCreating ? 'Creating Cafe...' : 'Uploading Logo...'}</>
+              ) : 'Add Cafe'}
             </button>
           </div>
         </form>

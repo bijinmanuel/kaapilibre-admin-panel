@@ -47,8 +47,12 @@ export default function CafesPage() {
               className="group bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-all cursor-pointer relative overflow-hidden"
             >
               <div className="flex justify-between items-start mb-6">
-                <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform">
-                  <Store className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center overflow-hidden group-hover:scale-110 transition-transform">
+                  {cafe.logo ? (
+                    <img src={cafe.logo} alt={cafe.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Store className="w-6 h-6 text-primary" />
+                  )}
                 </div>
                 <button
                   onClick={(e) => {

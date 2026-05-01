@@ -12,7 +12,7 @@ interface CreateOrderModalProps {
   onClose: () => void
 }
 
-const WEIGHTS: WeightVariant[] = ['100g', '250g', '500g']
+const WEIGHTS: WeightVariant[] = ['250g', '500g', '1kg']
 const GRINDS: GrindType[] = ['Whole Bean', 'Coarse', 'Medium', 'Fine']
 const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
   { value: 'whatsapp', label: 'WhatsApp' },

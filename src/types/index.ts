@@ -1,6 +1,6 @@
 export type Role = 'admin' | 'subadmin' | 'customer'
 export type OrderStatus = 'pending' | 'confirmed' | 'roasting' | 'dispatched' | 'delivered' | 'cancelled' | 'completed'
-export type WeightVariant = '100g' | '250g' | '500g'
+export type WeightVariant = '250g' | '500g' | '1kg'
 export type GrindType = 'Whole Bean' | 'Coarse' | 'Medium' | 'Fine'
 export type PaymentMethod = 'whatsapp' | 'website' | 'email' | 'cash' | 'upi' | 'card' | 'netbanking'
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
@@ -218,6 +218,7 @@ export interface Cafe {
   location?: string
   contactNumber?: string
   email?: string
+  logo?: string
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -231,6 +232,7 @@ export interface CafeOrder {
   totalAmount: number
   status: CafeOrderStatus
   paymentMethod: PaymentMethod
+  paymentStatus: 'pending' | 'paid'
   notes?: string
   createdAt: string
   updatedAt: string
@@ -239,8 +241,16 @@ export interface CafeOrder {
 export interface CafeAnalytics {
   cafe: Cafe
   totalRevenue: number
+  totalPaid: number
+  totalPending: number
   totalOrders: number
-  monthlyStats: { month: string; amount: number; count: number }[]
+  monthlyStats: { 
+    month: string; 
+    amount: number; 
+    paidAmount: number; 
+    pendingAmount: number; 
+    count: number 
+  }[]
   topMonth: { month: string; amount: number } | null
 }
 

@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useInventory, useStockAlerts, useUpdateStock } from '@/hooks/useData'
 import { cn } from '@/lib/utils'
 
-type Weight = '100g' | '250g' | '500g'
+type Weight = '250g' | '500g' | '1kg'
 
 interface EditCell {
   productId: string
@@ -48,7 +48,7 @@ export default function InventoryPage() {
   }
 
   const isProductLowStock = (stock: any) =>
-    (['100g', '250g', '500g'] as Weight[]).some(w => isLowStock(stock, w))
+    (['250g', '500g', '1kg'] as Weight[]).some(w => isLowStock(stock, w))
 
   return (
     <div>
@@ -79,7 +79,7 @@ export default function InventoryPage() {
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground">Product</th>
-                {(['100g', '250g', '500g'] as Weight[]).map(w => (
+                {(['250g', '500g', '1kg'] as Weight[]).map(w => (
                   <th key={w} className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">{w}</th>
                 ))}
                 <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Status</th>
@@ -121,7 +121,7 @@ export default function InventoryPage() {
                       </td>
 
                       {/* Stock cells */}
-                      {(['100g', '250g', '500g'] as Weight[]).map(weight => {
+                      {(['250g', '500g', '1kg'] as Weight[]).map(weight => {
                         const variant = product.stock?.[weight]
                         const qty = variant?.qty ?? 0
                         const reorderAt = variant?.reorderAt ?? 10

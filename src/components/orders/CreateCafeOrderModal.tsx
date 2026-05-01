@@ -11,6 +11,7 @@ export function CreateCafeOrderModal({ onClose }: { onClose: () => void }) {
     { name: '', qty: 1, price: 0 }
   ])
   const [paymentMethod, setPaymentMethod] = useState<any>('cash')
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'paid'>('pending')
   const [notes, setNotes] = useState('')
   const [cafeId, setCafeId] = useState('')
 
@@ -50,6 +51,7 @@ export function CreateCafeOrderModal({ onClose }: { onClose: () => void }) {
       items: validItems.map(i => ({ ...i, subtotal: i.qty * i.price })),
       totalAmount: total,
       paymentMethod,
+      paymentStatus,
       notes,
       status: 'completed'
     }, {
@@ -147,25 +149,52 @@ export function CreateCafeOrderModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { id: 'cash', icon: Banknote, label: 'Cash' },
-              { id: 'upi', icon: Wallet, label: 'UPI' },
-              { id: 'card', icon: CreditCard, label: 'Card' },
-            ].map((method) => (
-              <button
-                key={method.id}
-                type="button"
-                onClick={() => setPaymentMethod(method.id)}
-                className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${paymentMethod === method.id
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border hover:border-primary/50'
-                  }`}
-              >
-                <method.icon className="w-5 h-5" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">{method.label}</span>
-              </button>
-            ))}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Payment Method</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'cash', icon: Banknote, label: 'Cash' },
+                  { id: 'upi', icon: Wallet, label: 'UPI' },
+                  { id: 'card', icon: CreditCard, label: 'Card' },
+                ].map((method) => (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => setPaymentMethod(method.id)}
+                    className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all ${paymentMethod === method.id
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border hover:border-primary/50'
+                      }`}
+                  >
+                    <method.icon className="w-4 h-4" />
+                    <span className="text-[9px] font-bold uppercase tracking-wider">{method.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Payment Status</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'pending', label: 'Pending' },
+                  { id: 'paid', label: 'Paid' },
+                ].map((status) => (
+                  <button
+                    key={status.id}
+                    type="button"
+                    onClick={() => setPaymentStatus(status.id as any)}
+                    className={`flex items-center justify-center p-2 rounded-xl border text-[9px] font-bold uppercase tracking-wider transition-all h-[52px] ${paymentStatus === status.id
+                      ? status.id === 'paid' ? 'border-green-500 bg-green-500/10 text-green-500' : 'border-orange-500 bg-orange-500/10 text-orange-500'
+                      : 'border-border hover:border-primary/50'
+                      }`}
+                  >
+                    {status.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div>

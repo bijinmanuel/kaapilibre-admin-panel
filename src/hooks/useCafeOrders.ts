@@ -68,3 +68,16 @@ export function useGlobalCafeAnalytics() {
     staleTime: 1000 * 60 * 5,
   })
 }
+export function useUpdateCafeOrderPaymentStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, paymentStatus }: { id: string; paymentStatus: 'pending' | 'paid' }) =>
+      api.patch(`/cafe/orders/${id}/payment-status`, { paymentStatus }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['cafe/orders'] })
+      qc.invalidateQueries({ queryKey: ['cafe/orders/analytics'] })
+      toast.success('Payment status updated')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}

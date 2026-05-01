@@ -29,14 +29,21 @@ export default function CafeDashboardPage() {
       {/* Summary Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard 
-          title="Total Cafe Revenue" 
-          value={formatCurrency(analytics?.totalRevenue ?? 0)} 
+          title="Revenue (Paid)" 
+          value={formatCurrency(analytics?.totalPaid ?? 0)} 
           icon={DollarSign} 
           iconColor="#22c55e" 
           isLoading={analyticsLoading} 
         />
         <StatCard 
-          title="Total Cafe Orders" 
+          title="Revenue (Pending)" 
+          value={formatCurrency(analytics?.totalPending ?? 0)} 
+          icon={DollarSign} 
+          iconColor="#f59e0b" 
+          isLoading={analyticsLoading} 
+        />
+        <StatCard 
+          title="Total Orders" 
           value={analytics?.totalOrders ?? 0} 
           icon={ShoppingCart} 
           iconColor="#d4a853"
@@ -125,7 +132,8 @@ export default function CafeDashboardPage() {
               <tr className="bg-muted/30 text-muted-foreground">
                 <th className="text-left px-6 py-3 font-medium text-[10px] uppercase">Month</th>
                 <th className="text-left px-6 py-3 font-medium text-[10px] uppercase">Orders</th>
-                <th className="text-right px-6 py-3 font-medium text-[10px] uppercase">Revenue</th>
+                <th className="text-right px-6 py-3 font-medium text-[10px] uppercase">Total Invoiced</th>
+                <th className="text-right px-6 py-3 font-medium text-[10px] uppercase">Actually Paid</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -133,7 +141,8 @@ export default function CafeDashboardPage() {
                 <tr key={s.month}>
                   <td className="px-6 py-3 font-medium">{s.month}</td>
                   <td className="px-6 py-3">{s.count}</td>
-                  <td className="px-6 py-3 text-right font-bold" style={{ color: '#d4a853' }}>{formatCurrency(s.amount)}</td>
+                  <td className="px-6 py-3 text-right font-bold text-muted-foreground">{formatCurrency(s.amount)}</td>
+                  <td className="px-6 py-3 text-right font-bold text-green-500">{formatCurrency(s.paidAmount)}</td>
                 </tr>
               ))}
             </tbody>
@@ -194,6 +203,7 @@ export default function CafeDashboardPage() {
                 <th className="text-left px-6 py-4 font-medium uppercase tracking-wider text-[10px]">Cafe</th>
                 <th className="text-left px-6 py-4 font-medium uppercase tracking-wider text-[10px]">Total</th>
                 <th className="text-left px-6 py-4 font-medium uppercase tracking-wider text-[10px]">Method</th>
+                <th className="text-left px-6 py-4 font-medium uppercase tracking-wider text-[10px]">Payment</th>
                 <th className="text-left px-6 py-4 font-medium uppercase tracking-wider text-[10px]">Date</th>
               </tr>
             </thead>
@@ -210,6 +220,13 @@ export default function CafeDashboardPage() {
                   <td className="px-6 py-4">
                     <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-white/5 border border-white/10 text-muted-foreground">
                       {order.paymentMethod}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest ${
+                      order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
+                    }`}>
+                      {order.paymentStatus}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-xs text-muted-foreground">{formatDateTime(order.createdAt)}</td>

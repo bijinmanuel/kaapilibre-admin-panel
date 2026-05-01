@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Loader2, CreditCard, FileText, Calendar, Store, MapPin, Phone, Mail } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { useCafeOrder, useUpdateCafeOrderStatus } from '@/hooks/useCafeOrders'
+import { useCafeOrder, useUpdateCafeOrderStatus, useUpdateCafeOrderPaymentStatus } from '@/hooks/useCafeOrders'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import type { Cafe, CafeOrder, CafeOrderStatus } from '@/types'
 import { CafeInvoiceModal } from '@/components/invoice/CafeInvoiceModal'
@@ -14,6 +14,7 @@ export default function CafeOrderDetailPage({ params }: { params: Promise<{ id: 
   const router = useRouter()
   const { data: order, isLoading } = useCafeOrder(id)
   const { mutate: updateStatus } = useUpdateCafeOrderStatus()
+  const { mutate: updatePaymentStatus } = useUpdateCafeOrderPaymentStatus()
   const [showInvoice, setShowInvoice] = useState(false)
 
   if (isLoading) return (
@@ -141,6 +142,14 @@ export default function CafeOrderDetailPage({ params }: { params: Promise<{ id: 
                 </div>
               </div>
               <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Payment Status</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest ${
+                  order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
+                }`}>
+                  {order.paymentStatus}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">Created At</span>
                 <div className="flex items-center gap-2 text-xs">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -149,22 +158,32 @@ export default function CafeOrderDetailPage({ params }: { params: Promise<{ id: 
               </div>
             </div>
             
-            {order.status === 'pending' && (
-              <div className="mt-8 space-y-2">
+            <div className="mt-8 space-y-2">
+              {order.status === 'pending' && (
+                <>
+                  <button 
+                    onClick={() => updateStatus({ id: order._id, status: 'completed' })}
+                    className="w-full py-3 rounded-xl bg-green-500 text-white font-bold text-sm transition-all hover:bg-green-600 active:scale-[0.98]"
+                  >
+                    Mark Completed
+                  </button>
+                  <button 
+                    onClick={() => updateStatus({ id: order._id, status: 'cancelled' })}
+                    className="w-full py-3 rounded-xl bg-red-500/10 text-red-500 font-bold text-sm transition-all hover:bg-red-500/20 active:scale-[0.98]"
+                  >
+                    Cancel Order
+                  </button>
+                </>
+              )}
+              {order.status === 'completed' && order.paymentStatus === 'pending' && (
                 <button 
-                  onClick={() => updateStatus({ id: order._id, status: 'completed' })}
-                  className="w-full py-3 rounded-xl bg-green-500 text-white font-bold text-sm transition-all hover:bg-green-600 active:scale-[0.98]"
+                  onClick={() => updatePaymentStatus({ id: order._id, paymentStatus: 'paid' })}
+                  className="w-full py-3 rounded-xl bg-orange-500 text-white font-bold text-sm transition-all hover:bg-orange-600 active:scale-[0.98]"
                 >
-                  Mark Completed
+                  Mark as Paid
                 </button>
-                <button 
-                  onClick={() => updateStatus({ id: order._id, status: 'cancelled' })}
-                  className="w-full py-3 rounded-xl bg-red-500/10 text-red-500 font-bold text-sm transition-all hover:bg-red-500/20 active:scale-[0.98]"
-                >
-                  Cancel Order
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {order.notes && (

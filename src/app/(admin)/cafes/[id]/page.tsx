@@ -29,7 +29,7 @@ export default function CafeDetailsPage() {
   if (isLoading || !mounted) return <div className="p-8 animate-pulse text-muted-foreground">Loading analytics...</div>
   if (!analytics) return <div className="p-8 text-red-500">Analytics not found</div>
 
-  const { cafe, totalRevenue, totalOrders, monthlyStats, topMonth } = analytics
+  const { cafe, totalRevenue, totalPaid, totalPending, totalOrders, monthlyStats, topMonth } = analytics
 
   return (
     <>
@@ -41,7 +41,18 @@ export default function CafeDetailsPage() {
       </button>
 
       <PageHeader
-        title={cafe.name}
+        title={
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center overflow-hidden">
+              {cafe.logo ? (
+                <img src={cafe.logo} alt={cafe.name} className="w-full h-full object-cover" />
+              ) : (
+                <Store className="w-5 h-5 text-primary" />
+              )}
+            </div>
+            {cafe.name}
+          </div>
+        }
         description="Detailed performance and sales analytics"
         action={
           <div className="flex items-center gap-3">
@@ -72,35 +83,32 @@ export default function CafeDetailsPage() {
 
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center gap-4 mb-4">
+            <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <p className="text-sm text-muted-foreground">Received (Paid)</p>
+          </div>
+          <h3 className="text-2xl font-bold text-foreground">{formatCurrency(totalPaid)}</h3>
+        </div>
+
+        <div className="bg-card border border-border rounded-xl p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+              <Clock className="w-5 h-5" />
+            </div>
+            <p className="text-sm text-muted-foreground">Pending (Due)</p>
+          </div>
+          <h3 className="text-2xl font-bold text-foreground">{formatCurrency(totalPending)}</h3>
+        </div>
+
+        <div className="bg-card border border-border rounded-xl p-6">
+          <div className="flex items-center gap-4 mb-4">
             <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
               <ShoppingBag className="w-5 h-5" />
             </div>
             <p className="text-sm text-muted-foreground">Total Orders</p>
           </div>
           <h3 className="text-2xl font-bold text-foreground">{totalOrders}</h3>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <p className="text-sm text-muted-foreground">Top Month</p>
-          </div>
-          <h3 className="text-2xl font-bold text-foreground">{topMonth ? topMonth.month : '—'}</h3>
-          {topMonth && <p className="text-xs text-muted-foreground mt-1">{formatCurrency(topMonth.amount)} sales</p>}
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
-              <Star className="w-5 h-5" />
-            </div>
-            <p className="text-sm text-muted-foreground">Avg Ticket</p>
-          </div>
-          <h3 className="text-2xl font-bold text-foreground">
-            {totalOrders > 0 ? formatCurrency(totalRevenue / totalOrders) : '—'}
-          </h3>
         </div>
       </div>
 
@@ -136,9 +144,18 @@ export default function CafeDetailsPage() {
                 />
                 <Bar 
                   dataKey="amount" 
+                  name="Total Invoiced"
                   fill="#d4a853" 
                   radius={[6, 6, 0, 0]} 
-                  barSize={40}
+                  barSize={30}
+                  animationDuration={1500}
+                />
+                <Bar 
+                  dataKey="paidAmount" 
+                  name="Actually Paid"
+                  fill="#22c55e" 
+                  radius={[6, 6, 0, 0]} 
+                  barSize={30}
                   animationDuration={1500}
                 />
               </BarChart>

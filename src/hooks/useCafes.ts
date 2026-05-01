@@ -59,3 +59,34 @@ export function useUpdateCafe() {
     onError: (e: Error) => toast.error(e.message),
   })
 }
+
+export function useUploadCafeLogo() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => {
+      const formData = new FormData()
+      formData.append('logo', file)
+      return api.post(`/cafe/${id}/logo`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    },
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ['cafes'] })
+      qc.invalidateQueries({ queryKey: ['cafe', variables.id] })
+      toast.success('Logo uploaded successfully')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+export function useUploadLogo() {
+  return useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData()
+      formData.append('logo', file)
+      return api.post('/cafe/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
