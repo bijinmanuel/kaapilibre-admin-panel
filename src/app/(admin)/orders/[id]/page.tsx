@@ -14,9 +14,9 @@ import { InvoiceModal } from '@/components/invoice/InvoiceModal'
 const STATUS_ORDER: OrderStatus[] = ['pending', 'confirmed', 'roasting', 'dispatched', 'delivered']
 
 const PAYMENT_STATUS_COLORS: Record<PaymentStatus, { bg: string; text: string; border: string }> = {
-  pending:  { bg: 'bg-yellow-500/10', text: 'text-yellow-600 dark:text-yellow-400', border: 'border-yellow-500/30' },
-  paid:     { bg: 'bg-green-500/10',  text: 'text-green-600 dark:text-green-400',   border: 'border-green-500/30' },
-  failed:   { bg: 'bg-red-500/10',    text: 'text-red-600 dark:text-red-400',       border: 'border-red-500/30' },
+  pending: { bg: 'bg-yellow-500/10', text: 'text-yellow-600 dark:text-yellow-400', border: 'border-yellow-500/30' },
+  paid: { bg: 'bg-green-500/10', text: 'text-green-600 dark:text-green-400', border: 'border-green-500/30' },
+  failed: { bg: 'bg-red-500/10', text: 'text-red-600 dark:text-red-400', border: 'border-red-500/30' },
   refunded: { bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-500/30' },
 }
 
@@ -34,21 +34,21 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const router = useRouter()
   const isAdmin = useIsAdmin()
   const { data: order, isLoading } = useOrder(id)
-  const updateStatus  = useUpdateOrderStatus()
-  const deleteOrder   = useDeleteOrder()
+  const updateStatus = useUpdateOrderStatus()
+  const deleteOrder = useDeleteOrder()
   const updatePayment = useUpdatePayment()
 
-  const [newStatus,   setNewStatus]   = useState('')
-  const [note,        setNote]        = useState('')
-  const [showDelete,  setShowDelete]  = useState(false)
+  const [newStatus, setNewStatus] = useState('')
+  const [note, setNote] = useState('')
+  const [showDelete, setShowDelete] = useState(false)
   const [showInvoice, setShowInvoice] = useState(false)
 
   // Payment edit state
-  const [editingPayment,   setEditingPayment]   = useState(false)
-  const [payStatus,        setPayStatus]        = useState('')
-  const [transactionId,    setTransactionId]    = useState('')
-  const [gatewayOrderId,   setGatewayOrderId]   = useState('')
-  const [payNotes,         setPayNotes]         = useState('')
+  const [editingPayment, setEditingPayment] = useState(false)
+  const [payStatus, setPayStatus] = useState('')
+  const [transactionId, setTransactionId] = useState('')
+  const [gatewayOrderId, setGatewayOrderId] = useState('')
+  const [payNotes, setPayNotes] = useState('')
 
   const openPaymentEdit = () => {
     if (!order) return
@@ -63,10 +63,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     await updatePayment.mutateAsync({
       id,
       data: {
-        status:        payStatus,
+        status: payStatus,
         transactionId: transactionId || undefined,
         gatewayOrderId: gatewayOrderId || undefined,
-        notes:         payNotes || undefined,
+        notes: payNotes || undefined,
       },
     })
     setEditingPayment(false)
@@ -120,9 +120,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">Customer</p>
             <div className="grid grid-cols-2 gap-4 text-sm">
               {[
-                ['Name',    order.customer.name],
-                ['Email',   order.customer.email],
-                ['Phone',   order.customer.phone],
+                ['Name', order.customer.name],
+                ['Email', order.customer.email],
+                ['Phone', order.customer.phone],
                 ['Account', order.customer.userId ? 'Registered' : 'Guest'],
               ].map(([k, v]) => (
                 <div key={k}>
@@ -150,18 +150,18 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </div>
             <table className="w-full text-sm">
               <thead><tr className="border-b border-border bg-muted/30">
-                {['Product', 'Weight', 'Grind', 'Qty', 'Unit price', 'Subtotal'].map(h =>
+                {['Product', 'Weight', 'Grind', 'Qty'].map(h =>
                   <th key={h} className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">{h}</th>)}
               </tr></thead>
               <tbody>
                 {order.items.map((item, i) => (
                   <tr key={i} className="border-b border-border last:border-0">
-                    <td className="px-4 py-3 font-medium text-foreground">{item.name}</td>
+                    {/* <td className="px-4 py-3 font-medium text-foreground">{item.name}</td> */}
                     <td className="px-4 py-3 text-muted-foreground">{item.weight}</td>
                     <td className="px-4 py-3 text-muted-foreground">{item.grind}</td>
                     <td className="px-4 py-3 text-foreground">{item.qty}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatCurrency(item.unitPrice)}</td>
-                    <td className="px-4 py-3 font-semibold text-foreground">{formatCurrency(item.subtotal)}</td>
+                    {/* <td className="px-4 py-3 text-muted-foreground">{formatCurrency(item.unitPrice)}</td> */}
+                    {/* <td className="px-4 py-3 font-semibold text-foreground">{formatCurrency(item.subtotal)}</td> */}
                   </tr>
                 ))}
                 <tr className="bg-muted/20">
@@ -303,9 +303,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             <div className="space-y-0">
               {STATUS_ORDER.map((s, i) => {
                 const histEntry = order.statusHistory.find(h => h.status === s)
-                const isDone    = completedStatuses.includes(s)
+                const isDone = completedStatuses.includes(s)
                 const isCurrent = order.status === s
-                const color     = isDone ? STATUS_HEX[s] : undefined
+                const color = isDone ? STATUS_HEX[s] : undefined
                 return (
                   <div key={s} className="flex gap-3">
                     <div className="flex flex-col items-center">
