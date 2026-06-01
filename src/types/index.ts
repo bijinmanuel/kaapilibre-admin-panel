@@ -62,13 +62,13 @@ export interface Payment {
 
 export interface OrderItem {
   product: string
-  // name: string
-  // slug: string
+  name: string
+  slug: string
   weight: WeightVariant
   grind: GrindType
   qty: number
-  // unitPrice: number
-  // subtotal: number
+  unitPrice: number
+  subtotal: number
 }
 
 export interface StatusHistory {

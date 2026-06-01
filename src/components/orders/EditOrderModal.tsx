@@ -28,11 +28,13 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
 interface LineItem {
   id: string
   product: string
+  name: string
+  slug: string
   weight: WeightVariant
   grind: GrindType
   qty: number
+  unitPrice: number
 }
-
 const uid = () => Math.random().toString(36).slice(2, 9)
 
 export function EditOrderModal({ order, onClose }: EditOrderModalProps) {
@@ -55,9 +57,12 @@ export function EditOrderModal({ order, onClose }: EditOrderModalProps) {
     order.items.map(it => ({
       id: uid(),
       product: (typeof it.product === 'string' ? it.product : it.product) || '',
+      name: it.name,
+      slug: it.slug,
       weight: it.weight as WeightVariant,
       grind: it.grind as GrindType,
       qty: it.qty,
+      unitPrice: it.unitPrice,
     }))
   )
   const [activeSection, setActiveSection] = useState<string>('customer')
@@ -69,7 +74,7 @@ export function EditOrderModal({ order, onClose }: EditOrderModalProps) {
   const removeItem = (id: string) =>
     setItems(prev => prev.length > 1 ? prev.filter(it => it.id !== id) : prev)
 
-  const addItem = () => setItems(prev => [...prev, { id: uid(), product: '', weight: '250g', grind: 'Whole Bean', qty: 1 }])
+  const addItem = () => setItems(prev => [...prev, { id: uid(), product: '', name: '', slug: '', weight: '250g', grind: 'Whole Bean', qty: 1, unitPrice: 0 }])
 
   // ── Derived total ─────────────────────────────────────────────────────────
   const calcTotal = () => {
@@ -91,9 +96,13 @@ export function EditOrderModal({ order, onClose }: EditOrderModalProps) {
       customer: { name: name.trim(), email: email.trim(), phone: phone.trim() },
       items: items.map(it => ({
         product: it.product,
+        name: it.name,
+        slug: it.slug,
         weight: it.weight,
         grind: it.grind,
         qty: it.qty,
+        unitPrice: it.unitPrice,
+        subtotal: it.unitPrice * it.qty,
       })),
       payment: {
         method: paymentMethod,
