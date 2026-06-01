@@ -150,18 +150,18 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </div>
             <table className="w-full text-sm">
               <thead><tr className="border-b border-border bg-muted/30">
-                {['Product', 'Weight', 'Grind', 'Qty'].map(h =>
+                {['Product', 'Weight', 'Grind', 'Qty', 'price', 'subtotal'].map(h =>
                   <th key={h} className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">{h}</th>)}
               </tr></thead>
               <tbody>
                 {order.items.map((item, i) => (
                   <tr key={i} className="border-b border-border last:border-0">
-                    {/* <td className="px-4 py-3 font-medium text-foreground">{item.name}</td> */}
+                    <td className="px-4 py-3 font-medium text-foreground">{item.name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{item.weight}</td>
                     <td className="px-4 py-3 text-muted-foreground">{item.grind}</td>
                     <td className="px-4 py-3 text-foreground">{item.qty}</td>
-                    {/* <td className="px-4 py-3 text-muted-foreground">{formatCurrency(item.unitPrice)}</td> */}
-                    {/* <td className="px-4 py-3 font-semibold text-foreground">{formatCurrency(item.subtotal)}</td> */}
+                    <td className="px-4 py-3 text-muted-foreground">{formatCurrency(item.unitPrice)}</td>
+                    <td className="px-4 py-3 font-semibold text-foreground">{formatCurrency(item.subtotal)}</td>
                   </tr>
                 ))}
                 <tr className="bg-muted/20">
