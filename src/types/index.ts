@@ -36,6 +36,7 @@ export interface Product {
   process: ProductProcess
   altitude: string
   roast: string
+  blend: string
   flavourNotes: string[]
   story: string
   prices: Record<WeightVariant, number>
@@ -220,6 +221,11 @@ export interface Cafe {
   email?: string
   logo?: string
   isActive: boolean
+  region: 'Kerala' | 'Bangalore' | 'Hyderabad'
+  status: 'active' | 'trial' | 'approached' | 'not_responded' | 'dropped_off'
+  lastContactedAt?: string
+  targetBeans?: string[]
+  notes?: string
   createdAt: string
   updatedAt: string
 }
@@ -244,12 +250,12 @@ export interface CafeAnalytics {
   totalPaid: number
   totalPending: number
   totalOrders: number
-  monthlyStats: { 
-    month: string; 
-    amount: number; 
-    paidAmount: number; 
-    pendingAmount: number; 
-    count: number 
+  monthlyStats: {
+    month: string;
+    amount: number;
+    paidAmount: number;
+    pendingAmount: number;
+    count: number
   }[]
   topMonth: { month: string; amount: number } | null
 }
@@ -270,7 +276,174 @@ export interface Expense {
 }
 
 export interface ExpenseStats {
-  totalExpense: number
-  byCategory: Record<ExpenseCategory, number>
-  monthlyTrend: { month: string; amount: number }[]
+  stats: any[]
+  totalAmount: number
+  monthsList: any[]
+}
+
+// Employees
+export type EmployeeStatus = 'active' | 'inactive' | 'on_leave' | 'terminated'
+export type EmploymentType = 'full_time' | 'part_time' | 'contractor'
+export type AccessRole = 'admin' | 'manager' | 'staff' | 'viewer'
+
+export interface EmployeeDocument {
+  name: string
+  url: string
+  uploadedAt: string
+}
+
+export interface AttendanceRecord {
+  date: string
+  status: 'present' | 'absent' | 'half_day' | 'leave'
+}
+
+export interface LeaveBalance {
+  casual: number
+  sick: number
+  earned: number
+}
+
+export interface Employee {
+  _id: string
+  employeeId: string
+  name: string
+  designation: string
+  department: string
+  employmentType: EmploymentType
+  accessRole: AccessRole
+  salary: number
+  email?: string
+  phone: string
+  address?: string
+  joiningDate: string
+  manager?: string
+  image?: string
+  documents?: EmployeeDocument[]
+  attendance: AttendanceRecord[]
+  leaveBalance: LeaveBalance
+  status: EmployeeStatus
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EmployeeAnalytics {
+  totalEmployees: number
+  activeCount: number
+  onLeaveToday: number
+  terminatedCount: number
+  newHiresThisMonth: number
+  turnoverRate: number
+  totalPayroll: number
+  departmentBreakdown: { _id: string; count: number; totalSalary: number }[]
+  typeBreakdown: { _id: string; count: number }[]
+}
+
+export interface PerformanceInsightsData {
+  summary: {
+    currentRevenue: number
+    prevRevenue: number
+    revChangePercent: number
+    currentOrders: number
+    prevOrders: number
+    ordersChange: number
+    slowCafesCount: number
+  }
+  regionBreakdown: {
+    region: string
+    currentRevenue: number
+    prevRevenue: number
+    currentOrders: number
+    prevOrders: number
+    revenueGap: number
+    rootCauseTag: 'Order volume drop' | 'Bean mix shift' | 'Cafe churned' | 'New cafe not yet ordering'
+  }[]
+  slowCafes: {
+    cafeId: string
+    name: string
+    logo?: string
+    region: string
+    currentOrders: number
+    prevOrders: number
+    currentAvgOrderValue: number
+    prevAvgOrderValue: number
+    revenueGap: number
+    lastOrderDate?: string
+    isFlaggedNoOrder: boolean
+    aiActions: string[]
+  }[]
+  recoveryEstimate: {
+    potentialRecovery: number
+    recoveredTotalRevenue: number
+  }
+}
+
+export interface CafeAcquisitionData {
+  funnel: {
+    approached: number
+    trial: number
+    regular: number
+    approachedToTrialRate: number
+    trialToRegularRate: number
+  }
+  leads: Cafe[]
+  gapAnalysis: {
+    approachedThisMonth: number
+    approachedLastMonth: number
+    approachedChange: number
+    untappedRegion: string
+    untappedCount: number
+    bottleneckStage: string
+  }
+  aiOutreach: {
+    cafeId: string
+    name: string
+    region: string
+    recommendedSubject: string
+    recommendedBody: string
+    recommendedOffer: string
+  }[]
+  overallStrategy: string[]
+}
+
+export interface SalesIntelligenceData {
+  beansPerformance: {
+    name: string
+    currentQty: number
+    prevQty: number
+    currentRevenue: number
+    prevRevenue: number
+    trend: 'up' | 'down' | 'flat'
+    isSlowMoving: boolean
+  }[]
+  customerBehavior: {
+    retail: {
+      avgOrderValue: number
+      repeatOrderRate: number
+      preferredBeans: string[]
+    }
+    cafes: {
+      increased: { name: string; change: number }[]
+      reduced: { name: string; change: number }[]
+      silent: { name: string; days: number }[]
+    }
+  }
+  regionSales: {
+    region: string
+    currentRevenue: number
+    prevRevenue: number
+    trend: 'growing' | 'flat' | 'dropped'
+    popularBeans: string[]
+  }[]
+  healthScores: {
+    cafeId: string
+    name: string
+    logo?: string
+    region: string
+    score: 'Healthy' | 'At Risk' | 'Churning'
+    volumeTrend: number
+    orderFrequencyDays: number
+    aiSaveAction: string
+  }[]
+  aiPromotions: string[]
 }

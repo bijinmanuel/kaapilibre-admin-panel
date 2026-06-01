@@ -8,6 +8,8 @@ import { useCafeOrder, useUpdateCafeOrderStatus, useUpdateCafeOrderPaymentStatus
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import type { Cafe, CafeOrder, CafeOrderStatus } from '@/types'
 import { CafeInvoiceModal } from '@/components/invoice/CafeInvoiceModal'
+import { EditCafeOrderModal } from '@/components/orders/EditCafeOrderModal'
+import { Edit } from 'lucide-react'
 
 export default function CafeOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -16,6 +18,7 @@ export default function CafeOrderDetailPage({ params }: { params: Promise<{ id: 
   const { mutate: updateStatus } = useUpdateCafeOrderStatus()
   const { mutate: updatePaymentStatus } = useUpdateCafeOrderPaymentStatus()
   const [showInvoice, setShowInvoice] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
 
   if (isLoading) return (
     <div className="flex items-center justify-center h-64">
@@ -35,14 +38,20 @@ export default function CafeOrderDetailPage({ params }: { params: Promise<{ id: 
         description={`Created on ${formatDateTime(order.createdAt)}`}
         action={
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => setShowInvoice(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
             >
               <FileText className="w-4 h-4" /> Invoice
             </button>
-            <button 
-              onClick={() => router.back()} 
+            <button
+              onClick={() => setShowEdit(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+            >
+              <Edit className="w-4 h-4" /> Edit Order
+            </button>
+            <button
+              onClick={() => router.back()}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-all"
             >
               <ArrowLeft className="w-4 h-4" /> Back
@@ -143,9 +152,8 @@ export default function CafeOrderDetailPage({ params }: { params: Promise<{ id: 
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">Payment Status</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest ${
-                  order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
-                }`}>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest ${order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
+                  }`}>
                   {order.paymentStatus}
                 </span>
               </div>
@@ -157,17 +165,17 @@ export default function CafeOrderDetailPage({ params }: { params: Promise<{ id: 
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-8 space-y-2">
               {order.status === 'pending' && (
                 <>
-                  <button 
+                  <button
                     onClick={() => updateStatus({ id: order._id, status: 'completed' })}
                     className="w-full py-3 rounded-xl bg-green-500 text-white font-bold text-sm transition-all hover:bg-green-600 active:scale-[0.98]"
                   >
                     Mark Completed
                   </button>
-                  <button 
+                  <button
                     onClick={() => updateStatus({ id: order._id, status: 'cancelled' })}
                     className="w-full py-3 rounded-xl bg-red-500/10 text-red-500 font-bold text-sm transition-all hover:bg-red-500/20 active:scale-[0.98]"
                   >
@@ -176,7 +184,7 @@ export default function CafeOrderDetailPage({ params }: { params: Promise<{ id: 
                 </>
               )}
               {order.status === 'completed' && order.paymentStatus === 'pending' && (
-                <button 
+                <button
                   onClick={() => updatePaymentStatus({ id: order._id, paymentStatus: 'paid' })}
                   className="w-full py-3 rounded-xl bg-orange-500 text-white font-bold text-sm transition-all hover:bg-orange-600 active:scale-[0.98]"
                 >
@@ -199,6 +207,13 @@ export default function CafeOrderDetailPage({ params }: { params: Promise<{ id: 
         <CafeInvoiceModal
           order={order}
           onClose={() => setShowInvoice(false)}
+        />
+      )}
+
+      {showEdit && (
+        <EditCafeOrderModal
+          order={order}
+          onClose={() => setShowEdit(false)}
         />
       )}
     </>

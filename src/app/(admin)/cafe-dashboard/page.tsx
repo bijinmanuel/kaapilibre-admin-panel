@@ -1,9 +1,9 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ShoppingCart, DollarSign, Store, TrendingUp } from 'lucide-react'
 import { StatCard } from '@/components/dashboard/StatCard'
-import { PageHeader } from '@/components/layout/PageHeader'
+import { DashboardHeader } from '@/components/cafe-dashboard/DashboardHeader'
 import { useGlobalCafeAnalytics, useCafeOrders } from '@/hooks/useCafeOrders'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { 
@@ -13,8 +13,54 @@ import {
 
 export default function CafeDashboardPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const region = searchParams.get('region') || ''
+
   const { data: analytics, isLoading: analyticsLoading } = useGlobalCafeAnalytics()
-  const { data: ordersData, isLoading: ordersLoading } = useCafeOrders({ limit: 10 })
+  const { data: ordersData, isLoading: ordersLoading } = useCafeOrders({ limit: 100 })
+
+  // Calculate MoM Drop for Banner
+  const monthlyStats = analytics?.monthlyStats || []
+  let showBanner = false
+  let bannerGap = 0
+  
+  if (monthlyStats.length >= 2) {
+    const current = monthlyStats[monthlyStats.length - 1]
+    const previous = monthlyStats[monthlyStats.length - 2]
+    if (previous.amount > current.amount) {
+      showBanner = true
+      bannerGap = previous.amount - current.amount
+    }
+  }
+
+  // Filter cafe breakdown by region
+  const filteredBreakdown = analytics?.cafeBreakdown?.filter((c: any) => !region || c.region === region) || []
+
+  // Filter orders by region
+  const filteredOrders = ordersData?.data?.filter((order: any) => {
+    if (!region) return true
+    return (order.cafeId as any)?.region === region
+  }).slice(0, 10) || []
+
+  // Re-calculate Summary Cards based on Region Filter
+  const totalPaid = region 
+    ? filteredBreakdown.reduce((sum: number, c: any) => sum + c.paidRevenue, 0)
+    : (analytics?.totalPaid ?? 0)
+
+  const totalPending = region
+    ? filteredBreakdown.reduce((sum: number, c: any) => sum + c.pendingRevenue, 0)
+    : (analytics?.totalPending ?? 0)
+
+  const totalOrders = region
+    ? filteredBreakdown.reduce((sum: number, c: any) => sum + c.orders, 0)
+    : (analytics?.totalOrders ?? 0)
+
+  const activeCafes = region
+    ? filteredBreakdown.length
+    : (analytics?.cafeBreakdown?.length ?? 0)
+
+  const totalRevenue = totalPaid + totalPending
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
   const revenueData = analytics?.monthlyStats?.map((s: any) => ({
     label: s.month,
@@ -24,41 +70,46 @@ export default function CafeDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Cafe Analytics" description="Aggregated business intelligence for all cafe locations" />
+      <DashboardHeader 
+        title="Cafe Analytics Overview" 
+        description="Aggregated business intelligence for all cafe locations" 
+        showBanner={showBanner}
+        bannerGap={bannerGap}
+      />
 
       {/* Summary Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard 
           title="Revenue (Paid)" 
-          value={formatCurrency(analytics?.totalPaid ?? 0)} 
+          value={formatCurrency(totalPaid)} 
           icon={DollarSign} 
           iconColor="#22c55e" 
           isLoading={analyticsLoading} 
         />
         <StatCard 
           title="Revenue (Pending)" 
-          value={formatCurrency(analytics?.totalPending ?? 0)} 
+          value={formatCurrency(totalPending)} 
           icon={DollarSign} 
           iconColor="#f59e0b" 
           isLoading={analyticsLoading} 
         />
         <StatCard 
           title="Total Orders" 
-          value={analytics?.totalOrders ?? 0} 
+          value={totalOrders} 
           icon={ShoppingCart} 
           iconColor="#d4a853"
           isLoading={analyticsLoading} 
         />
         <StatCard 
           title="Active Cafes" 
-          value={analytics?.cafeBreakdown?.length ?? 0} 
+          value={activeCafes} 
           icon={Store} 
           iconColor="#60a5fa"
           isLoading={analyticsLoading} 
         />
         <StatCard 
           title="Avg. Order Value" 
-          value={formatCurrency(analytics?.totalOrders > 0 ? analytics.totalRevenue / analytics.totalOrders : 0)} 
+          value={formatCurrency(avgOrderValue)} 
           icon={TrendingUp} 
           iconColor="#8b5cf6"
           isLoading={analyticsLoading} 
@@ -157,7 +208,7 @@ export default function CafeDashboardPage() {
           </div>
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height={200} minWidth={0} debounce={100}>
-              <BarChart data={analytics?.cafeBreakdown || []} layout="vertical">
+              <BarChart data={filteredBreakdown} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
                 <XAxis 
                   type="number"
@@ -208,7 +259,7 @@ export default function CafeDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {ordersData?.data?.map((order) => (
+              {filteredOrders.map((order) => (
                 <tr 
                   key={order._id}
                   onClick={() => router.push(`/cafe-orders/${order._id}`)}
@@ -232,9 +283,9 @@ export default function CafeDashboardPage() {
                   <td className="px-6 py-4 text-xs text-muted-foreground">{formatDateTime(order.createdAt)}</td>
                 </tr>
               ))}
-              {!ordersData?.data?.length && !ordersLoading && (
+              {!filteredOrders.length && !ordersLoading && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">No recent cafe orders found</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">No recent cafe orders found</td>
                 </tr>
               )}
             </tbody>

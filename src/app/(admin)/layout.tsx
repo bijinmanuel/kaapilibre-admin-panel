@@ -12,6 +12,7 @@ const ROUTE_META: Record<string, { title: string; feature: string }> = {
   '/orders':     { title: 'Orders',     feature: 'orders' },
   '/products':   { title: 'Products',   feature: 'products' },
   '/customers':  { title: 'Customers',  feature: 'customers' },
+  '/employees':  { title: 'Employees',  feature: 'employees' },
   '/inventory':  { title: 'Inventory',  feature: 'inventory' },
   '/contact':    { title: 'Contact',    feature: 'contact' },
   '/analytics':  { title: 'Analytics',  feature: 'analytics' },
@@ -23,14 +24,17 @@ const ROUTE_META: Record<string, { title: string; feature: string }> = {
 }
 
 const PERMISSIONS: Record<string, string[]> = {
-  admin:    ['dashboard', 'orders', 'products', 'customers', 'inventory', 'contact', 'analytics', 'payments', 'guests', 'complaints', 'blog', 'settings'],
+  admin:    ['dashboard', 'orders', 'products', 'customers', 'employees', 'inventory', 'contact', 'analytics', 'payments', 'guests', 'complaints', 'blog', 'settings'],
   subadmin: ['dashboard', 'orders', 'products', 'inventory', 'contact', 'complaints', 'blog'],
 }
+
 
 function getRouteMeta(pathname: string) {
   const base = '/' + pathname.split('/')[1]
   return ROUTE_META[base] || { title: 'Admin', feature: 'dashboard' }
 }
+
+import { IdleLogout } from '@/components/common/IdleLogout'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading, isAuthenticated, fetchMe } = useAuthStore()
@@ -99,6 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      <IdleLogout />
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar title={title} />
@@ -109,3 +114,4 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </div>
   )
 }
+

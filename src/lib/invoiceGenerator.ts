@@ -74,7 +74,7 @@ export const generateInvoiceHTML = (order: Order): string => {
     /* ── Page shell ── */
     .inv-container {
       width: 210mm;
-      min-height: 297mm;
+      min-height: 296.7mm; /* Slightly less than A4 to prevent spill in some browsers */
       margin: 40px auto;
       background: #fff;
       box-shadow: 0 20px 50px rgba(0,0,0,0.05);
@@ -387,10 +387,14 @@ export const generateInvoiceHTML = (order: Order): string => {
     }
 
     @media print {
-      body { background: #fff; }
-      .inv-container { margin: 0; box-shadow: none; width: 100%; }
-      .print-btn-container { display: none; }
       @page { size: A4; margin: 0; }
+      html, body { margin: 0; padding: 0; height: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background: #fff; }
+      .inv-container { margin: 0 !important; box-shadow: none; width: 210mm; min-height: 100%; }
+      .print-btn-container { display: none; }
+      .inv-content { flex-grow: 1; }
+      .inv-bottom-bar { break-inside: avoid; }
+      .inv-footer-grid { break-inside: avoid; }
     }
   </style>
 </head>
@@ -590,8 +594,8 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
     }
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Outfit', sans-serif; background: #f8fafc; color: #1e293b; -webkit-print-color-adjust: exact; }
-    .inv-container { width: 210mm; min-height: 297mm; margin: 40px auto; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.05); position: relative; display: flex; flex-direction: column; overflow: hidden; }
+    body { font-family: 'Outfit', sans-serif; background: #f8fafc; color: #1e293b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .inv-container { width: 210mm; min-height: 296.7mm; margin: 40px auto; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.05); position: relative; display: flex; flex-direction: column; overflow: hidden; }
     .inv-bg-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('${LOGO}'); background-size: cover; background-position: center; opacity: 0.03; pointer-events: none; z-index: 0; }
     .inv-content { position: relative; z-index: 1; display: flex; flex-direction: column; flex-grow: 1; }
     .inv-hdr { padding: 60px 60px 40px 60px; display: flex; justify-content: space-between; align-items: flex-start; }
@@ -612,12 +616,19 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
     .inv-footer-grid { display: grid; grid-template-columns: 1fr 300px; gap: 60px; align-items: start; }
     .inv-payment-box { background: #f8fafc; padding: 24px; border-radius: 16px; }
     .inv-total-row.grand { margin-top: 12px; padding-top: 20px; border-top: 2px solid #f1f5f9; font-size: 20px; font-weight: 700; color: #0f172a; display: flex; justify-content: space-between; }
-    .inv-bottom-bar { padding: 60px; background: #ffffffff; color: #fff; }
+    .inv-bottom-bar { padding: 40px 60px; background: #fff; color: #1e293b; }
     .inv-bottom-content { display: flex; justify-content: space-between; align-items: center; }
     .print-btn-container { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 100; }
     .font-color {color:#375769; font-weight:bold}
     .print-btn { background: #0f172a; color: #fff; border: none; padding: 16px 32px; border-radius: 100px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.1); font-family: 'Outfit', sans-serif; }
-    @media print { body { background: #fff; } .inv-container { margin: 0; box-shadow: none; width: 100%; } .print-btn-container { display: none; } @page { size: A4; margin: 0; } }
+    @media print { 
+      @page { size: A4; margin: 0; }
+      html, body { margin: 0; padding: 0; height: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background: #fff; } 
+      .inv-container { margin: 0 !important; box-shadow: none; width: 210mm; min-height: 100%; } 
+      .print-btn-container { display: none; } 
+      .inv-bottom-bar { break-inside: avoid; }
+    }
   </style>
 </head>
 <body>

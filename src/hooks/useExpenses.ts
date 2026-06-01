@@ -23,10 +23,10 @@ export function useExpenses(filters: ExpenseFilters = {}) {
 }
 
 export function useExpenseStats(month?: string) {
-  return useQuery<{ stats: any[]; totalAmount: number }>({
+  return useQuery<ExpenseStats>({
     queryKey: ['expense-analytics', month],
     queryFn: async () => {
-      const res = await api.get('/expenses/analytics', { params: { month } }) as ApiResponse<{ stats: any[]; totalAmount: number }>
+      const res = await api.get('/expenses/analytics', { params: { month } }) as ApiResponse<ExpenseStats>
       return res.data
     },
   })

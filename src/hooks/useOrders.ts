@@ -97,3 +97,16 @@ export function useCreateOrder() {
 export function downloadOrdersCsv() {
   window.open(`${API_URL_BASE}/orders/export/csv`, '_blank')
 }
+export function useUpdateOrder() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }: Partial<Order> & { id: string }) =>
+      api.patch(`/orders/${id}`, data),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['orders'] })
+      qc.invalidateQueries({ queryKey: ['order', vars.id] })
+      toast.success('Order updated successfully')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}

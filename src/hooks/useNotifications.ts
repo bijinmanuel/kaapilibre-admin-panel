@@ -19,7 +19,7 @@ export function useNotifications() {
       const res = await api.get('/notifications') as any
       return res.data
     },
-    refetchInterval: 30_000,  // poll every 30s
+    refetchInterval: 60_000,  // poll every 30s
     staleTime: 10_000,
   })
 }

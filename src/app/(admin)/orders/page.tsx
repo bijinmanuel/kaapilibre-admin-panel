@@ -10,6 +10,9 @@ import { formatCurrency, formatDateTime, ORDER_STATUSES } from '@/lib/utils'
 import type { OrderStatus } from '@/types'
 import { InvoiceModal } from '@/components/invoice/InvoiceModal'
 import { CreateOrderModal } from '@/components/orders/CreateOrderModal'
+import { EditOrderModal } from '@/components/orders/EditOrderModal'
+import { Edit } from 'lucide-react'
+
 
 const useDebounce = (val: string, ms = 350) => {
   const [deb, setDeb] = useState(val)
@@ -27,6 +30,8 @@ export default function OrdersPage() {
   const [page, setPage] = useState(1)
   const [invoiceOrder, setInvoiceOrder] = useState<any>(null)
   const [showCreate,   setShowCreate]   = useState(false)
+  const [editingOrder, setEditingOrder] = useState<any>(null)
+
   const debouncedSearch = useDebounce(search)
 
   const { data, isLoading } = useOrders({
@@ -125,9 +130,16 @@ export default function OrdersPage() {
                       title="View invoice">
                       <FileText className="w-3.5 h-3.5" />
                     </button>
+                    <button 
+                      onClick={e => { e.stopPropagation(); setEditingOrder(order) }}
+                      className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                      title="Edit order">
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
                     <button className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
                       <Eye className="w-3.5 h-3.5" />
                     </button>
+
                   </td>
                 </tr>
               )) : (
@@ -163,6 +175,10 @@ export default function OrdersPage() {
       {showCreate && (
         <CreateOrderModal onClose={() => setShowCreate(false)} />
       )}
+      {editingOrder && (
+        <EditOrderModal order={editingOrder} onClose={() => setEditingOrder(null)} />
+      )}
+
     </>
   )
 }

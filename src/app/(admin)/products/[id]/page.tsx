@@ -16,6 +16,7 @@ const schema = z.object({
   process: z.enum(['Washed', 'Natural', 'Honey']),
   altitude: z.string().min(1, 'Altitude required'),
   roast: z.string().min(1, 'Roast required'),
+  blend: z.string().optional(),
   story: z.string().min(10, 'Story must be at least 10 characters'),
   badge: z.string().optional(),
   price250: z.preprocess(v => parseFloat(String(v)), z.number().positive('Must be > 0')),
@@ -63,6 +64,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         process: product.process,
         altitude: product.altitude,
         roast: product.roast,
+        blend: product.blend,
         story: product.story,
         badge: product.badge || '',
         price250: product.prices['250g'],
@@ -77,7 +79,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     const payload = {
       name: data.name, origin: data.origin, region: data.region,
       variety: data.variety, process: data.process, altitude: data.altitude,
-      roast: data.roast, story: data.story,
+      roast: data.roast, blend: data.blend, story: data.story,
       badge: data.badge || undefined,
       flavourNotes,
       prices: {
@@ -150,11 +152,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
             <div className="rounded-xl border border-border bg-card p-5 space-y-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Basic info</p>
+              <div className="grid grid-cols-2 gap-4">
 
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1.5">Product name *</label>
-                <input {...register('name')} placeholder="e.g. Bale Mountain Natural" />
-                <ErrorMsg field="name" />
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Product name *</label>
+                  <input {...register('name')} placeholder="e.g. Bale Mountain Natural" />
+                  <ErrorMsg field="name" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Blend *</label>
+                  <input {...register('blend')} placeholder="e.g. 70:30" />
+                  <ErrorMsg field="blend" />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -6,8 +6,11 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useCafeOrders, useUpdateCafeOrderStatus, useUpdateCafeOrderPaymentStatus } from '@/hooks/useCafeOrders'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import type { CafeOrderStatus } from '@/types'
+import type { CafeOrder, CafeOrderStatus } from '@/types'
 import { CreateCafeOrderModal } from '@/components/orders/CreateCafeOrderModal'
+import { EditCafeOrderModal } from '@/components/orders/EditCafeOrderModal'
+import { Edit2 } from 'lucide-react'
+
 
 const useDebounce = (val: string, ms = 350) => {
   const [deb, setDeb] = useState(val)
@@ -21,7 +24,9 @@ export default function CafeOrdersPage() {
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [showCreate, setShowCreate] = useState(false)
+  const [editingOrder, setEditingOrder] = useState<CafeOrder | null>(null)
   const [page, setPage] = useState(1)
+
   const debouncedSearch = useDebounce(search)
 
   const { data, isLoading } = useCafeOrders({
@@ -115,7 +120,15 @@ export default function CafeOrdersPage() {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="w-3 h-3" />
                     {formatDateTime(order.createdAt)}
+                    <button 
+                      onClick={() => setEditingOrder(order)}
+                      className="ml-2 p-1 hover:bg-primary/10 hover:text-primary rounded transition-colors"
+                      title="Edit Order"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
                   </div>
+
                 </div>
                 <div className="flex flex-col items-end">
                   <span className="text-lg font-bold text-foreground">{formatCurrency(order.totalAmount)}</span>
@@ -163,7 +176,7 @@ export default function CafeOrdersPage() {
                 {order.status === 'completed' && order.paymentStatus === 'pending' && (
                   <button
                     onClick={() => updatePaymentStatus({ id: order._id, paymentStatus: 'paid' })}
-                    className="flex-1 py-2 rounded-lg bg-orange-500/10 text-orange-500 text-xs font-semibold hover:bg-orange-500 hover:text-white transition-all"
+                    className="flex-1 py-2 rounded-lg bg-orange-500/10 text-orange-500 text-xs font-semibold hover:bg-orange-500 hover:text-[#3FF527] transition-all"
                   >
                     Mark as Paid
                   </button>
@@ -185,6 +198,8 @@ export default function CafeOrdersPage() {
       </div>
 
       {showCreate && <CreateCafeOrderModal onClose={() => setShowCreate(false)} />}
+      {editingOrder && <EditCafeOrderModal order={editingOrder} onClose={() => setEditingOrder(null)} />}
+
     </>
   )
 }
