@@ -14,7 +14,7 @@ export function EditCafeOrderModal({ order, onClose }: { order: CafeOrder; onClo
   const [paymentMethod, setPaymentMethod] = useState<any>(order.paymentMethod)
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'paid'>(order.paymentStatus)
   const [notes, setNotes] = useState(order.notes || '')
-  const [cafeId, setCafeId] = useState(order.cafeId?._id || (typeof order.cafeId === 'string' ? order.cafeId : ''))
+  const [cafeId, setCafeId] = useState(order._id || (typeof order.cafeId === 'string' ? order.cafeId : ''))
   const [status, setStatus] = useState(order.status)
 
   const { data: cafes } = useCafes()

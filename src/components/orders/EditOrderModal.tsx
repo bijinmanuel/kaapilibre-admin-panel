@@ -17,12 +17,12 @@ const WEIGHTS: WeightVariant[] = ['250g', '500g', '1kg']
 const GRINDS: GrindType[] = ['Whole Bean', 'Coarse', 'Medium', 'Fine']
 const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
   { value: 'whatsapp', label: 'WhatsApp' },
-  { value: 'cash',     label: 'Cash on Delivery' },
-  { value: 'upi',      label: 'UPI' },
-  { value: 'card',     label: 'Card' },
+  { value: 'cash', label: 'Cash on Delivery' },
+  { value: 'upi', label: 'UPI' },
+  { value: 'card', label: 'Card' },
   { value: 'netbanking', label: 'Net Banking' },
-  { value: 'website',  label: 'Website' },
-  { value: 'email',    label: 'Email' },
+  { value: 'website', label: 'Website' },
+  { value: 'email', label: 'Email' },
 ]
 
 interface LineItem {
@@ -42,25 +42,25 @@ export function EditOrderModal({ order, onClose }: EditOrderModalProps) {
   const updateOrder = useUpdateOrder()
 
   // ── Form state ──────────────────────────────────────────────────────────────
-  const [name,            setName]            = useState(order.customer.name)
-  const [email,           setEmail]           = useState(order.customer.email)
-  const [phone,           setPhone]           = useState(order.customer.phone)
+  const [name, setName] = useState(order.customer.name)
+  const [email, setEmail] = useState(order.customer.email)
+  const [phone, setPhone] = useState(order.customer.phone)
   const [shippingAddress, setShippingAddress] = useState(order.shippingAddress)
-  const [notes,           setNotes]           = useState(order.notes || '')
-  const [paymentMethod,   setPaymentMethod]   = useState<PaymentMethod>(order.payment?.method as PaymentMethod || 'whatsapp')
-  const [transactionId,   setTransactionId]   = useState(order.payment?.transactionId || '')
-  const [paymentNotes,    setPaymentNotes]    = useState(order.payment?.notes || '')
-  const [status,          setStatus]          = useState(order.status)
-  const [items,           setItems]           = useState<LineItem[]>(
+  const [notes, setNotes] = useState(order.notes || '')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(order.payment?.method as PaymentMethod || 'whatsapp')
+  const [transactionId, setTransactionId] = useState(order.payment?.transactionId || '')
+  const [paymentNotes, setPaymentNotes] = useState(order.payment?.notes || '')
+  const [status, setStatus] = useState(order.status)
+  const [items, setItems] = useState<LineItem[]>(
     order.items.map(it => ({
       id: uid(),
-      product: (typeof it.product === 'string' ? it.product : it.product?._id) || '',
+      product: (typeof it.product === 'string' ? it.product : it.product) || '',
       weight: it.weight as WeightVariant,
       grind: it.grind as GrindType,
       qty: it.qty,
     }))
   )
-  const [activeSection,   setActiveSection]   = useState<string>('customer')
+  const [activeSection, setActiveSection] = useState<string>('customer')
 
   // ── Item helpers ─────────────────────────────────────────────────────────────
   const updateItem = (id: string, patch: Partial<LineItem>) =>
@@ -91,29 +91,29 @@ export function EditOrderModal({ order, onClose }: EditOrderModalProps) {
       customer: { name: name.trim(), email: email.trim(), phone: phone.trim() },
       items: items.map(it => ({
         product: it.product,
-        weight:  it.weight,
-        grind:   it.grind,
-        qty:     it.qty,
+        weight: it.weight,
+        grind: it.grind,
+        qty: it.qty,
       })),
       payment: {
-        method:        paymentMethod,
+        method: paymentMethod,
         transactionId: transactionId.trim() || undefined,
-        notes:         paymentNotes.trim()  || undefined,
-        status:        order.payment.status, // Preserve payment status
-        amount:        calcTotal(),
+        notes: paymentNotes.trim() || undefined,
+        status: order.payment.status, // Preserve payment status
+        amount: calcTotal(),
       },
       shippingAddress: shippingAddress.trim(),
-      notes:           notes.trim() || undefined,
-      status:          status,
+      notes: notes.trim() || undefined,
+      status: status,
     })
     onClose()
   }
 
   const sections = [
-    { id: 'customer', icon: User,        label: 'Customer'  },
-    { id: 'items',    icon: ShoppingBag, label: 'Items'     },
-    { id: 'payment',  icon: CreditCard,  label: 'Payment'   },
-    { id: 'shipping', icon: MapPin,      label: 'Shipping'  },
+    { id: 'customer', icon: User, label: 'Customer' },
+    { id: 'items', icon: ShoppingBag, label: 'Items' },
+    { id: 'payment', icon: CreditCard, label: 'Payment' },
+    { id: 'shipping', icon: MapPin, label: 'Shipping' },
   ]
 
   const total = calcTotal()
@@ -318,9 +318,9 @@ export function EditOrderModal({ order, onClose }: EditOrderModalProps) {
                         onClick={() => setPaymentMethod(m.value)}
                         className="px-3 py-2.5 rounded-lg border text-xs font-medium transition-all"
                         style={{
-                          borderColor:      paymentMethod === m.value ? '#d4a853' : '',
-                          background:       paymentMethod === m.value ? 'rgba(212,168,83,0.12)' : '',
-                          color:            paymentMethod === m.value ? '#d4a853' : '',
+                          borderColor: paymentMethod === m.value ? '#d4a853' : '',
+                          background: paymentMethod === m.value ? 'rgba(212,168,83,0.12)' : '',
+                          color: paymentMethod === m.value ? '#d4a853' : '',
                         }}>
                         {m.label}
                       </button>
@@ -337,9 +337,11 @@ export function EditOrderModal({ order, onClose }: EditOrderModalProps) {
                   <textarea value={paymentNotes} onChange={e => setPaymentNotes(e.target.value)}
                     placeholder="e.g. Paid via GPay, screenshot received"
                     rows={2}
-                    style={{ resize: 'vertical', width: '100%', padding: '0.5rem 0.75rem',
+                    style={{
+                      resize: 'vertical', width: '100%', padding: '0.5rem 0.75rem',
                       background: 'transparent', border: '1px solid var(--border)', borderRadius: '0.5rem',
-                      fontSize: '0.875rem', color: 'var(--foreground)', outline: 'none' }} />
+                      fontSize: '0.875rem', color: 'var(--foreground)', outline: 'none'
+                    }} />
                 </div>
                 <NavButtons prev="items" next="shipping" setSection={setActiveSection} />
               </div>
@@ -354,18 +356,22 @@ export function EditOrderModal({ order, onClose }: EditOrderModalProps) {
                   <textarea value={shippingAddress} onChange={e => setShippingAddress(e.target.value)}
                     placeholder="Full delivery address including city, state, PIN"
                     rows={4} required
-                    style={{ resize: 'vertical', width: '100%', padding: '0.5rem 0.75rem',
+                    style={{
+                      resize: 'vertical', width: '100%', padding: '0.5rem 0.75rem',
                       background: 'transparent', border: '1px solid var(--border)', borderRadius: '0.5rem',
-                      fontSize: '0.875rem', color: 'var(--foreground)', outline: 'none' }} />
+                      fontSize: '0.875rem', color: 'var(--foreground)', outline: 'none'
+                    }} />
                 </div>
                 <div>
                   <Label>Order Notes <span className="text-muted-foreground">(optional)</span></Label>
                   <textarea value={notes} onChange={e => setNotes(e.target.value)}
                     placeholder="e.g. Customer prefers morning delivery, fragile packaging needed"
                     rows={3}
-                    style={{ resize: 'vertical', width: '100%', padding: '0.5rem 0.75rem',
+                    style={{
+                      resize: 'vertical', width: '100%', padding: '0.5rem 0.75rem',
                       background: 'transparent', border: '1px solid var(--border)', borderRadius: '0.5rem',
-                      fontSize: '0.875rem', color: 'var(--foreground)', outline: 'none' }} />
+                      fontSize: '0.875rem', color: 'var(--foreground)', outline: 'none'
+                    }} />
                 </div>
 
                 {/* Order Summary */}
