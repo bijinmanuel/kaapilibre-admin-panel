@@ -46,12 +46,12 @@ export const generateInvoiceHTML = (order: Order): string => {
 
   const itemRows = order.items.map(item => `
     <tr class="inv-tbl-row font-color">
-      <td style="padding:16px 20px;border-bottom:1px solid #f3f4f6;vertical-align:middle;">
+      <td style="padding:10px 20px;border-bottom:1px solid #f3f4f6;vertical-align:middle;">
         <div class="font-color" style="font-weight:600;font-size:14px;">${item.name}</div>
         <div style="font-size:12px;color:#6b7280;margin-top:4px;font-weight:400;">${item.weight || ''} ${item.grind ? `&middot; ${item.grind}` : ''}</div>
       </td>
-      <td class="font-color" style="padding:16px 20px;border-bottom:1px solid #f3f4f6;text-align:center;font-size:14px;">₹${item.unitPrice.toLocaleString('en-IN')}</td>
-      <td class="font-color" style="padding:16px 20px;border-bottom:1px solid #f3f4f6;text-align:start;font-size:14px;">${item.qty}</td>
+      <td class="font-color" style="padding:10px 20px;border-bottom:1px solid #f3f4f6;text-align:center;font-size:14px;">₹${item.unitPrice.toLocaleString('en-IN')}</td>
+      <td class="font-color" style="padding:10px 20px;border-bottom:1px solid #f3f4f6;text-align:start;font-size:14px;">${item.qty}</td>
       <td class="font-color" style="padding:10px 10px;border-bottom:1px solid #f3f4f6;text-align:start;font-weight:700;font-size:14px;">₹${item.subtotal.toLocaleString('en-IN')}</td>
     </tr>`).join('')
 
@@ -81,25 +81,26 @@ export const generateInvoiceHTML = (order: Order): string => {
     .inv-container { width: 210mm; min-height: 296.7mm; margin: 40px auto; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.05); position: relative; display: flex; flex-direction: column; overflow: hidden; }
     .inv-bg-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('${LOGO}'); background-size: cover; background-position: center; opacity: 0.03; pointer-events: none; z-index: 0; }
     .inv-content { position: relative; z-index: 1; display: flex; flex-direction: column; flex-grow: 1; }
-    .inv-hdr { padding: 60px 60px 40px 60px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .inv-hdr { padding: 30px 60px 20px 60px; display: flex; justify-content: space-between; align-items: flex-start; }
     .inv-logo-img { height: 70px; width: auto; object-fit: contain; }
     .inv-brand-name { font-family: 'Playfair Display', serif; font-size: 15px; color: #0f172a; letter-spacing: -0.5px; }
     .inv-brand-tagline { font-size: 12px; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
     .inv-title { font-family: 'Playfair Display', serif; font-size: 48px; color: #0f172a; line-height: 1; margin-bottom: 12px; }
-    .inv-body { padding: 0 60px 60px 60px; flex-grow: 1; }
-    .inv-divider { height: 1px; background: #f1f5f9; margin: 20px 0; }
-    .inv-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 60px; margin-bottom: 40px; }
-    .inv-section-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+    .inv-body { padding: 0 60px 20px 60px; }
+    .inv-divider { height: 1px; background: #f1f5f9; margin: 15px 0; }
+    .inv-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 60px; margin-bottom: 20px; }
+    .inv-section-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
     .inv-address-name { font-size: 16px; font-weight: 500; color: #0f172a; margin-bottom: 2px; }
     .inv-address-text { font-size: 14px; line-height: 1.6; color: #334155; }
-    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
-    .inv-table th { padding: 16px 20px; text-align: left; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f5f9; }
+    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .inv-table th { padding: 10px 20px; text-align: left; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f5f9; }
     .inv-table th.right { text-align: right; }
     .inv-table th.center { text-align: center; }
     .inv-footer-grid { display: grid; grid-template-columns: 1fr 300px; gap: 60px; align-items: start; }
     .inv-payment-box { background: #00000000; padding: 10px; border-radius: 16px; }
     .inv-total-row.grand { margin-top: 12px; padding-top: 20px; border-top: 2px solid #f1f5f9; font-size: 20px; font-weight: 700; color: #0f172a; display: flex; justify-content: space-between; }
-    .inv-bottom-bar { padding: 40px 60px; background: #fff; color: #1e293b; }
+    .inv-total-bar { padding: 0 60px 20px 60px; }
+    .inv-bottom-bar { padding: 20px 60px; background: #fff; color: #1e293b; }
     .inv-bottom-content { display: flex; justify-content: space-between; align-items: center; }
     .print-btn-container { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 100; }
     .font-color { color: #375769; font-weight: bold; }
@@ -113,7 +114,7 @@ export const generateInvoiceHTML = (order: Order): string => {
       body { background: #fff; }
       .inv-container { margin: 0 !important; box-shadow: none; width: 210mm; min-height: 100%; }
       .print-btn-container { display: none; }
-      .inv-bottom-bar { break-inside: avoid; }
+      tr, .inv-payment-box, .inv-total-bar, .inv-bottom-bar, footer { break-inside: avoid; page-break-inside: avoid; }
     }
   </style>
 </head>
@@ -182,18 +183,18 @@ export const generateInvoiceHTML = (order: Order): string => {
       </div>` : ''}
     </div>
 
-    <div class="inv-hdr typewriter">
-      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:50px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box;">
+    <div class="inv-total-bar typewriter">
+      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:40px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box;">
         <span class="font-color" style="font-size:12px; font-weight:700;">TOTAL</span>
         <span class="font-color" style="font-weight:600;">₹${order.totalAmount.toLocaleString('en-IN')}</span>
       </div>
     </div>
 
     <!-- Payment Info -->
-      <div style="padding:0px 50px; margin-bottom:20px;">
+      <div style="padding:0px 60px; margin-bottom:15px;">
         <div class="inv-payment-box typewriter">
-          <div class="inv-section-title font-color" style="margin-bottom:10px;">Payment Information</div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="inv-section-title font-color" style="margin-bottom:8px;">Payment Information</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
             <div>
               <div class="inv-payment-label font-color">Method</div>
               <div class="inv-payment-value font-color" style="text-transform:capitalize;">${order.payment?.method || 'N/A'}</div>
@@ -216,8 +217,8 @@ export const generateInvoiceHTML = (order: Order): string => {
         </div>
       </div>
 
-    <div style="text-align:center;">
-      <img src="${AEKBLUE}" style="height:100px; width:500px;" alt="KaapiLibreEarth"/>
+    <div style="text-align:center; margin-bottom: 10px; margin-top: auto; break-inside: avoid; page-break-inside: avoid;">
+      <img src="${AEKBLUE}" style="height:60px; max-width:90%; object-fit:contain;" alt="KaapiLibreEarth"/>
     </div>
 
     <footer class="inv-bottom-bar typewriter">
@@ -251,11 +252,11 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
 
   const itemRows = order.items.map(item => `
     <tr class="inv-tbl-row font-color">
-      <td style="padding:16px 20px;border-bottom:1px solid #f3f4f6;vertical-align:middle;">
+      <td style="padding:10px 20px;border-bottom:1px solid #f3f4f6;vertical-align:middle;">
         <div class="font-color" style="font-weight:600;font-size:14px;">${item.name}</div>
       </td>
-      <td class="font-color" style="padding:16px 20px;border-bottom:1px solid #f3f4f6;text-align:center;font-size:14px;">₹${item.price.toLocaleString('en-IN')}</td>
-      <td class="font-color" style="padding:16px 20px;border-bottom:1px solid #f3f4f6;text-align:start;font-size:14px;">${item.qty}</td>
+      <td class="font-color" style="padding:10px 20px;border-bottom:1px solid #f3f4f6;text-align:center;font-size:14px;">₹${item.price.toLocaleString('en-IN')}</td>
+      <td class="font-color" style="padding:10px 20px;border-bottom:1px solid #f3f4f6;text-align:start;font-size:14px;">${item.qty}</td>
       <td class="font-color" style="padding:10px 10px;border-bottom:1px solid #f3f4f6;text-align:start;font-weight:700;font-size:14px;">₹${item.subtotal.toLocaleString('en-IN')}</td>
     </tr>`).join('')
 
@@ -283,25 +284,26 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
     .inv-container { width: 210mm; min-height: 296.7mm; margin: 40px auto; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.05); position: relative; display: flex; flex-direction: column; overflow: hidden; }
     .inv-bg-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('${LOGO}'); background-size: cover; background-position: center; opacity: 0.03; pointer-events: none; z-index: 0; }
     .inv-content { position: relative; z-index: 1; display: flex; flex-direction: column; flex-grow: 1; }
-    .inv-hdr { padding: 60px 60px 40px 60px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .inv-hdr { padding: 30px 60px 20px 60px; display: flex; justify-content: space-between; align-items: flex-start; }
     .inv-logo-img { height: 70px; width: auto; object-fit: contain; }
     .inv-brand-name { font-family: 'Playfair Display', serif; font-size: 15px; color: #0f172a; letter-spacing: -0.5px; }
     .inv-brand-tagline { font-size: 12px; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
     .inv-title { font-family: 'Playfair Display', serif; font-size: 48px; color: #0f172a; line-height: 1; margin-bottom: 12px; }
-    .inv-body { padding: 0 60px 60px 60px; flex-grow: 1; }
-    .inv-divider { height: 1px; background: #f1f5f9; margin: 20px 0; }
-    .inv-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 60px; margin-bottom: 40px; }
-    .inv-section-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+    .inv-body { padding: 0 60px 20px 60px; }
+    .inv-divider { height: 1px; background: #f1f5f9; margin: 15px 0; }
+    .inv-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 60px; margin-bottom: 20px; }
+    .inv-section-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
     .inv-address-name { font-size: 16px; font-weight: 500; color: #0f172a; margin-bottom: 2px; }
     .inv-address-text { font-size: 14px; line-height: 1.6; color: #334155; }
-    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
-    .inv-table th { padding: 16px 20px; text-align: left; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f5f9; }
+    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .inv-table th { padding: 10px 20px; text-align: left; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f5f9; }
     .inv-table th.right { text-align: right; }
     .inv-table th.center { text-align: center; }
     .inv-footer-grid { display: grid; grid-template-columns: 1fr 300px; gap: 60px; align-items: start; }
     .inv-payment-box { background: #f8fafc; padding: 24px; border-radius: 16px; }
     .inv-total-row.grand { margin-top: 12px; padding-top: 20px; border-top: 2px solid #f1f5f9; font-size: 20px; font-weight: 700; color: #0f172a; display: flex; justify-content: space-between; }
-    .inv-bottom-bar { padding: 40px 60px; background: #fff; color: #1e293b; }
+    .inv-total-bar { padding: 0 60px 20px 60px; }
+    .inv-bottom-bar { padding: 20px 60px; background: #fff; color: #1e293b; }
     .inv-bottom-content { display: flex; justify-content: space-between; align-items: center; }
     .print-btn-container { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 100; }
     .font-color {color:#375769; font-weight:bold}
@@ -312,7 +314,7 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
       body { background: #fff; } 
       .inv-container { margin: 0 !important; box-shadow: none; width: 210mm; min-height: 100%; } 
       .print-btn-container { display: none; } 
-      .inv-bottom-bar { break-inside: avoid; }
+      tr, .inv-payment-box, .inv-total-bar, .inv-bottom-bar, footer { break-inside: avoid; page-break-inside: avoid; }
     }
   </style>
 </head>
@@ -368,14 +370,14 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
         </tbody>
       </table>
     </div>
-    <div class="inv-hdr typewriter">
-      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:50px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box;">
+    <div class="inv-total-bar typewriter">
+      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:40px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box;">
         <span class="font-color" style="font-size:12px; font-weight: 700">TOTAL</span>
         <span class="roght font-color " style="font-weight:600;">₹${order.totalAmount.toLocaleString('en-IN')}</span>
       </div>
     </div>
-    <div style="text-align:center;">
-        <img src="${AEKBLUE}" style="height:100px; width:500px;" alt="KaapiLibreEarth"/>
+    <div style="text-align:center; margin-bottom: 10px; margin-top: auto; break-inside: avoid; page-break-inside: avoid;">
+        <img src="${AEKBLUE}" style="height:60px; max-width:90%; object-fit:contain;" alt="KaapiLibreEarth"/>
     </div>
     <footer class="inv-bottom-bar typewriter">
       <div class="inv-bottom-content">
@@ -435,12 +437,12 @@ export const generateConsolidatedCafeInvoiceHTML = (
 
   const itemRows = consolidatedItems.map(item => `
     <tr class="inv-tbl-row font-color">
-      <td style="padding:12px 20px;border-bottom:1px solid #f3f4f6;vertical-align:middle;">
+      <td style="padding:8px 20px;border-bottom:1px solid #f3f4f6;vertical-align:middle;">
         <div class="font-color" style="font-weight:600;font-size:13px;">${item.name}</div>
       </td>
-      <td class="font-color" style="padding:12px 20px;border-bottom:1px solid #f3f4f6;text-align:center;font-size:13px;">₹${item.price.toLocaleString('en-IN')}</td>
-      <td class="font-color" style="padding:12px 20px;border-bottom:1px solid #f3f4f6;text-align:center;font-size:13px;">${item.qty}</td>
-      <td class="font-color" style="padding:12px 20px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;font-size:13px;">₹${item.subtotal.toLocaleString('en-IN')}</td>
+      <td class="font-color" style="padding:8px 20px;border-bottom:1px solid #f3f4f6;text-align:center;font-size:13px;">₹${item.price.toLocaleString('en-IN')}</td>
+      <td class="font-color" style="padding:8px 20px;border-bottom:1px solid #f3f4f6;text-align:center;font-size:13px;">${item.qty}</td>
+      <td class="font-color" style="padding:8px 20px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;font-size:13px;">₹${item.subtotal.toLocaleString('en-IN')}</td>
     </tr>`).join('')
 
   return `<!DOCTYPE html>
@@ -461,25 +463,26 @@ export const generateConsolidatedCafeInvoiceHTML = (
     .inv-container { width: 210mm; min-height: 296.7mm; margin: 40px auto; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.05); position: relative; display: flex; flex-direction: column; overflow: hidden; }
     .inv-bg-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('${LOGO}'); background-size: cover; background-position: center; opacity: 0.03; pointer-events: none; z-index: 0; }
     .inv-content { position: relative; z-index: 1; display: flex; flex-direction: column; flex-grow: 1; }
-    .inv-hdr { padding: 60px 60px 40px 60px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .inv-hdr { padding: 30px 60px 20px 60px; display: flex; justify-content: space-between; align-items: flex-start; }
     .inv-logo-img { height: 70px; width: auto; object-fit: contain; }
     .inv-brand-name { font-family: 'Playfair Display', serif; font-size: 15px; color: #0f172a; letter-spacing: -0.5px; }
     .inv-brand-tagline { font-size: 12px; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
     .inv-title { font-family: 'Playfair Display', serif; font-size: 48px; color: #0f172a; line-height: 1; margin-bottom: 12px; }
-    .inv-body { padding: 0 60px 60px 60px; flex-grow: 1; }
-    .inv-divider { height: 1px; background: #f1f5f9; margin: 20px 0; }
-    .inv-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 60px; margin-bottom: 40px; }
-    .inv-section-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+    .inv-body { padding: 0 60px 20px 60px; }
+    .inv-divider { height: 1px; background: #f1f5f9; margin: 15px 0; }
+    .inv-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 60px; margin-bottom: 20px; }
+    .inv-section-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
     .inv-address-name { font-size: 16px; font-weight: 500; color: #0f172a; margin-bottom: 2px; }
     .inv-address-text { font-size: 14px; line-height: 1.6; color: #334155; }
-    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-    .inv-table th { padding: 12px 20px; text-align: left; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f5f9; }
+    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .inv-table th { padding: 10px 20px; text-align: left; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f5f9; }
     .inv-table th.right { text-align: right; }
     .inv-table th.center { text-align: center; }
     .inv-footer-grid { display: grid; grid-template-columns: 1fr 300px; gap: 60px; align-items: start; }
     .inv-payment-box { background: #f8fafc; padding: 24px; border-radius: 16px; }
     .inv-total-row.grand { margin-top: 12px; padding-top: 20px; border-top: 2px solid #f1f5f9; font-size: 20px; font-weight: 700; color: #0f172a; display: flex; justify-content: space-between; }
-    .inv-bottom-bar { padding: 40px 60px; background: #fff; color: #1e293b; }
+    .inv-total-bar { padding: 0 60px 20px 60px; }
+    .inv-bottom-bar { padding: 20px 60px; background: #fff; color: #1e293b; }
     .inv-bottom-content { display: flex; justify-content: space-between; align-items: center; }
     .print-btn-container { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 100; }
     .font-color {color:#375769; font-weight:bold}
@@ -490,7 +493,7 @@ export const generateConsolidatedCafeInvoiceHTML = (
       body { background: #fff; } 
       .inv-container { margin: 0 !important; box-shadow: none; width: 210mm; min-height: 100%; } 
       .print-btn-container { display: none; } 
-      .inv-bottom-bar { break-inside: avoid; }
+      tr, .inv-payment-box, .inv-total-bar, .inv-bottom-bar, footer { break-inside: avoid; page-break-inside: avoid; }
     }
   </style>
 </head>
@@ -566,14 +569,14 @@ export const generateConsolidatedCafeInvoiceHTML = (
         </tbody>
       </table>
     </div>
-    <div class="inv-hdr typewriter" style="padding-top: 0;">
+    <div class="inv-total-bar typewriter">
       <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:50px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box;">
         <span class="font-color" style="font-size:12px; font-weight: 700">TOTAL DUE</span>
         <span class="roght font-color " style="font-weight:600;">₹${grandTotal.toLocaleString('en-IN')}</span>
       </div>
     </div>
-    <div style="text-align:center;">
-        <img src="${AEKBLUE}" style="height:100px; width:500px;" alt="KaapiLibreEarth"/>
+    <div style="text-align:center; margin-bottom: 10px; margin-top: auto; break-inside: avoid; page-break-inside: avoid;">
+        <img src="${AEKBLUE}" style="height:60px; max-width:90%; object-fit:contain;" alt="KaapiLibreEarth"/>
     </div>
     <footer class="inv-bottom-bar typewriter">
       <div class="inv-bottom-content">
