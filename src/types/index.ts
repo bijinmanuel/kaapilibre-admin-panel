@@ -240,6 +240,7 @@ export interface CafeOrder {
   paymentMethod: PaymentMethod
   paymentStatus: 'pending' | 'paid'
   notes?: string
+  invoiceNumber?: string
   createdAt: string
   updatedAt: string
 }

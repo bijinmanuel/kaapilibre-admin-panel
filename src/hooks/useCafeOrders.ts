@@ -10,6 +10,7 @@ interface CafeOrderFilters {
   to?: string
   page?: number
   limit?: number
+  cafeId?: string
 }
 
 export function useCafeOrders(filters: CafeOrderFilters = {}) {

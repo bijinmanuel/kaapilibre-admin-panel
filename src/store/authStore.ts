@@ -2,8 +2,8 @@ import { create } from 'zustand'
 import { api, setToken, removeToken, getToken } from '@/lib/api'
 import type { User, Role } from '@/types'
 
-const PERMISSIONS: Record<string, string[]> = {
-  admin: ['dashboard', 'orders', 'products', 'customers', 'inventory', 'contact', 'analytics', 'payments', 'guests', 'complaints', 'blog', 'settings', 'cafe-orders', 'expenses', 'cafe', 'cafe-analytics', 'cafe-products', 'employees'],
+export const PERMISSIONS: Record<string, string[]> = {
+  admin: ['dashboard', 'orders', 'products', 'customers', 'inventory', 'contact', 'analytics', 'payments', 'guests', 'complaints', 'blog', 'settings', 'cafe-orders', 'expenses', 'cafe', 'cafe-analytics', 'cafe-products', 'employees', 'finance'],
   subadmin: ['orders', 'products', 'inventory', 'contact', 'complaints', 'blog', 'cafe-orders', 'cafe', 'cafe-products'],
 }
 
@@ -58,11 +58,13 @@ export function useIsAdmin() {
   return user?.role === 'admin'
 }
 
-export function useCanAccess(feature: string) {
+export function useCanAccess() {
   const user = useAuthStore((s) => s.user)
-  if (!user) return false
-  const role = user.role as string
-  return PERMISSIONS[role]?.includes(feature) ?? false
+  return (feature: string) => {
+    if (!user) return false
+    const role = user.role as string
+    return PERMISSIONS[role]?.includes(feature) ?? false
+  }
 }
 
 export function useUserRole(): Role | null {

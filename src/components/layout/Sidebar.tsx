@@ -1,11 +1,12 @@
 'use client'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, ShoppingCart, Package, Users, Archive,
   MessageSquare, BarChart3, Settings, ChevronLeft, ChevronRight, LogOut, BookOpen, Users2, AlertTriangle, CreditCard,
-  Coffee, Wallet, Store
+  Coffee, Wallet, Store, ChevronDown, ChevronUp
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { useAuthStore, useCanAccess } from '@/store/authStore'
@@ -29,14 +30,46 @@ const NAV_ITEMS = [
   { icon: Users2, label: 'Guests', href: '/guests', feature: 'guests' },
   { icon: AlertTriangle, label: 'Complaints', href: '/complaints', feature: 'complaints' },
   { icon: BookOpen, label: 'Blog', href: '/blog', feature: 'blog' },
+  { icon: BarChart3, label: 'Finance', href: '/finance', feature: 'finance' },
   { icon: Settings, label: 'Settings', href: '/settings', feature: 'settings' },
+]
+
+const FINANCE_SUBLINKS = [
+  { label: 'Dashboard', href: '/finance' },
+  { label: 'Revenue', href: '/finance/revenue' },
+  { label: 'Expenses', href: '/finance/expenses' },
+  { label: 'Ledger', href: '/finance/ledger' },
+  { label: 'Accounts', href: '/finance/accounts' },
+  { label: 'Transfers', href: '/finance/transfers' },
+  { label: 'Setup', href: '/finance/accounts-setup' },
+  { label: 'Liabilities', href: '/finance/liabilities' },
+  { label: 'Profitability', href: '/finance/profitability' },
+  { label: 'Cash Flow', href: '/finance/cash-flow' },
+  { label: 'Reports', href: '/finance/reports' },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
   const { user, logout } = useAuthStore()
   const { collapsed, toggle } = useSidebarStore()
-  const canAccess = useCanAccess
+  const canAccess = useCanAccess()
+  const [financeOpen, setFinanceOpen] = useState(false)
+  const financeSublinksRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (pathname.startsWith('/finance')) {
+      setFinanceOpen(true)
+    }
+  }, [pathname])
+
+  useEffect(() => {
+    if (financeOpen && !collapsed) {
+      const timer = setTimeout(() => {
+        financeSublinksRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 150)
+      return () => clearTimeout(timer)
+    }
+  }, [financeOpen, collapsed])
 
   return (
     <aside
@@ -65,6 +98,57 @@ export function Sidebar() {
         {NAV_ITEMS.filter(item => canAccess(item.feature)).map((item) => {
           const Icon = item.icon
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
+
+          if (item.feature === 'finance' && !collapsed) {
+            const isFinanceActive = pathname.startsWith('/finance');
+            return (
+              <div key="finance-menu" className="space-y-1">
+                <button
+                  onClick={() => setFinanceOpen(!financeOpen)}
+                  className={cn(
+                    'w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
+                    isFinanceActive
+                      ? 'text-primary font-medium'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  )}
+                  style={isFinanceActive ? { background: 'rgba(212,168,83,0.15)', color: '#d4a853', borderLeft: '2px solid #d4a853' } : {}}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <span>{item.label}</span>
+                  </div>
+                  {financeOpen ? (
+                    <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </button>
+                {financeOpen && (
+                  <div ref={financeSublinksRef} className="pl-6 space-y-1 border-l border-white/5 ml-4">
+                    {FINANCE_SUBLINKS.map((sub) => {
+                      const subActive = pathname === sub.href;
+                      return (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          className={cn(
+                            'block px-3 py-1.5 rounded-md text-xs transition-colors',
+                            subActive
+                              ? 'text-primary font-semibold'
+                              : 'text-muted-foreground hover:text-foreground'
+                          )}
+                          style={subActive ? { color: '#d4a853' } : {}}
+                        >
+                          {sub.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
           return (
             <Link
               key={item.href}

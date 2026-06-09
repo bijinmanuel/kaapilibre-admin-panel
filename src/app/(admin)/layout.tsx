@@ -4,28 +4,29 @@ import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
-import { useAuthStore } from '@/store/authStore'
+import { useAuthStore, PERMISSIONS } from '@/store/authStore'
 import { Loader2 } from 'lucide-react'
 
 const ROUTE_META: Record<string, { title: string; feature: string }> = {
-  '/dashboard':  { title: 'Dashboard',  feature: 'dashboard' },
-  '/orders':     { title: 'Orders',     feature: 'orders' },
-  '/products':   { title: 'Products',   feature: 'products' },
-  '/customers':  { title: 'Customers',  feature: 'customers' },
-  '/employees':  { title: 'Employees',  feature: 'employees' },
-  '/inventory':  { title: 'Inventory',  feature: 'inventory' },
-  '/contact':    { title: 'Contact',    feature: 'contact' },
-  '/analytics':  { title: 'Analytics',  feature: 'analytics' },
-  '/payments':    { title: 'Payments',         feature: 'payments' },
-  '/guests':      { title: 'Guest customers', feature: 'guests' },
-  '/complaints':  { title: 'Complaints',        feature: 'complaints' },
-  '/blog':        { title: 'Blog',              feature: 'blog' },
-  '/settings':   { title: 'Settings',   feature: 'settings' },
-}
-
-const PERMISSIONS: Record<string, string[]> = {
-  admin:    ['dashboard', 'orders', 'products', 'customers', 'employees', 'inventory', 'contact', 'analytics', 'payments', 'guests', 'complaints', 'blog', 'settings'],
-  subadmin: ['dashboard', 'orders', 'products', 'inventory', 'contact', 'complaints', 'blog'],
+  '/dashboard':      { title: 'Dashboard',      feature: 'dashboard' },
+  '/orders':         { title: 'Orders',         feature: 'orders' },
+  '/products':       { title: 'Products',       feature: 'products' },
+  '/customers':      { title: 'Customers',      feature: 'customers' },
+  '/employees':      { title: 'Employees',      feature: 'employees' },
+  '/inventory':      { title: 'Inventory',      feature: 'inventory' },
+  '/contact':        { title: 'Contact',        feature: 'contact' },
+  '/analytics':      { title: 'Analytics',      feature: 'analytics' },
+  '/expenses':       { title: 'Expenses',       feature: 'expenses' },
+  '/payments':       { title: 'Payments',       feature: 'payments' },
+  '/guests':         { title: 'Guest Customers', feature: 'guests' },
+  '/complaints':     { title: 'Complaints',     feature: 'complaints' },
+  '/blog':           { title: 'Blog',           feature: 'blog' },
+  '/settings':       { title: 'Settings',       feature: 'settings' },
+  '/finance':        { title: 'Finance',        feature: 'finance' },
+  '/cafes':          { title: 'Cafes',          feature: 'cafe' },
+  '/cafe-menu':      { title: 'Cafe Menu',      feature: 'cafe-products' },
+  '/cafe-orders':    { title: 'Cafe Orders',    feature: 'cafe-orders' },
+  '/cafe-dashboard': { title: 'Cafe Analytics', feature: 'cafe-analytics' },
 }
 
 

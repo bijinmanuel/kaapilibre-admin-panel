@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1" //'https://kaapilibre-admin-panel-backend.onrender.com/api/v1'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://kaapilibre-admin-panel-backend.onrender.com/api/v1'
 
 // Token helpers — localStorage only runs in browser
 export const getToken = (): string | null => {
@@ -45,11 +45,6 @@ api.interceptors.response.use(
       removeToken()
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
         window.location.href = '/login'
-      }
-    }
-    if (status === 403) {
-      if (typeof window !== 'undefined') {
-        window.location.href = '/unauthorized'
       }
     }
 
