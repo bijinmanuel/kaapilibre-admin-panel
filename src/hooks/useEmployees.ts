@@ -136,3 +136,16 @@ export function useUploadDocument() {
     onError: (e: Error) => toast.error(e.message),
   })
 }
+
+export function useDeleteDocument() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, docIndex }: { id: string; docIndex: number }) =>
+      api.delete(`/employees/${id}/documents/${docIndex}`),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['employee', vars.id] })
+      toast.success('Document deleted successfully')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}

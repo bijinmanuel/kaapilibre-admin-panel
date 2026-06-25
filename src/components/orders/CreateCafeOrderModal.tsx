@@ -78,7 +78,7 @@ export function CreateCafeOrderModal({ onClose }: { onClose: () => void }) {
                 required
                 value={cafeId}
                 onChange={(e) => setCafeId(e.target.value)}
-                className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
               >
                 <option value="">Select Cafe...</option>
                 {cafes?.map(cafe => (

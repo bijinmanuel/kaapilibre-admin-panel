@@ -69,6 +69,54 @@ export function useUpdateStock() {
   })
 }
 
+export function usePackages() {
+  return useQuery<any[]>({
+    queryKey: ['packages'],
+    queryFn: async () => { const res = await api.get('/inventory/packages') as any; return res.data },
+  })
+}
+
+export function useCreatePackage() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { name: string; weightInGrams: number; qty?: number; reorderAt?: number; isExportOnly?: boolean }) =>
+      api.post('/inventory/packages', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['packages'] })
+      qc.invalidateQueries({ queryKey: ['inventory', 'alerts'] })
+      toast.success('Package created')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+export function useUpdatePackage() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string; name?: string; weightInGrams?: number; qty?: number; reorderAt?: number; isExportOnly?: boolean; operation?: string; quantity?: number }) =>
+      api.patch(`/inventory/packages/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['packages'] })
+      qc.invalidateQueries({ queryKey: ['inventory', 'alerts'] })
+      toast.success('Package updated')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+export function useDeletePackage() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/inventory/packages/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['packages'] })
+      qc.invalidateQueries({ queryKey: ['inventory', 'alerts'] })
+      toast.success('Package deleted')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
 // ── Contact ──────────────────────────────────────────────────────────────────
 interface MessageFilters { isRead?: boolean; page?: number; limit?: number }
 
