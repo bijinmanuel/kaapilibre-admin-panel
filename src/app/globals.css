@@ -121,7 +121,7 @@ body {
 }
 
 /* Input base styles */
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   background: var(--input);
@@ -159,7 +159,7 @@ select option {
   color: #f5f0e8;
 }
 
-input:focus,
+input:not([type="checkbox"]):not([type="radio"]):focus,
 select:focus,
 textarea:focus {
   border-color: var(--brand-gold);
