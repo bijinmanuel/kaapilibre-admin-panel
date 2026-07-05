@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Store, MapPin, Phone, Mail, ChevronRight, MoreVertical } from 'lucide-react'
+import { Plus, Store, MapPin, Phone, Mail, ChevronRight, MoreVertical, FileText } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCafes } from '@/hooks/useCafes'
 import { CreateCafeModal } from '@/components/cafes/CreateCafeModal'
@@ -78,6 +78,12 @@ export default function CafesPage() {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Phone className="w-3.5 h-3.5" />
                     {cafe.contactNumber}
+                  </div>
+                )}
+                {cafe.gstin && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <FileText className="w-3.5 h-3.5" />
+                    {cafe.gstin}
                   </div>
                 )}
               </div>

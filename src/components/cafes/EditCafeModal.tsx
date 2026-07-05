@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { X, Store, MapPin, Phone, Mail, Power, Upload, Loader2 } from 'lucide-react'
+import { X, Store, MapPin, Phone, Mail, Power, Upload, Loader2, FileText } from 'lucide-react'
 import { useUpdateCafe, useUploadCafeLogo } from '@/hooks/useCafes'
 import type { Cafe } from '@/types'
 
@@ -15,6 +15,7 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
     location: cafe.location || '',
     contactNumber: cafe.contactNumber || '',
     email: cafe.email || '',
+    gstin: cafe.gstin || '',
     isActive: cafe.isActive,
   })
 
@@ -97,6 +98,19 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="Full address"
+                className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">GSTIN Number</label>
+            <div className="relative">
+              {/* <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
+              <input
+                value={formData.gstin}
+                onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
+                placeholder="e.g. 32AAAAA1111A1Z1"
                 className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>

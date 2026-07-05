@@ -338,8 +338,9 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
       <div class="inv-grid" >
         <div style="display:flex; gap:20px; align-items:flex-start;">
         <div class="inv-section-title font-color typewriter" style="line-height:1; margin:0; padding:0;">ISSUED TO :</div>
-        <div class="inv-address-text font-color typewriter" style="line-height:1; margin:0; padding:0;">
+        <div class="inv-address-text font-color typewriter" style="line-height:1.2; margin:0; padding:0;">
           <div class="inv-address-name inv-section-title font-color" style="margin:0; padding:0;">${cafe?.name || 'Walk-in'}</div>
+          ${cafe?.gstin ? `<strong>GSTIN:</strong> ${cafe.gstin}<br/>` : ''}
           ${cafe?.contactNumber || ''}<br/>
           ${cafe?.location || ''}
           ${cafe?.email || ''}<br/>
@@ -519,6 +520,7 @@ export const generateConsolidatedCafeInvoiceHTML = (
         <div class="inv-section-title font-color typewriter" style="line-height:1; margin:0; padding:0; white-space:nowrap;">ISSUED TO :</div>
         <div class="inv-address-text font-color typewriter" style="line-height:1.4; margin:0; padding:0;">
           <div class="inv-address-name inv-section-title font-color" style="margin:0 0 4px 0; padding:0;">${cafe?.name || 'Walk-in'}</div>
+          ${cafe?.gstin ? `<strong>GSTIN:</strong> ${cafe.gstin}<br/>` : ''}
           ${cafe?.contactNumber || ''}<br/>
           ${cafe?.location || ''}
           ${cafe?.email || ''}<br/>

@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { 
-  ArrowLeft, Store, TrendingUp, ShoppingBag, Calendar, 
+import {
+  ArrowLeft, Store, TrendingUp, ShoppingBag, Calendar,
   ArrowUpRight, Clock, Star, MapPin, Phone, FileText
 } from 'lucide-react'
 import Link from 'next/link'
@@ -12,8 +12,8 @@ import { format } from 'date-fns'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCafeAnalytics } from '@/hooks/useCafes'
 import { formatCurrency } from '@/lib/utils'
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, LineChart, Line
 } from 'recharts'
 import { EditCafeModal } from '@/components/cafes/EditCafeModal'
@@ -37,7 +37,7 @@ export default function CafeDetailsPage() {
   } as any)
 
   const orders = ordersData?.data || []
-  
+
   // Extract unique month/year from orders for month dropdown filter
   const months = Array.from(
     new Set(
@@ -54,7 +54,7 @@ export default function CafeDetailsPage() {
   const handleToggleSelectAll = () => {
     const allFilteredIds = filteredOrders.map(o => o._id)
     const areAllSelected = allFilteredIds.every(id => selectedOrderIds.includes(id))
-    
+
     if (areAllSelected) {
       setSelectedOrderIds(prev => prev.filter(id => !allFilteredIds.includes(id)))
     } else {
@@ -80,10 +80,10 @@ export default function CafeDetailsPage() {
     const dates = selectedOrdersList.map(o => new Date(o.createdAt))
     const minDate = new Date(Math.min(...dates.map(d => d.getTime())))
     const maxDate = new Date(Math.max(...dates.map(d => d.getTime())))
-    
+
     const minMonth = format(minDate, 'MMM yyyy')
     const maxMonth = format(maxDate, 'MMM yyyy')
-    
+
     if (minMonth === maxMonth) {
       return format(minDate, 'MMMM yyyy')
     }
@@ -101,7 +101,7 @@ export default function CafeDetailsPage() {
 
   return (
     <>
-      <button 
+      <button
         onClick={() => router.back()}
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
@@ -189,40 +189,40 @@ export default function CafeDetailsPage() {
               <p className="text-sm text-muted-foreground">Month-by-month revenue growth</p>
             </div>
           </div>
-          
+
           <div className="h-[300px] w-full min-h-[300px]">
             <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
               <BarChart data={monthlyStats}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis 
-                  dataKey="month" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 12, fill: '#888' }} 
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
+                <XAxis
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fontSize: 12, fill: '#888' }}
-                  tickFormatter={(val) => `₹${val/1000}k`}
                 />
-                <Tooltip 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: '#888' }}
+                  tickFormatter={(val) => `₹${val / 1000}k`}
+                />
+                <Tooltip
                   contentStyle={{ background: '#1a1713', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
                   cursor={{ fill: 'rgba(212, 168, 83, 0.05)' }}
                 />
-                <Bar 
-                  dataKey="amount" 
+                <Bar
+                  dataKey="amount"
                   name="Total Invoiced"
-                  fill="#d4a853" 
-                  radius={[6, 6, 0, 0]} 
+                  fill="#d4a853"
+                  radius={[6, 6, 0, 0]}
                   barSize={30}
                   animationDuration={1500}
                 />
-                <Bar 
-                  dataKey="paidAmount" 
+                <Bar
+                  dataKey="paidAmount"
                   name="Actually Paid"
-                  fill="#22c55e" 
-                  radius={[6, 6, 0, 0]} 
+                  fill="#22c55e"
+                  radius={[6, 6, 0, 0]}
                   barSize={30}
                   animationDuration={1500}
                 />
@@ -234,7 +234,7 @@ export default function CafeDetailsPage() {
         {/* Cafe Info */}
         <div className="space-y-6">
           <div className="bg-card border border-border rounded-2xl p-6">
-            <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-6">Location Details</h4>
+            <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-6"> Cafe Details</h4>
             <div className="space-y-4">
               <div className="flex gap-4">
                 <div className="p-2 rounded-lg bg-accent text-muted-foreground h-fit">
@@ -254,14 +254,23 @@ export default function CafeDetailsPage() {
                   <p className="text-sm font-medium text-foreground">{cafe.contactNumber || 'Not provided'}</p>
                 </div>
               </div>
+              <div className="flex gap-4">
+                <div className="p-2 rounded-lg bg-accent text-muted-foreground h-fit">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">GSTIN Number</p>
+                  <p className="text-sm font-medium text-foreground">{cafe.gstin || 'Not provided'}</p>
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="bg-card border border-border rounded-2xl p-6 relative overflow-hidden group">
             <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">Performance Summary</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              This cafe has generated a total of <span className="text-primary font-bold">{formatCurrency(totalRevenue)}</span> across 
-              <span className="text-primary font-bold"> {totalOrders}</span> orders. 
+              This cafe has generated a total of <span className="text-primary font-bold">{formatCurrency(totalRevenue)}</span> across
+              <span className="text-primary font-bold"> {totalOrders}</span> orders.
               The most successful month was <span className="text-primary font-bold">{topMonth?.month}</span>.
             </p>
             <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
@@ -388,17 +397,15 @@ export default function CafeDetailsPage() {
                         {formatCurrency(order.totalAmount)}
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                          order.status === 'completed' ? 'bg-green-500/10 text-green-500' :
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${order.status === 'completed' ? 'bg-green-500/10 text-green-500' :
                           order.status === 'cancelled' ? 'bg-red-500/10 text-red-500' : 'bg-orange-500/10 text-orange-500'
-                        }`}>
+                          }`}>
                           {order.status}
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                          order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
-                        }`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
+                          }`}>
                           {order.paymentStatus}
                         </span>
                       </td>
@@ -417,9 +424,9 @@ export default function CafeDetailsPage() {
       </div>
 
       {showEdit && analytics?.cafe && (
-        <EditCafeModal 
-          cafe={analytics.cafe} 
-          onClose={() => setShowEdit(false)} 
+        <EditCafeModal
+          cafe={analytics.cafe}
+          onClose={() => setShowEdit(false)}
         />
       )}
 

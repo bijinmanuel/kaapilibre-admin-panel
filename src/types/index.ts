@@ -220,6 +220,7 @@ export interface Cafe {
   contactNumber?: string
   email?: string
   logo?: string
+  gstin?: string
   isActive: boolean
   region: 'Kerala' | 'Bangalore' | 'Hyderabad'
   status: 'active' | 'trial' | 'approached' | 'not_responded' | 'dropped_off'

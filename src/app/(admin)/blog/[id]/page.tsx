@@ -19,18 +19,18 @@ import { toast } from 'sonner'
 
 // ── Meta form schema ──────────────────────────────────────────────────────────
 const metaSchema = z.object({
-  title:   z.string().min(3, 'Title required'),
+  title: z.string().min(3, 'Title required'),
   excerpt: z.string().min(10, 'Excerpt required').max(300, 'Max 300 characters'),
-  tags:    z.string(), // comma-separated, parsed on submit
+  tags: z.string(), // comma-separated, parsed on submit
 })
 type MetaForm = z.infer<typeof metaSchema>
 
 // ── Block type config ─────────────────────────────────────────────────────────
 const BLOCK_TYPES = [
-  { type: 'heading',   icon: Heading, label: 'Heading',   hint: 'Section title' },
-  { type: 'paragraph', icon: Type,    label: 'Paragraph', hint: 'Body text' },
-  { type: 'quote',     icon: Quote,   label: 'Quote',     hint: 'Blockquote' },
-  { type: 'image',     icon: Image,   label: 'Image',     hint: 'Photo with caption' },
+  { type: 'heading', icon: Heading, label: 'Heading', hint: 'Section title' },
+  { type: 'paragraph', icon: Type, label: 'Paragraph', hint: 'Body text' },
+  { type: 'quote', icon: Quote, label: 'Quote', hint: 'Blockquote' },
+  { type: 'image', icon: Image, label: 'Image', hint: 'Photo with caption' },
 ] as const
 
 // ── Main page ─────────────────────────────────────────────────────────────────
@@ -42,21 +42,22 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
   const { data: blog, isLoading } = useBlog(isNew ? '' : urlParam)
   const blogId = blog?._id ?? urlParam
 
-  const createBlog    = useCreateBlog()
-  const updateBlog    = useUpdateBlog()
-  const deleteBlog    = useDeleteBlog()
+  const createBlog = useCreateBlog()
+  const updateBlog = useUpdateBlog()
+  const deleteBlog = useDeleteBlog()
   const togglePublish = useTogglePublish()
-  const uploadCover   = useUploadCoverImage()
-  const uploadBlock   = useUploadBlockImage()
-  const deleteBlock   = useDeleteBlockImage()
+  const uploadCover = useUploadCoverImage()
+  const uploadBlock = useUploadBlockImage()
+  const deleteBlock = useDeleteBlockImage()
 
   // Block state — local copy, saved on explicit save
-  const [blocks, setBlocks]           = useState<BlogBlock[]>([])
-  const [tagInput, setTagInput]       = useState('')
-  const [showDelete, setShowDelete]   = useState(false)
+  const [blocks, setBlocks] = useState<BlogBlock[]>([])
+  const [tagInput, setTagInput] = useState('')
+  const [showDelete, setShowDelete] = useState(false)
   const [showBlockMenu, setShowBlockMenu] = useState(false)
-  const [isDirty, setIsDirty]         = useState(false)
-  const [createdId, setCreatedId]     = useState<string | null>(null) // after first create
+  const [isDirty, setIsDirty] = useState(false)
+  const [createdId, setCreatedId] = useState<string | null>(null) // after first create
+  const [coverFile, setCoverFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // The working ID — either from URL (existing) or from the just-created post
@@ -71,9 +72,9 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     if (blog) {
       reset({
-        title:   blog.title,
+        title: blog.title,
         excerpt: blog.excerpt,
-        tags:    blog.tags.join(', '),
+        tags: blog.tags.join(', '),
       })
       setBlocks(blog.blocks.sort((a, b) => a.order - b.order))
     }
@@ -85,10 +86,10 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
     const orderedBlocks = blocks.map((b, i) => ({ ...b, order: i }))
 
     const payload = {
-      title:   meta.title,
+      title: meta.title,
       excerpt: meta.excerpt,
       tags,
-      blocks:  orderedBlocks,
+      blocks: orderedBlocks,
     }
 
     try {
@@ -98,6 +99,14 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
         const id = res?.data?._id
         if (id) {
           setCreatedId(id)
+          if (coverFile) {
+            try {
+              await uploadCover.mutateAsync({ id, file: coverFile })
+            } catch (err) {
+              console.error('Failed to upload cover image:', err)
+              toast.error('Post created, but cover image upload failed')
+            }
+          }
           router.replace(`/blog/${id}`)
           toast.success('Blog post created')
         }
@@ -105,7 +114,7 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
         await updateBlog.mutateAsync({ id: workingId, data: payload as any })
       }
       setIsDirty(false)
-    } catch {}
+    } catch { }
   }
 
   // ── Publish / unpublish ─────────────────────────────────────────────────────
@@ -148,7 +157,7 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
     const newBlocks = [...blocks]
     const swap = dir === 'up' ? idx - 1 : idx + 1
     if (swap < 0 || swap >= newBlocks.length) return
-    ;[newBlocks[idx], newBlocks[swap]] = [newBlocks[swap], newBlocks[idx]]
+      ;[newBlocks[idx], newBlocks[swap]] = [newBlocks[swap], newBlocks[idx]]
     setBlocks(newBlocks)
     setIsDirty(true)
   }
@@ -164,7 +173,7 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
       ))
       setIsDirty(true)
       toast.success('Image uploaded')
-    } catch {}
+    } catch { }
   }
 
   // ── Cover image upload ──────────────────────────────────────────────────────
@@ -197,11 +206,10 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
             )}
             {/* Status badge */}
             {!isNew && (
-              <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${
-                currentStatus === 'published'
+              <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${currentStatus === 'published'
                   ? 'border-green-500/30 bg-green-500/10 text-green-500'
                   : 'border-yellow-500/30 bg-yellow-500/10 text-yellow-500'
-              }`}>
+                }`}>
                 {currentStatus === 'published' ? 'Published' : 'Draft'}
               </span>
             )}
@@ -457,11 +465,10 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
               type="button"
               onClick={handleTogglePublish}
               disabled={togglePublish.isPending || (isNew && !createdId)}
-              className={`w-full h-10 rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-all ${
-                currentStatus === 'published'
+              className={`w-full h-10 rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-all ${currentStatus === 'published'
                   ? 'border border-yellow-500/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/10'
                   : 'border border-green-500/30 text-green-600 dark:text-green-400 hover:bg-green-500/10'
-              }`}>
+                }`}>
               {togglePublish.isPending
                 ? <Loader2 className="w-4 h-4 animate-spin" />
                 : currentStatus === 'published'
@@ -487,8 +494,18 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
                   </label>
                 </div>
               </div>
+            ) : coverFile ? (
+              <div className="relative rounded-lg overflow-hidden bg-muted mb-3 group/cover">
+                <img src={URL.createObjectURL(coverFile)} alt="Cover Preview" className="w-full h-40 object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button type="button" onClick={() => setCoverFile(null)}
+                    className="px-3 py-1.5 rounded-lg bg-red-500 text-xs font-medium text-white hover:bg-red-600 transition-colors">
+                    Remove
+                  </button>
+                </div>
+              </div>
             ) : (
-              <label className={`flex flex-col items-center justify-center h-32 rounded-xl border-2 border-dashed border-border hover:border-primary/40 cursor-pointer transition-colors text-muted-foreground hover:text-foreground mb-2 ${(!workingId) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <label className="flex flex-col items-center justify-center h-32 rounded-xl border-2 border-dashed border-border hover:border-primary/40 cursor-pointer transition-colors text-muted-foreground hover:text-foreground mb-2">
                 {uploadCover.isPending ? (
                   <Loader2 className="w-6 h-6 animate-spin" />
                 ) : (
@@ -497,12 +514,24 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
                     <span className="text-xs">Upload cover image</span>
                   </>
                 )}
-                <input type="file" accept="image/*" className="hidden" disabled={!workingId || uploadCover.isPending}
-                  onChange={e => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); e.target.value = '' }} />
+                <input type="file" accept="image/*" className="hidden" disabled={uploadCover.isPending}
+                  onChange={e => {
+                    const f = e.target.files?.[0]
+                    if (f) {
+                      if (workingId) {
+                        handleCoverUpload(f)
+                      } else {
+                        setCoverFile(f)
+                        setIsDirty(true)
+                      }
+                    }
+                    e.target.value = ''
+                  }}
+                />
               </label>
             )}
-            {!workingId && (
-              <p className="text-[10px] text-muted-foreground text-center">Save the post first to upload cover</p>
+            {!workingId && !coverFile && (
+              <p className="text-[10px] text-muted-foreground text-center">Cover image will be uploaded when you create the post</p>
             )}
           </div>
 
