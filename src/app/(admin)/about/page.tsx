@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import {
-  Loader2, Save, Upload, Plus, Trash2, Eye, EyeOff,
+  Loader2, Save, Upload, Plus, Trash2, Eye, EyeOff, Edit,
   ChevronUp, ChevronDown, ArrowRight, X,
   Mountain, Heart, Coffee, Sun, Shield, Flame, Archive,
   Star, Zap, Leaf, Globe, Award, Target, Crown, Users, Sparkles,
@@ -356,7 +356,7 @@ function PillarsTab() {
     const ids = pillars.map(p => p._id)
     const swap = dir === 'up' ? idx - 1 : idx + 1
     if (swap < 0 || swap >= ids.length) return
-    ;[ids[idx], ids[swap]] = [ids[swap], ids[idx]]
+      ;[ids[idx], ids[swap]] = [ids[swap], ids[idx]]
     reorderPillars.mutate(ids)
   }
 
@@ -444,7 +444,7 @@ function PillarsTab() {
                   <p className="text-xs text-primary/80">{p.tagline}</p>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{p.description}</p>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 flex-shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                   <button onClick={() => handleMove(idx, 'up')} disabled={idx === 0}
                     className="p-1.5 rounded-md hover:bg-accent text-muted-foreground disabled:opacity-30">
                     <ChevronUp className="w-3.5 h-3.5" />
@@ -457,9 +457,9 @@ function PillarsTab() {
                     className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground">
                     {p.isVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
-                  <button onClick={() => openEdit(p)}
+                  <button onClick={() => openEdit(p)} title="Edit Pillar"
                     className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground">
-                    <Save className="w-3.5 h-3.5" />
+                    <Edit className="w-3.5 h-3.5" />
                   </button>
                   {deleteTarget === p._id ? (
                     <div className="flex items-center gap-1">
@@ -531,7 +531,7 @@ function TimelineTab() {
     const ids = steps.map(s => s._id)
     const swap = dir === 'up' ? idx - 1 : idx + 1
     if (swap < 0 || swap >= ids.length) return
-    ;[ids[idx], ids[swap]] = [ids[swap], ids[idx]]
+      ;[ids[idx], ids[swap]] = [ids[swap], ids[idx]]
     reorderSteps.mutate(ids)
   }
 
@@ -617,7 +617,7 @@ function TimelineTab() {
                   </div>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.description}</p>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 flex-shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                   <button onClick={() => handleMove(idx, 'up')} disabled={idx === 0}
                     className="p-1.5 rounded-md hover:bg-accent text-muted-foreground disabled:opacity-30">
                     <ChevronUp className="w-3.5 h-3.5" />
@@ -626,13 +626,13 @@ function TimelineTab() {
                     className="p-1.5 rounded-md hover:bg-accent text-muted-foreground disabled:opacity-30">
                     <ChevronDown className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => toggleStep.mutate(s._id)}
+                  <button onClick={() => toggleStep.mutate(s._id)} title={s.isVisible ? 'Hide' : 'Show'}
                     className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground">
                     {s.isVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
-                  <button onClick={() => openEdit(s)}
+                  <button onClick={() => openEdit(s)} title="Edit Step"
                     className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground">
-                    <Save className="w-3.5 h-3.5" />
+                    <Edit className="w-3.5 h-3.5" />
                   </button>
                   {deleteTarget === s._id ? (
                     <div className="flex items-center gap-1">
@@ -742,7 +742,7 @@ function TeamTab() {
     const ids = members.map(m => m._id)
     const swap = dir === 'up' ? idx - 1 : idx + 1
     if (swap < 0 || swap >= ids.length) return
-    ;[ids[idx], ids[swap]] = [ids[swap], ids[idx]]
+      ;[ids[idx], ids[swap]] = [ids[swap], ids[idx]]
     reorderMembers.mutate(ids)
   }
 
@@ -877,7 +877,7 @@ function TeamTab() {
               </div>
 
               {/* Actions bar */}
-              <div className="flex items-center justify-end gap-1 px-4 pb-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center justify-end gap-1 px-4 pb-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <button onClick={() => handleMove(idx, 'up')} disabled={idx === 0}
                   className="p-1.5 rounded-md hover:bg-accent text-muted-foreground disabled:opacity-30">
                   <ChevronUp className="w-3.5 h-3.5" />
@@ -886,13 +886,13 @@ function TeamTab() {
                   className="p-1.5 rounded-md hover:bg-accent text-muted-foreground disabled:opacity-30">
                   <ChevronDown className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => toggleMember.mutate(m._id)}
+                <button onClick={() => toggleMember.mutate(m._id)} title={m.isVisible ? 'Hide' : 'Show'}
                   className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground">
                   {m.isVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
-                <button onClick={() => openEdit(m)}
+                <button onClick={() => openEdit(m)} title="Edit Member"
                   className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground">
-                  <Save className="w-3.5 h-3.5" />
+                  <Edit className="w-3.5 h-3.5" />
                 </button>
                 {deleteTarget === m._id ? (
                   <div className="flex items-center gap-1">
@@ -965,7 +965,7 @@ export default function AboutPage() {
         <Tabs.List className="flex gap-1 p-1 rounded-lg bg-muted mb-6 flex-wrap">
           {TABS.map(tab => (
             <Tabs.Trigger key={tab.id} value={tab.id}
-              className="px-4 py-2 rounded-md text-xs font-medium capitalize transition-all text-muted-foreground data-[state=active]:bg-[#d4a853] data-[state=active]:text-[#1a1713]"
+              className="px-4 py-2 rounded-md text-xs font-medium capitalize transition-all text-muted-foreground data-[state=active]:bg-[#d4a853] data-[state=active]:text-[#d4a853]"
             >
               {tab.label}
             </Tabs.Trigger>
