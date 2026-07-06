@@ -449,3 +449,64 @@ export interface SalesIntelligenceData {
   }[]
   aiPromotions: string[]
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// About Page
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface AboutHero {
+  _id?: string
+  tagline: string
+  headline: string
+  subheadline: string
+  scrollCta: string
+  heroImage: string
+  updatedAt?: string
+}
+
+export interface AboutManifesto {
+  _id?: string
+  sectionLabel: string
+  quote: string
+  roastImage: string
+  paragraphs: string[]
+  updatedAt?: string
+}
+
+export interface Pillar {
+  _id: string
+  order: number
+  iconName: string
+  title: string
+  tagline: string
+  description: string
+  isVisible: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TimelineStep {
+  _id: string
+  step: string
+  order: number
+  iconName: string
+  title: string
+  description: string
+  isVisible: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TeamMember {
+  _id: string
+  order: number
+  name: string
+  role: string
+  roleLabel: string
+  bio: string
+  portrait: string
+  isVisible: boolean
+  createdAt: string
+  updatedAt: string
+}
+

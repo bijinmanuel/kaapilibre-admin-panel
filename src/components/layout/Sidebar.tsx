@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, ShoppingCart, Package, Users, Archive,
   MessageSquare, BarChart3, Settings, ChevronLeft, ChevronRight, LogOut, BookOpen, Users2, AlertTriangle, CreditCard,
-  Coffee, Wallet, Store, ChevronDown, ChevronUp
+  Coffee, Wallet, Store, ChevronDown, ChevronUp, FileText
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { useAuthStore, useCanAccess } from '@/store/authStore'
@@ -29,6 +29,7 @@ const NAV_ITEMS = [
   { icon: CreditCard, label: 'Payments', href: '/payments', feature: 'payments' },
   { icon: Users2, label: 'Guests', href: '/guests', feature: 'guests' },
   { icon: AlertTriangle, label: 'Complaints', href: '/complaints', feature: 'complaints' },
+  { icon: FileText, label: 'About Page', href: '/about', feature: 'about' },
   { icon: BookOpen, label: 'Blog', href: '/blog', feature: 'blog' },
   { icon: BarChart3, label: 'Finance', href: '/finance', feature: 'finance' },
   { icon: Settings, label: 'Settings', href: '/settings', feature: 'settings' },
