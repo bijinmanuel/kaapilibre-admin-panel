@@ -53,8 +53,8 @@ export function useUploadCompanyDocument() {
 export function useDeleteCompanyDocument() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: string) => {
-      return api.delete(`/company-documents/${id}`)
+    mutationFn: async ({ id, password }: { id: string; password?: string }) => {
+      return api.delete(`/company-documents/${id}`, { data: { password } })
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['company-documents'] })
@@ -62,6 +62,41 @@ export function useDeleteCompanyDocument() {
     },
     onError: (e: Error) => {
       toast.error(e.message || 'Failed to delete document')
+    },
+  })
+}
+
+export function useUpdateCompanyDocument() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      id,
+      title,
+      description,
+      password,
+      file
+    }: {
+      id: string
+      title: string
+      description?: string
+      password?: string
+      file?: File
+    }) => {
+      const fd = new FormData()
+      fd.append('title', title)
+      if (description) fd.append('description', description)
+      if (password) fd.append('password', password)
+      if (file) fd.append('file', file)
+      return api.put(`/company-documents/${id}`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['company-documents'] })
+      toast.success('Document updated successfully')
+    },
+    onError: (e: Error) => {
+      toast.error(e.message || 'Failed to update document')
     },
   })
 }

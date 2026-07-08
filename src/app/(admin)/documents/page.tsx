@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   FileText,
   FileCode,
@@ -14,11 +14,12 @@ import {
   Upload,
   Calendar,
   User,
-  HardDrive
+  HardDrive,
+  Edit
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { ConfirmModal } from '@/components/common/ConfirmModal'
-import { useCompanyDocuments, useUploadCompanyDocument, useDeleteCompanyDocument, CompanyDocument } from '@/hooks/useCompanyDocuments'
+import { useCompanyDocuments, useUploadCompanyDocument, useDeleteCompanyDocument, useUpdateCompanyDocument, CompanyDocument } from '@/hooks/useCompanyDocuments'
 import { getToken, API_URL_BASE } from '@/lib/api'
 
 // Helper to format bytes to human readable format
@@ -35,7 +36,8 @@ export default function DocumentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [viewingDocument, setViewingDocument] = useState<CompanyDocument | null>(null)
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [editingDocument, setEditingDocument] = useState<CompanyDocument | null>(null)
+  const [confirmDeleteDoc, setConfirmDeleteDoc] = useState<CompanyDocument | null>(null)
 
   const handleDownload = (doc: CompanyDocument) => {
     const token = getToken()
@@ -138,15 +140,7 @@ export default function DocumentsPage() {
     }
   }
 
-  const handleDeleteConfirm = async () => {
-    if (!confirmDeleteId) return
-    try {
-      await deleteDocMutation.mutateAsync(confirmDeleteId)
-      setConfirmDeleteId(null)
-    } catch (err) {
-      console.error(err)
-    }
-  }
+  // handleDeleteConfirm has been replaced by the DeleteDocumentConfirmationModal component workflow
 
   // Get icon based on file type
   const getDocIcon = (type: string) => {
@@ -288,7 +282,14 @@ export default function DocumentsPage() {
                     <Download className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => setConfirmDeleteId(doc._id)}
+                    onClick={() => setEditingDocument(doc)}
+                    className="p-2 border border-transparent hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer"
+                    title="Edit document"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteDoc(doc)}
                     className="p-2 border border-transparent hover:bg-red-500/10 text-muted-foreground hover:text-red-400 rounded-lg transition-colors cursor-pointer"
                     title="Delete document"
                   >
@@ -528,15 +529,356 @@ export default function DocumentsPage() {
       )}
 
       {/* Delete Confirmation Modal */}
-      {confirmDeleteId && (
-        <ConfirmModal
-          title="Delete Company Document?"
-          message="Are you sure you want to permanently remove this document? This action will destroy the file record in the database and delete the asset from secure cloud storage."
-          onConfirm={handleDeleteConfirm}
-          onClose={() => setConfirmDeleteId(null)}
-          confirmText="Delete Document"
+      {confirmDeleteDoc && (
+        <DeleteDocumentConfirmationModal
+          documentId={confirmDeleteDoc._id}
+          documentTitle={confirmDeleteDoc.title}
+          onClose={() => setConfirmDeleteDoc(null)}
         />
       )}
+
+      {/* Edit Modal */}
+      {editingDocument && (
+        <EditDocumentModal
+          document={editingDocument}
+          onClose={() => setEditingDocument(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+// Edit Document Modal Component
+function EditDocumentModal({
+  document,
+  onClose
+}: {
+  document: CompanyDocument
+  onClose: () => void
+}) {
+  const updateDocMutation = useUpdateCompanyDocument()
+  const [title, setTitle] = useState(document.title)
+  const [description, setDescription] = useState(document.description || '')
+  const [password, setPassword] = useState('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [dragActive, setDragActive] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      validateAndSetFile(e.dataTransfer.files[0])
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      validateAndSetFile(e.target.files[0])
+    }
+  }
+
+  const validateAndSetFile = (file: File) => {
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ]
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError('Invalid file type. Only PDF, Image (JPG/PNG/WebP/GIF), and Word Documents (DOC/DOCX) are allowed.')
+      setSelectedFile(null)
+      return
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setUploadError('File is too large. Maximum size is 15MB.')
+      setSelectedFile(null)
+      return
+    }
+    setUploadError(null)
+    setSelectedFile(file)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!password.trim()) {
+      setUploadError('Password is required to confirm changes.')
+      return
+    }
+    if (!title.trim()) {
+      setUploadError('Title is required.')
+      return
+    }
+
+    try {
+      await updateDocMutation.mutateAsync({
+        id: document._id,
+        title,
+        description,
+        password,
+        file: selectedFile || undefined
+      })
+      onClose()
+    } catch (err: any) {
+      setUploadError(err.message || 'Verification or update failed.')
+    }
+  }
+
+  // Helper to format bytes
+  const formatBytes = (bytes: number, decimals = 1) => {
+    if (!bytes) return '0 Bytes'
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="bg-card border border-border w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h3 className="text-lg font-bold text-foreground">Edit Document</h3>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer"
+          >
+            <X className="w-4.5 h-4.5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {/* Title input */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Document Title *</label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Employee Handbook 2026"
+              className="w-full px-3 py-2 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
+            />
+          </div>
+
+          {/* Description input */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Description (Optional)</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Provide details about the document..."
+              rows={3}
+              className="w-full px-3 py-2 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground resize-none"
+            />
+          </div>
+
+          {/* File replacement drop zone */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider font-semibold">Replace File (Optional)</label>
+            <div
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors relative flex flex-col items-center justify-center min-h-[140px] ${
+                dragActive ? 'border-primary bg-primary/5' : 'border-border bg-muted/10 hover:bg-muted/20'
+              }`}
+            >
+              <input
+                type="file"
+                id="edit-doc-file-input"
+                accept=".pdf,.doc,.docx,image/*"
+                onChange={handleFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              <div className="space-y-2 pointer-events-none flex flex-col items-center">
+                <div className="p-3 bg-muted border border-border rounded-xl text-muted-foreground">
+                  <Upload className="w-5 h-5 text-muted-foreground/60" />
+                </div>
+                {selectedFile ? (
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-foreground max-w-[320px] truncate">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatBytes(selectedFile.size)} · Click or drag to change
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-foreground">
+                      Drag new file here or click to replace
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[320px]">
+                      Current: {document.fileName} ({formatBytes(document.fileSize)})
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Password recheck verification */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Confirm Admin Password *</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your account password to confirm changes"
+              className="w-full px-3 py-2 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
+            />
+          </div>
+
+          {uploadError && (
+            <div className="text-xs bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg">
+              {uploadError}
+            </div>
+          )}
+
+          {/* Submit Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+            <button
+              type="button"
+              disabled={updateDocMutation.isPending}
+              onClick={onClose}
+              className="px-4 py-2 border border-border text-foreground hover:bg-accent text-sm font-medium rounded-lg transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={updateDocMutation.isPending}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+              style={{ background: '#d4a853', color: '#1a1713' }}
+            >
+              {updateDocMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Delete Document Confirmation Modal Component
+function DeleteDocumentConfirmationModal({
+  documentId,
+  documentTitle,
+  onClose
+}: {
+  documentId: string
+  documentTitle: string
+  onClose: () => void
+}) {
+  const deleteDocMutation = useDeleteCompanyDocument()
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!password.trim()) {
+      setError('Password is required to confirm deletion.')
+      return
+    }
+
+    try {
+      await deleteDocMutation.mutateAsync({ id: documentId, password })
+      onClose()
+    } catch (err: any) {
+      setError(err.message || 'Verification or deletion failed.')
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="bg-card border border-border w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h3 className="text-lg font-bold text-foreground">Confirm Delete</h3>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer"
+          >
+            <X className="w-4.5 h-4.5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p>
+              Are you sure you want to permanently delete <strong className="text-foreground">{documentTitle}</strong>?
+            </p>
+            <p className="text-red-400/90 font-medium">
+              This action will destroy the file record in the database and delete the asset from secure cloud storage. This cannot be undone.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Confirm Admin Password *</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your account password to confirm deletion"
+              className="w-full px-3 py-2 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
+            />
+          </div>
+
+          {error && (
+            <div className="text-xs bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+            <button
+              type="button"
+              disabled={deleteDocMutation.isPending}
+              onClick={onClose}
+              className="px-4 py-2 border border-border text-foreground hover:bg-accent text-sm font-medium rounded-lg transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={deleteDocMutation.isPending}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {deleteDocMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Deleting...
+                </>
+              ) : (
+                'Delete Document'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
