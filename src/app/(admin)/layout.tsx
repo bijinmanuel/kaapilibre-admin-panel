@@ -8,26 +8,27 @@ import { useAuthStore, PERMISSIONS } from '@/store/authStore'
 import { Loader2 } from 'lucide-react'
 
 const ROUTE_META: Record<string, { title: string; feature: string }> = {
-  '/dashboard':      { title: 'Dashboard',      feature: 'dashboard' },
-  '/orders':         { title: 'Orders',         feature: 'orders' },
-  '/products':       { title: 'Products',       feature: 'products' },
-  '/customers':      { title: 'Customers',      feature: 'customers' },
-  '/employees':      { title: 'Employees',      feature: 'employees' },
-  '/inventory':      { title: 'Inventory',      feature: 'inventory' },
-  '/contact':        { title: 'Contact',        feature: 'contact' },
-  '/analytics':      { title: 'Analytics',      feature: 'analytics' },
-  '/expenses':       { title: 'Expenses',       feature: 'expenses' },
-  '/payments':       { title: 'Payments',       feature: 'payments' },
-  '/guests':         { title: 'Guest Customers', feature: 'guests' },
-  '/complaints':     { title: 'Complaints',     feature: 'complaints' },
-  '/blog':           { title: 'Blog',           feature: 'blog' },
-  '/settings':       { title: 'Settings',       feature: 'settings' },
-  '/finance':        { title: 'Finance',        feature: 'finance' },
-  '/cafes':          { title: 'Cafes',          feature: 'cafe' },
-  '/cafe-menu':      { title: 'Cafe Menu',      feature: 'cafe-products' },
-  '/cafe-orders':    { title: 'Cafe Orders',    feature: 'cafe-orders' },
+  '/dashboard': { title: 'Dashboard', feature: 'dashboard' },
+  '/orders': { title: 'Orders', feature: 'orders' },
+  '/products': { title: 'Products', feature: 'products' },
+  '/customers': { title: 'Customers', feature: 'customers' },
+  '/employees': { title: 'Employees', feature: 'employees' },
+  '/inventory': { title: 'Inventory', feature: 'inventory' },
+  '/contact': { title: 'Contact', feature: 'contact' },
+  '/analytics': { title: 'Analytics', feature: 'analytics' },
+  '/expenses': { title: 'Expenses', feature: 'expenses' },
+  '/payments': { title: 'Payments', feature: 'payments' },
+  '/guests': { title: 'Guest Customers', feature: 'guests' },
+  '/complaints': { title: 'Complaints', feature: 'complaints' },
+  '/blog': { title: 'Blog', feature: 'blog' },
+  '/settings': { title: 'Settings', feature: 'settings' },
+  '/documents': { title: 'Company Documents', feature: 'documents' },
+  '/finance': { title: 'Finance', feature: 'finance' },
+  '/cafes': { title: 'Cafes', feature: 'cafe' },
+  '/cafe-menu': { title: 'Cafe Menu', feature: 'cafe-products' },
+  '/cafe-orders': { title: 'Cafe Orders', feature: 'cafe-orders' },
   '/cafe-dashboard': { title: 'Cafe Analytics', feature: 'cafe-analytics' },
-  '/about':          { title: 'About Page',    feature: 'about' },
+  '/about': { title: 'About Page', feature: 'about' },
 }
 
 
@@ -75,19 +76,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="relative w-20 h-20">
             {/* Soft glowing background behind logo */}
             <div className="absolute inset-0 bg-[#d4a853]/10 blur-2xl rounded-full animate-pulse" />
-            
+
             <div className="relative w-full h-full p-2 bg-gradient-to-b from-[#1a1713] to-black border border-white/5 rounded-2xl shadow-2xl flex items-center justify-center overflow-hidden">
-              <Image 
-                src="/brand/logo_kaapilibre.png" 
-                alt="KaapiLibre Logo" 
-                width={64} 
-                height={64} 
+              <Image
+                src="/brand/logo_kaapilibre.png"
+                alt="KaapiLibre Logo"
+                width={64}
+                height={64}
                 priority
                 className="object-contain"
               />
             </div>
           </div>
-          
+
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-5 h-5 animate-spin text-[#d4a853]/60" />
             <p className="text-[10px] uppercase tracking-[0.2em] font-medium text-white/20">

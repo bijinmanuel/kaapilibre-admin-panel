@@ -7,6 +7,7 @@ import { z } from 'zod'
 import {
   ArrowLeft, Loader2, Plus, Trash2, GripVertical, Type, Image,
   Quote, Heading, Upload, Globe, FileText, X, AlertTriangle,
+  Eye, Smartphone, Laptop,
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import {
@@ -16,6 +17,7 @@ import {
 } from '@/hooks/useBlog'
 import { formatDateTime } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useAuthStore } from '@/store/authStore'
 
 // ── Meta form schema ──────────────────────────────────────────────────────────
 const metaSchema = z.object({
@@ -50,6 +52,24 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
   const uploadBlock = useUploadBlockImage()
   const deleteBlock = useDeleteBlockImage()
 
+  const user = useAuthStore(s => s.user)
+
+  // Preview state
+  const [showPreview, setShowPreview] = useState(false)
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop')
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState('')
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+
+  useEffect(() => {
+    if (coverFile) {
+      const url = URL.createObjectURL(coverFile)
+      setCoverPreviewUrl(url)
+      return () => URL.revokeObjectURL(url)
+    } else {
+      setCoverPreviewUrl('')
+    }
+  }, [coverFile])
+
   // Block state — local copy, saved on explicit save
   const [blocks, setBlocks] = useState<BlogBlock[]>([])
   const [tagInput, setTagInput] = useState('')
@@ -57,7 +77,6 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
   const [showBlockMenu, setShowBlockMenu] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
   const [createdId, setCreatedId] = useState<string | null>(null) // after first create
-  const [coverFile, setCoverFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // The working ID — either from URL (existing) or from the just-created post
@@ -67,6 +86,20 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
     resolver: zodResolver(metaSchema),
     defaultValues: { title: '', excerpt: '', tags: '' },
   })
+
+  const watchedTitle = watch('title')
+  const watchedExcerpt = watch('excerpt')
+  const watchedTags = watch('tags')
+
+  const authorName = blog?.author?.name || user?.name || 'Kaapilibre Author'
+
+  const wordCount = blocks.reduce((acc, b) => {
+    if (b.type === 'paragraph' || b.type === 'heading' || b.type === 'quote') {
+      return acc + (b.content?.trim().split(/\s+/).filter(Boolean).length || 0)
+    }
+    return acc
+  }, 0)
+  const readTime = Math.max(1, Math.ceil(wordCount / 200))
 
   // Populate form from fetched blog
   useEffect(() => {
@@ -213,6 +246,13 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
                 {currentStatus === 'published' ? 'Published' : 'Draft'}
               </span>
             )}
+            <button
+              type="button"
+              onClick={() => setShowPreview(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-accent transition-colors"
+            >
+              <Eye className="w-3.5 h-3.5" /> Preview
+            </button>
             <button onClick={() => router.back()}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-4 h-4" /> Back
@@ -586,6 +626,188 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
           )}
         </div>
       </div>
+
+      {/* ── Fullscreen Preview Modal ───────────────────────────────── */}
+      {showPreview && (
+        <div className="fixed inset-0 bg-[#0d0c0a] z-50 overflow-y-auto text-[#f5f0e8] font-sans flex flex-col">
+          {/* Header Toolbar */}
+          <div className="sticky top-0 bg-[#161410] border-b border-white/10 px-6 py-4 flex items-center justify-between z-30">
+            <div className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-[#d4a853]" />
+              <span className="font-medium text-sm typewriter uppercase tracking-wider text-white/80">Preview Mode</span>
+            </div>
+
+            {/* Device Toggle */}
+            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/5">
+              <button
+                type="button"
+                onClick={() => setPreviewDevice('desktop')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  previewDevice === 'desktop' ? 'bg-[#d4a853] text-[#1a1713]' : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Laptop className="w-3.5 h-3.5" /> Desktop
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewDevice('mobile')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  previewDevice === 'mobile' ? 'bg-[#d4a853] text-[#1a1713]' : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" /> Mobile
+              </button>
+            </div>
+
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowPreview(false)}
+              className="p-1.5 rounded-lg border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Preview Workspace Area */}
+          <div className="flex-1 bg-[#090807] overflow-y-auto relative py-12 px-4 flex justify-center">
+            {/* Ambient Background Blobs (forced Dark style) */}
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-[#598aa6]/5 blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-[#598aa6]/3 blur-[100px] pointer-events-none" />
+
+            <div
+              className={`relative z-10 w-full transition-all duration-300 ${
+                previewDevice === 'mobile'
+                  ? 'max-w-[390px] border-[12px] border-[#1e1b16] rounded-[48px] px-6 py-10 bg-[#0d0c0a] shadow-2xl relative min-h-[750px] self-start mt-4 mb-4'
+                  : 'max-w-[900px] px-6 md:px-12 bg-[#0d0c0a]/40'
+              }`}
+            >
+              {/* If Mobile, draw the camera notch/pill overlay */}
+              {previewDevice === 'mobile' && (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-32 h-4 bg-[#1e1b16] rounded-full z-20 flex items-center justify-center">
+                  <div className="w-3 h-3 bg-black rounded-full absolute left-4" />
+                  <div className="w-12 h-1 bg-neutral-800 rounded-full" />
+                </div>
+              )}
+
+              {/* Blog Title & Info Header */}
+              <div className="space-y-6 mb-12">
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2">
+                  {watchedTags && typeof watchedTags === 'string' && watchedTags.trim() ? (
+                    watchedTags.split(',').map(tag => tag.trim()).filter(Boolean).map(tag => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 rounded-full text-[10px] bg-white/5 text-amber-500 font-medium border border-white/10 tracking-widest uppercase typewriter"
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-[10px] text-white/30 italic">No tags</span>
+                  )}
+                </div>
+
+                {/* Title */}
+                <div>
+                  <h1 className="text-white font-light tracking-tight leading-[1.1] uppercase typewriter text-2xl md:text-4xl lg:text-5xl">
+                    {watchedTitle || 'Untitled Post'}
+                  </h1>
+                  {watchedExcerpt && (
+                    <p className="text-gray-400 text-sm md:text-base font-light italic mt-4 max-w-2xl leading-relaxed">
+                      {watchedExcerpt}
+                    </p>
+                  )}
+                </div>
+
+                {/* Metadata Summary Row */}
+                <div className="flex flex-wrap items-center justify-between gap-4 border-y border-white/5 py-4 mt-6">
+                  <div className="flex items-center gap-6 text-[10px] text-white/50 typewriter">
+                    <span className="flex items-center gap-1.5">
+                      <span className="text-[#598aa6]">BY</span> {authorName}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="text-[#598aa6]">DATE</span> {new Date(blog?.publishedAt || blog?.createdAt || new Date()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="text-[#598aa6]">READ</span> {readTime} min read
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cover Image */}
+              {(blog?.coverImage?.url || coverPreviewUrl) && (
+                <div className="mb-12 relative rounded-[32px] overflow-hidden bg-black/30 border border-white/10 shadow-2xl p-4 aspect-[16/9] w-full">
+                  <img
+                    src={blog?.coverImage?.url || coverPreviewUrl}
+                    alt={watchedTitle}
+                    className="w-full h-full object-cover rounded-[20px] p-2"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none rounded-[20px] m-4" />
+                </div>
+              )}
+
+              {/* Article Content Blocks */}
+              <article className="prose prose-invert max-w-none text-white/80 font-light text-sm md:text-base leading-[2.0] space-y-6 pb-16">
+                <div className="space-y-8">
+                  {blocks.length > 0 ? (
+                    blocks.map((block, idx) => {
+                      switch (block.type) {
+                        case 'heading':
+                          return (
+                            <h2 key={idx} className="text-xl md:text-2xl font-light text-white uppercase tracking-tight mt-10 mb-4 typewriter">
+                              {block.content}
+                            </h2>
+                          )
+                        case 'paragraph':
+                          return (
+                            <p key={idx} className="text-gray-300 leading-relaxed font-light text-sm md:text-base mb-6 whitespace-pre-line">
+                              {block.content}
+                            </p>
+                          )
+                        case 'quote':
+                          return (
+                            <blockquote key={idx} className="border-l-2 border-amber-500 pl-6 py-2 my-8 italic text-white/90 text-base md:text-lg font-light bg-white/3 rounded-r-xl">
+                              "{block.content}"
+                            </blockquote>
+                          )
+                        case 'image':
+                          return (
+                            <div key={idx} className="relative w-full aspect-[16/9] rounded-[24px] overflow-hidden my-10 bg-black/10 border border-white/5 p-2">
+                              {block.url ? (
+                                <img
+                                  src={block.url}
+                                  alt={block.caption || watchedTitle}
+                                  className="w-full h-full object-cover rounded-[16px]"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 text-white/40 text-xs">
+                                  <span>No image uploaded for this block</span>
+                                </div>
+                              )}
+                              {block.caption && (
+                                <span className="absolute bottom-4 left-4 bg-black/60 px-3 py-1 text-[10px] rounded-full text-white/70 typewriter">
+                                  {block.caption}
+                                </span>
+                              )}
+                            </div>
+                          )
+                        default:
+                          return null
+                      }
+                    })
+                  ) : (
+                    <div className="py-12 text-center text-white/30 border border-dashed border-white/10 rounded-2xl">
+                      <p className="text-sm">This post has no content blocks yet.</p>
+                    </div>
+                  )}
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
