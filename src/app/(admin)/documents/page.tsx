@@ -20,7 +20,7 @@ import {
 import { PageHeader } from '@/components/layout/PageHeader'
 import { ConfirmModal } from '@/components/common/ConfirmModal'
 import { useCompanyDocuments, useUploadCompanyDocument, useDeleteCompanyDocument, useUpdateCompanyDocument, CompanyDocument } from '@/hooks/useCompanyDocuments'
-import { getToken, API_URL_BASE } from '@/lib/api'
+import { getToken, API_URL_BASE, api } from '@/lib/api'
 
 // Helper to format bytes to human readable format
 function formatBytes(bytes: number, decimals = 1) {
@@ -38,6 +38,7 @@ export default function DocumentsPage() {
   const [viewingDocument, setViewingDocument] = useState<CompanyDocument | null>(null)
   const [editingDocument, setEditingDocument] = useState<CompanyDocument | null>(null)
   const [confirmDeleteDoc, setConfirmDeleteDoc] = useState<CompanyDocument | null>(null)
+  const [downloadingDocument, setDownloadingDocument] = useState<CompanyDocument | null>(null)
 
   const handleDownload = (doc: CompanyDocument) => {
     const token = getToken()
@@ -275,7 +276,7 @@ export default function DocumentsPage() {
                     <Eye className="w-3.5 h-3.5" /> View
                   </button>
                   <button
-                    onClick={() => handleDownload(doc)}
+                    onClick={() => setDownloadingDocument(doc)}
                     className="flex items-center justify-center p-2 bg-muted/50 border border-border hover:bg-accent text-foreground rounded-lg transition-colors cursor-pointer"
                     title="Download original file"
                   >
@@ -469,7 +470,7 @@ export default function DocumentsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleDownload(viewingDocument)}
+                  onClick={() => setDownloadingDocument(viewingDocument)}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-muted/60 hover:bg-accent border border-border text-foreground rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" /> Download
@@ -515,7 +516,7 @@ export default function DocumentsPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => handleDownload(viewingDocument)}
+                    onClick={() => setDownloadingDocument(viewingDocument)}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-[1.01] cursor-pointer"
                     style={{ background: '#d4a853', color: '#1a1713' }}
                   >
@@ -542,6 +543,14 @@ export default function DocumentsPage() {
         <EditDocumentModal
           document={editingDocument}
           onClose={() => setEditingDocument(null)}
+        />
+      )}
+
+      {/* Download Password Modal */}
+      {downloadingDocument && (
+        <DownloadPasswordModal
+          document={downloadingDocument}
+          onClose={() => setDownloadingDocument(null)}
         />
       )}
     </div>
@@ -874,6 +883,123 @@ function DeleteDocumentConfirmationModal({
                 </>
               ) : (
                 'Delete Document'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Download Password Modal Component
+function DownloadPasswordModal({
+  document,
+  onClose
+}: {
+  document: CompanyDocument
+  onClose: () => void
+}) {
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!password.trim()) {
+      setError('Password is required to confirm downloading.')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await api.get(document.fileUrl, {
+        params: { download: 'true' },
+        headers: {
+          'x-confirm-password': password
+        },
+        responseType: 'blob'
+      })
+
+      const blob = response as unknown as Blob
+      const url = window.URL.createObjectURL(blob)
+      const a = window.document.createElement('a')
+      a.href = url
+      a.download = document.fileName
+      window.document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      a.remove()
+
+      onClose()
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || 'Incorrect password. Download cancelled.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="bg-card border border-border w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h3 className="text-lg font-bold text-foreground">Confirm Download</h3>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer"
+          >
+            <X className="w-4.5 h-4.5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p>
+              Please enter your password to confirm download of <strong className="text-foreground">{document.fileName}</strong>.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Confirm Admin Password *</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your account password to confirm download"
+              className="w-full px-3 py-2 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
+            />
+          </div>
+
+          {error && (
+            <div className="text-xs bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={onClose}
+              className="px-4 py-2 border border-border text-foreground hover:bg-accent text-sm font-medium rounded-lg transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+              style={{ background: '#d4a853', color: '#1a1713' }}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Verifying...
+                </>
+              ) : (
+                'Confirm & Download'
               )}
             </button>
           </div>

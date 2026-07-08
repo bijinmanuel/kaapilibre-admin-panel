@@ -34,12 +34,26 @@ api.interceptors.request.use((config) => {
 // Response interceptor — unwrap envelope + handle auth errors
 api.interceptors.response.use(
   (response) => response.data,
-  (error) => {
+  async (error) => {
     const status = error.response?.status
-    const message =
-      error.response?.data?.message ||
-      (error.code === 'ERR_NETWORK' ? 'Cannot reach server — is the backend running on port 5000?' : error.message) ||
-      'Something went wrong'
+    let message = error.response?.data?.message
+
+    // Parse JSON error messages if the response is returned as a Blob (common in downloads)
+    if (!message && error.response?.data instanceof Blob) {
+      try {
+        const text = await error.response.data.text()
+        const errorJson = JSON.parse(text)
+        message = errorJson.message
+      } catch (err) {
+        // Ignore JSON parsing failure, fallback below
+      }
+    }
+
+    if (!message) {
+      message =
+        (error.code === 'ERR_NETWORK' ? 'Cannot reach server — is the backend running on port 5000?' : error.message) ||
+        'Something went wrong'
+    }
 
     if (status === 401) {
       removeToken()
