@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
-import type { AboutHero, AboutManifesto, Pillar, TimelineStep, TeamMember } from '@/types'
+import type { AboutHero, AboutManifesto, AboutBrandFilm, Pillar, TimelineStep, TeamMember } from '@/types'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // HERO
@@ -82,6 +82,60 @@ export function useUploadManifestoImage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['about-manifesto'] })
       toast.success('Manifesto image uploaded')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BRAND FILM
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export function useAboutBrandFilm() {
+  return useQuery<AboutBrandFilm>({
+    queryKey: ['about-brand-film'],
+    queryFn: async () => {
+      const res = await api.get('/about/brand-film') as any
+      return res.data
+    },
+  })
+}
+
+export function useUpdateBrandFilm() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: Partial<AboutBrandFilm>) => api.put('/about/brand-film', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['about-brand-film'] })
+      toast.success('Brand film updated')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+export function useUploadBrandFilmImage() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (file: File) => {
+      const fd = new FormData()
+      fd.append('image', file)
+      return api.post('/about/brand-film/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['about-brand-film'] })
+      toast.success('Brand film image uploaded')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+export function useDeleteBrandFilmImage() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.delete('/about/brand-film/image'),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['about-brand-film'] })
+      toast.success('Brand film image deleted')
     },
     onError: (e: Error) => toast.error(e.message),
   })

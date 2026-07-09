@@ -473,6 +473,13 @@ export interface AboutManifesto {
   updatedAt?: string
 }
 
+export interface AboutBrandFilm {
+  _id?: string
+  videoUrl: string
+  image: string
+  updatedAt?: string
+}
+
 export interface Pillar {
   _id: string
   order: number

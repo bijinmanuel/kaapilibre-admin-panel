@@ -6,17 +6,18 @@ import {
   ChevronUp, ChevronDown, ArrowRight, X,
   Mountain, Heart, Coffee, Sun, Shield, Flame, Archive,
   Star, Zap, Leaf, Globe, Award, Target, Crown, Users, Sparkles,
-  BookOpen, Lightbulb, Compass, Gem, Feather, TreePine,
+  BookOpen, Lightbulb, Compass, Gem, Feather, TreePine, Video, Play, Film
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import {
   useAboutHero, useUpdateHero, useUploadHeroImage,
   useAboutManifesto, useUpdateManifesto, useUploadManifestoImage,
+  useAboutBrandFilm, useUpdateBrandFilm, useUploadBrandFilmImage, useDeleteBrandFilmImage,
   useAboutPillars, useCreatePillar, useUpdatePillar, useDeletePillar, useTogglePillar, useReorderPillars,
   useAboutTimeline, useCreateTimelineStep, useUpdateTimelineStep, useDeleteTimelineStep, useToggleTimelineStep, useReorderTimeline,
   useAboutTeam, useCreateTeamMember, useUpdateTeamMember, useDeleteTeamMember, useToggleTeamMember, useReorderTeam, useUploadTeamPortrait,
 } from '@/hooks/useAbout'
-import type { Pillar, TimelineStep, TeamMember } from '@/types'
+import type { Pillar, TimelineStep, TeamMember, AboutBrandFilm } from '@/types'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -269,6 +270,181 @@ function ManifestoTab() {
               onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage.mutate(f); e.target.value = '' }} />
           </label>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BRAND FILM TAB
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function BrandFilmTab() {
+  const { data: brandFilm, isLoading } = useAboutBrandFilm()
+  const updateBrandFilm = useUpdateBrandFilm()
+  const uploadImage = useUploadBrandFilmImage()
+  const deleteImage = useDeleteBrandFilmImage()
+
+  const [videoUrl, setVideoUrl] = useState('')
+
+  useEffect(() => {
+    if (brandFilm) {
+      setVideoUrl(brandFilm.videoUrl || '')
+    }
+  }, [brandFilm])
+
+  const getYoutubeId = (url: string) => {
+    if (!url) return null
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
+    const match = url.match(regExp)
+    return match && match[2].length === 11 ? match[2] : null
+  }
+
+  const handleSave = () => {
+    const trimmedUrl = videoUrl.trim()
+    const hasImage = !!brandFilm?.image
+
+    if (!trimmedUrl && !hasImage) {
+      toast.error('Either a YouTube URL or an Image is required.')
+      return
+    }
+
+    updateBrandFilm.mutate({ videoUrl: trimmedUrl })
+  }
+
+  const handleImageUpload = (file: File) => {
+    uploadImage.mutate(file)
+  }
+
+  const handleDeleteImage = () => {
+    const trimmedUrl = videoUrl.trim()
+    if (!trimmedUrl) {
+      toast.error('Cannot delete the image when there is no YouTube URL. At least one is required.')
+      return
+    }
+    deleteImage.mutate()
+  }
+
+  if (isLoading) return <TabSkeleton />
+
+  const youtubeId = getYoutubeId(videoUrl)
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Brand Film Content</p>
+
+        <div>
+          <label className="text-xs font-medium text-muted-foreground block mb-1.5">YouTube Video URL</label>
+          <input
+            type="text"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="https://www.youtube.com/watch?v=..."
+            className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm hover:border-primary/40 focus:border-primary focus:outline-none transition-colors"
+          />
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Provide a YouTube video link. If no YouTube URL is specified, a brand film image is mandatory.
+          </p>
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={updateBrandFilm.isPending}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium"
+          style={{ background: '#d4a853', color: '#1a1713' }}
+        >
+          {updateBrandFilm.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          Save Brand Film
+        </button>
+      </div>
+
+      {/* Brand Film Media Previews */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Cover Image Upload */}
+        <div className="rounded-xl border border-border bg-card p-6 flex flex-col justify-between">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Cover / Poster Image</p>
+            {brandFilm?.image ? (
+              <div className="relative rounded-lg overflow-hidden bg-muted mb-3 group aspect-video">
+                <img src={brandFilm.image} alt="Brand Film Cover" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <label className="px-3 py-1.5 rounded-lg bg-white/90 text-xs font-medium text-gray-800 cursor-pointer hover:bg-white transition-colors">
+                    Replace
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) handleImageUpload(f)
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
+                  <button
+                    onClick={handleDeleteImage}
+                    disabled={deleteImage.isPending}
+                    className="px-3 py-1.5 rounded-lg bg-red-600/90 text-xs font-medium text-white hover:bg-red-600 transition-colors flex items-center gap-1"
+                  >
+                    {deleteImage.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center h-40 rounded-xl border-2 border-dashed border-border hover:border-primary/40 cursor-pointer transition-colors text-muted-foreground hover:text-foreground mb-3">
+                {uploadImage.isPending ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  <>
+                    <Upload className="w-6 h-6 mb-2 animate-bounce" />
+                    <span className="text-xs font-medium">Upload brand film image</span>
+                    <span className="text-[10px] mt-1 text-muted-foreground/60">JPG, PNG, WebP · max 5MB</span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) handleImageUpload(f)
+                    e.target.value = ''
+                  }}
+                />
+              </label>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            {videoUrl.trim() ? 'Optional when YouTube URL is provided.' : 'Mandatory when YouTube URL is empty.'}
+          </p>
+        </div>
+
+        {/* Video Player Preview */}
+        <div className="rounded-xl border border-border bg-card p-6">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Video Player Preview</p>
+          {youtubeId ? (
+            <div className="rounded-lg overflow-hidden border border-border aspect-video bg-black shadow-inner">
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeId}`}
+                title="YouTube Video Player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              ></iframe>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-40 rounded-xl border border-dashed border-border bg-muted/20 text-muted-foreground text-center p-4">
+              <Film className="w-8 h-8 mb-2 opacity-30" />
+              <span className="text-xs font-medium">No Video URL Entered</span>
+              <span className="text-[10px] text-muted-foreground/60 mt-1 max-w-[200px]">
+                Provide a valid YouTube URL to enable video playback preview here.
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -947,6 +1123,7 @@ function EmptyState({ label }: { label: string }) {
 const TABS = [
   { id: 'hero', label: 'Hero' },
   { id: 'manifesto', label: 'Manifesto' },
+  { id: 'brandFilm', label: 'Brand Film' },
   { id: 'pillars', label: 'Pillars' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'cafes', label: 'Cafe Partners' },
@@ -974,6 +1151,7 @@ export default function AboutPage() {
 
         <Tabs.Content value="hero"><HeroTab /></Tabs.Content>
         <Tabs.Content value="manifesto"><ManifestoTab /></Tabs.Content>
+        <Tabs.Content value="brandFilm"><BrandFilmTab /></Tabs.Content>
         <Tabs.Content value="pillars"><PillarsTab /></Tabs.Content>
         <Tabs.Content value="timeline"><TimelineTab /></Tabs.Content>
         <Tabs.Content value="cafes"><CafePartnersTab /></Tabs.Content>
