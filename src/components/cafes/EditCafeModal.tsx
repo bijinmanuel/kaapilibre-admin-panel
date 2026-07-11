@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { X, Store, MapPin, Phone, Mail, Power, Upload, Loader2, FileText } from 'lucide-react'
-import { useUpdateCafe, useUploadCafeLogo } from '@/hooks/useCafes'
+import { useUpdateCafe, useUploadCafeLogo, useStates } from '@/hooks/useCafes'
 import type { Cafe } from '@/types'
 
 interface EditCafeModalProps {
@@ -16,9 +16,11 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
     contactNumber: cafe.contactNumber || '',
     email: cafe.email || '',
     gstin: cafe.gstin || '',
+    state: typeof cafe.state === 'object' && cafe.state ? cafe.state._id : (cafe.state || ''),
     isActive: cafe.isActive,
   })
 
+  const { data: states, isLoading: isLoadingStates } = useStates()
   const { mutate: updateCafe, isPending: isUpdating } = useUpdateCafe()
   const { mutate: uploadLogo, isPending: isUploading } = useUploadCafeLogo()
 
@@ -103,16 +105,36 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">GSTIN Number</label>
-            <div className="relative">
-              {/* <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
-              <input
-                value={formData.gstin}
-                onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
-                placeholder="e.g. 32AAAAA1111A1Z1"
-                className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">GSTIN Number</label>
+              <div className="relative">
+                {/* <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
+                <input
+                  value={formData.gstin}
+                  onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
+                  placeholder="e.g. 32AAAAA1111A1Z1"
+                  className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">State</label>
+              <select
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                className="w-full px-3 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm text-foreground"
+                disabled={isLoadingStates}
+              >
+                {isLoadingStates ? (
+                  <option>Loading...</option>
+                ) : (
+                  states?.map(s => (
+                    <option key={s._id} value={s._id}>{s.name}</option>
+                  ))
+                )}
+              </select>
             </div>
           </div>
 

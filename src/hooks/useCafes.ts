@@ -1,7 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
-import type { Cafe, ApiResponse, CafeAnalytics } from '@/types'
+import type { Cafe, ApiResponse, CafeAnalytics, State } from '@/types'
+
+export function useStates() {
+  return useQuery<State[]>({
+    queryKey: ['states'],
+    queryFn: async () => {
+      const res = await api.get('/states') as ApiResponse<State[]>
+      return res.data
+    },
+  })
+}
 
 export function useCafes() {
   return useQuery<Cafe[]>({

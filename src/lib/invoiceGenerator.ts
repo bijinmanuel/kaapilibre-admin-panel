@@ -250,6 +250,16 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
     year: 'numeric'
   })
 
+  const cafeStateObj = cafe?.state
+  const cafeStateName = typeof cafeStateObj === 'object' && cafeStateObj ? (cafeStateObj as any).name : (typeof cafeStateObj === 'string' ? cafeStateObj : '')
+  const isInsideKerala = (cafeStateName || (cafe?.region?.toLowerCase() === 'kerala' ? 'Kerala' : 'Outside Kerala')).trim().toLowerCase() === 'kerala'
+
+  const subtotal = order.totalAmount / 1.05
+  const totalTax = order.totalAmount - subtotal
+  const cgst = totalTax / 2
+  const sgst = totalTax / 2
+  const igst = totalTax
+
   const itemRows = order.items.map(item => `
     <tr class="inv-tbl-row font-color">
       <td style="padding:10px 20px;border-bottom:1px solid #f3f4f6;vertical-align:middle;">
@@ -343,6 +353,7 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
           ${cafe?.gstin ? `<strong>GSTIN:</strong> ${cafe.gstin}<br/>` : ''}
           ${cafe?.contactNumber || ''}<br/>
           ${cafe?.location || ''}
+          ${cafeStateName ? `<strong>State:</strong> ${cafeStateName}<br/>` : ''}
           ${cafe?.email || ''}<br/>
         </div>
       </div>
@@ -371,10 +382,31 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
         </tbody>
       </table>
     </div>
-    <div class="inv-total-bar typewriter">
-      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:40px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box;">
-        <span class="font-color" style="font-size:12px; font-weight: 700">TOTAL</span>
-        <span class="roght font-color " style="font-weight:600;">₹${order.totalAmount.toLocaleString('en-IN')}</span>
+    <div class="inv-total-bar typewriter" style="padding: 24px 60px 20px 60px;">
+      <div style="display: flex; flex-direction: column; align-items: flex-end; width: 100%; border-top: 1px solid #f1f5f9; padding-top: 16px; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; width: 250px; font-size: 13px;" class="font-color">
+          <span>Subtotal</span>
+          <span>₹${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        ${isInsideKerala ? `
+        <div style="display: flex; justify-content: space-between; width: 250px; font-size: 13px;" class="font-color">
+          <span>CGST (2.5%)</span>
+          <span>₹${cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; width: 250px; font-size: 13px;" class="font-color">
+          <span>SGST (2.5%)</span>
+          <span>₹${sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        ` : `
+        <div style="display: flex; justify-content: space-between; width: 250px; font-size: 13px;" class="font-color">
+          <span>IGST (5.0%)</span>
+          <span>₹${igst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        `}
+      </div>
+      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:40px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box; margin-top: 16px;">
+        <span class="font-color" style="font-size:12px; font-weight: 700">TOTAL DUE</span>
+        <span class="roght font-color " style="font-weight:600;">₹${order.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
       </div>
     </div>
     <div style="text-align:center; margin-bottom: 10px; margin-top: auto; break-inside: avoid; page-break-inside: avoid;">
@@ -407,6 +439,17 @@ export const generateConsolidatedCafeInvoiceHTML = (
     year: 'numeric'
   })
 
+  const cafeStateObj = cafe?.state
+  const cafeStateName = typeof cafeStateObj === 'object' && cafeStateObj ? (cafeStateObj as any).name : (typeof cafeStateObj === 'string' ? cafeStateObj : '')
+  const isInsideKerala = (cafeStateName || (cafe?.region?.toLowerCase() === 'kerala' ? 'Kerala' : 'Outside Kerala')).trim().toLowerCase() === 'kerala'
+
+  const grandTotal = orders.reduce((sum, o) => sum + o.totalAmount, 0)
+  const subtotal = grandTotal / 1.05
+  const totalTax = grandTotal - subtotal
+  const cgst = totalTax / 2
+  const sgst = totalTax / 2
+  const igst = totalTax
+
   // Sum up identical products across all orders
   const itemMap = new Map<string, { price: number; qty: number }>()
   orders.forEach(order => {
@@ -427,7 +470,7 @@ export const generateConsolidatedCafeInvoiceHTML = (
     subtotal: detail.price * detail.qty
   }))
 
-  const grandTotal = orders.reduce((sum, o) => sum + o.totalAmount, 0)
+
 
   const orderRows = orders.map(o => `
     <tr class="inv-tbl-row font-color">
@@ -523,6 +566,7 @@ export const generateConsolidatedCafeInvoiceHTML = (
           ${cafe?.gstin ? `<strong>GSTIN:</strong> ${cafe.gstin}<br/>` : ''}
           ${cafe?.contactNumber || ''}<br/>
           ${cafe?.location || ''}
+          ${cafeStateName ? `<strong>State:</strong> ${cafeStateName}<br/>` : ''}
           ${cafe?.email || ''}<br/>
         </div>
       </div>
@@ -571,10 +615,31 @@ export const generateConsolidatedCafeInvoiceHTML = (
         </tbody>
       </table>
     </div>
-    <div class="inv-total-bar typewriter">
-      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:50px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box;">
+    <div class="inv-total-bar typewriter" style="padding: 24px 60px 20px 60px;">
+      <div style="display: flex; flex-direction: column; align-items: flex-end; width: 100%; border-top: 1px solid #f1f5f9; padding-top: 16px; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; width: 250px; font-size: 13px;" class="font-color">
+          <span>Subtotal</span>
+          <span>₹${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        ${isInsideKerala ? `
+        <div style="display: flex; justify-content: space-between; width: 250px; font-size: 13px;" class="font-color">
+          <span>CGST (2.5%)</span>
+          <span>₹${cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; width: 250px; font-size: 13px;" class="font-color">
+          <span>SGST (2.5%)</span>
+          <span>₹${sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        ` : `
+        <div style="display: flex; justify-content: space-between; width: 250px; font-size: 13px;" class="font-color">
+          <span>IGST (5.0%)</span>
+          <span>₹${igst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        `}
+      </div>
+      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:40px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box; margin-top: 16px;">
         <span class="font-color" style="font-size:12px; font-weight: 700">TOTAL DUE</span>
-        <span class="roght font-color " style="font-weight:600;">₹${grandTotal.toLocaleString('en-IN')}</span>
+        <span class="roght font-color " style="font-weight:600;">₹${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
       </div>
     </div>
     <div style="text-align:center; margin-bottom: 10px; margin-top: auto; break-inside: avoid; page-break-inside: avoid;">

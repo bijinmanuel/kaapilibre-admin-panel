@@ -213,6 +213,12 @@ export interface CafeProduct {
   updatedAt: string
 }
 
+export interface State {
+  _id: string
+  name: string
+  code: string
+}
+
 export interface Cafe {
   _id: string
   name: string
@@ -221,6 +227,7 @@ export interface Cafe {
   email?: string
   logo?: string
   gstin?: string
+  state?: string | State
   isActive: boolean
   region: 'Kerala' | 'Bangalore' | 'Hyderabad'
   status: 'active' | 'trial' | 'approached' | 'not_responded' | 'dropped_off'

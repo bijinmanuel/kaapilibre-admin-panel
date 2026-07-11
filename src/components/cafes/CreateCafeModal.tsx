@@ -1,7 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Store, MapPin, Phone, Mail, Upload, Loader2, FileText } from 'lucide-react'
-import { useCreateCafe, useUploadCafeLogo } from '@/hooks/useCafes'
+import { useCreateCafe, useUploadCafeLogo, useStates } from '@/hooks/useCafes'
 
 export function CreateCafeModal({ onClose }: { onClose: () => void }) {
   const [formData, setFormData] = useState({
@@ -10,12 +10,25 @@ export function CreateCafeModal({ onClose }: { onClose: () => void }) {
     contactNumber: '',
     email: '',
     gstin: '',
+    state: '',
   })
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
 
+  const { data: states, isLoading: isLoadingStates } = useStates()
   const { mutateAsync: createCafe, isPending: isCreating } = useCreateCafe()
   const { mutateAsync: uploadLogo, isPending: isUploading } = useUploadCafeLogo()
+
+  useEffect(() => {
+    if (states && states.length > 0) {
+      const kerala = states.find(s => s.name.toLowerCase() === 'kerala')
+      if (kerala) {
+        setFormData(prev => ({ ...prev, state: kerala._id }))
+      } else {
+        setFormData(prev => ({ ...prev, state: states[0]._id }))
+      }
+    }
+  }, [states])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -97,16 +110,36 @@ export function CreateCafeModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">GSTIN Number</label>
-            <div className="relative">
-              <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                value={formData.gstin}
-                onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
-                placeholder="e.g. 32AAAAA1111A1Z1"
-                className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">GSTIN Number</label>
+              <div className="relative">
+                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  value={formData.gstin}
+                  onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
+                  placeholder="e.g. 32AAAAA1111A1Z1"
+                  className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">State</label>
+              <select
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                className="w-full px-3 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm text-foreground"
+                disabled={isLoadingStates}
+              >
+                {isLoadingStates ? (
+                  <option>Loading...</option>
+                ) : (
+                  states?.map(s => (
+                    <option key={s._id} value={s._id}>{s.name}</option>
+                  ))
+                )}
+              </select>
             </div>
           </div>
 
