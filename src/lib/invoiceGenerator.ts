@@ -381,8 +381,10 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
           ${itemRows}
         </tbody>
       </table>
+
     </div>
-    <div class="inv-total-bar typewriter" style="padding: 24px 60px 20px 60px;">
+    <div class="inv-total-bar typewriter" style="margin-top: auto;">
+      <!-- Commented out separate GST breakdown
       <div style="display: flex; flex-direction: column; align-items: flex-end; width: 100%; border-top: 1px solid #f1f5f9; padding-top: 16px; gap: 8px;">
         <div style="display: flex; justify-content: space-between; width: 250px; font-size: 13px;" class="font-color">
           <span>Subtotal</span>
@@ -404,12 +406,19 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
         </div>
         `}
       </div>
-      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:40px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box; margin-top: 16px;">
-        <span class="font-color" style="font-size:12px; font-weight: 700">TOTAL DUE</span>
+      -->
+      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:40px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box; margin-top: 0;">
+        <span class="font-color" style="font-size:12px; font-weight: 700">TOTAL</span>
         <span class="roght font-color " style="font-weight:600;">₹${order.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
       </div>
+
+      <!-- Note Section -->
+      <div style="margin-top: 50px; padding: 15px; background-color: #f8fafc; border-left: 4px solid #375769; border-radius: 8px; font-size: 12px; line-height: 1.5; color: #475569;" class="typewriter">
+        <strong>Note:</strong> All prices mentioned in this invoice are inclusive of 5% GST. GST has been charged in accordance with applicable GST regulations. For intra-state supplies (within Kerala), GST comprises 2.5% CGST + 2.5% SGST. For inter-state supplies, GST comprises 5% IGST.
+      </div>
     </div>
-    <div style="text-align:center; margin-bottom: 10px; margin-top: auto; break-inside: avoid; page-break-inside: avoid;">
+    
+    <div style="text-align:center; margin-bottom: 10px; margin-top: 20px; break-inside: avoid; page-break-inside: avoid;">
         <img src="${AEKBLUE}" style="height:60px; max-width:90%; object-fit:contain;" alt="KaapiLibreEarth"/>
     </div>
     <footer class="inv-bottom-bar typewriter">
@@ -615,7 +624,8 @@ export const generateConsolidatedCafeInvoiceHTML = (
         </tbody>
       </table>
     </div>
-    <div class="inv-total-bar typewriter" style="padding: 24px 60px 20px 60px;">
+    <div class="inv-total-bar typewriter" style="margin-top: auto;">
+      <!-- Commented out separate GST breakdown
       <div style="display: flex; flex-direction: column; align-items: flex-end; width: 100%; border-top: 1px solid #f1f5f9; padding-top: 16px; gap: 8px;">
         <div style="display: flex; justify-content: space-between; width: 250px; font-size: 13px;" class="font-color">
           <span>Subtotal</span>
@@ -637,12 +647,18 @@ export const generateConsolidatedCafeInvoiceHTML = (
         </div>
         `}
       </div>
-      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:40px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box; margin-top: 16px;">
+      -->
+      <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:40px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box; margin-top: 0;">
         <span class="font-color" style="font-size:12px; font-weight: 700">TOTAL DUE</span>
         <span class="roght font-color " style="font-weight:600;">₹${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
       </div>
+
+      <!-- Note Section -->
+      <div style="margin-top: 20px; padding: 15px; background-color: #f8fafc; border-left: 4px solid #375769; border-radius: 8px; font-size: 12px; line-height: 1.5; color: #475569;" class="typewriter">
+        <strong>Note:</strong> All prices mentioned in this invoice are inclusive of 5% GST. GST has been charged in accordance with applicable GST regulations. For intra-state supplies (within Kerala), GST comprises 2.5% CGST + 2.5% SGST. For inter-state supplies, GST comprises 5% IGST.
+      </div>
     </div>
-    <div style="text-align:center; margin-bottom: 10px; margin-top: auto; break-inside: avoid; page-break-inside: avoid;">
+    <div style="text-align:center; margin-bottom: 10px; margin-top: 20px; break-inside: avoid; page-break-inside: avoid;">
         <img src="${AEKBLUE}" style="height:60px; max-width:90%; object-fit:contain;" alt="KaapiLibreEarth"/>
     </div>
     <footer class="inv-bottom-bar typewriter">
