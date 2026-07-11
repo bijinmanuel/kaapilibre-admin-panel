@@ -80,7 +80,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       name: data.name, origin: data.origin, region: data.region,
       variety: data.variety, process: data.process, altitude: data.altitude,
       roast: data.roast, blend: data.blend, story: data.story,
-      badge: data.badge || undefined,
+      badge: data.badge || '',
       flavourNotes,
       prices: {
         '250g': data.price250,
