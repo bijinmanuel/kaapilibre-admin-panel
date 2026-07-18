@@ -4,7 +4,7 @@ export type WeightVariant = '250g' | '500g' | '1kg'
 export type GrindType = 'Whole Bean' | 'Coarse' | 'Medium' | 'Fine'
 export type PaymentMethod = 'whatsapp' | 'website' | 'email' | 'cash' | 'upi' | 'card' | 'netbanking'
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
-export type ProductVariety = 'Arabica' | 'Robusta'
+export type ProductVariety = string
 export type ProductProcess = 'Washed' | 'Natural' | 'Honey'
 
 export interface User {
@@ -33,6 +33,7 @@ export interface Product {
   origin: string
   region: string
   variety: ProductVariety
+  species?: string
   process: ProductProcess
   altitude: string
   roast: string

@@ -11,12 +11,12 @@ type StatusFilter = 'all' | 'active' | 'inactive'
 export default function ProductsPage() {
   const router = useRouter()
   const [search, setSearch] = useState('')
-  const [variety, setVariety] = useState('')
+  const [species, setSpecies] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   const { data, isLoading } = useProducts({
     search: search || undefined,
-    variety: variety || undefined,
+    species: species || undefined,
     limit: 100,
   })
   const toggle = useToggleProduct()
@@ -55,9 +55,9 @@ export default function ProductsPage() {
             placeholder="Search products..." style={{ paddingLeft: '2.25rem' }} />
         </div>
 
-        {/* Variety */}
-        <select value={variety} onChange={e => setVariety(e.target.value)} style={{ width: 'auto' }}>
-          <option value="">All varieties</option>
+        {/* Species */}
+        <select value={species} onChange={e => setSpecies(e.target.value)} style={{ width: 'auto' }}>
+          <option value="">All species</option>
           <option value="Arabica">Arabica</option>
           <option value="Robusta">Robusta</option>
         </select>
@@ -124,7 +124,7 @@ export default function ProductsPage() {
               {/* Info */}
               <div className="p-4">
                 <p className="font-medium text-foreground text-sm truncate">{product.name}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{product.origin} · {product.variety}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{product.origin} · {product.variety}{product.species ? ` · ${product.species}` : ''}</p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-sm font-semibold" style={{ color: product.isActive ? '#d4a853' : 'var(--muted-foreground)' }}>
                     from {formatCurrency(product.prices['250g'])}

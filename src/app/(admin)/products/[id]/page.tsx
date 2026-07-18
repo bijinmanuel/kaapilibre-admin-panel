@@ -12,7 +12,8 @@ const schema = z.object({
   name: z.string().min(2, 'Name required'),
   origin: z.string().min(1, 'Origin required'),
   region: z.string().min(1, 'Region required'),
-  variety: z.enum(['Arabica', 'Robusta']),
+  variety: z.string().min(1, 'Variety required'),
+  species: z.string().min(1, 'Species required'),
   process: z.enum(['Washed', 'Natural', 'Honey']),
   altitude: z.string().min(1, 'Altitude required'),
   roast: z.string().min(1, 'Roast required'),
@@ -51,7 +52,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<any>({
     resolver: zodResolver(schema),
-    defaultValues: { variety: 'Arabica', process: 'Washed' },
+    defaultValues: { variety: '', species: '', process: 'Washed' },
   })
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         origin: product.origin,
         region: product.region,
         variety: product.variety,
+        species: product.species || '',
         process: product.process,
         altitude: product.altitude,
         roast: product.roast,
@@ -78,7 +80,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const onSubmit = async (data: any) => {
     const payload = {
       name: data.name, origin: data.origin, region: data.region,
-      variety: data.variety, process: data.process, altitude: data.altitude,
+      variety: data.variety, species: data.species, process: data.process, altitude: data.altitude,
       roast: data.roast, blend: data.blend, story: data.story,
       badge: data.badge || '',
       flavourNotes,
@@ -182,11 +184,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1.5">Variety *</label>
-                  <select {...register('variety')}>
-                    <option value="Arabica">Arabica</option>
-                    <option value="Robusta">Robusta</option>
-                  </select>
+                  <input {...register('variety')} placeholder="e.g. SL28, Selection 9" />
+                  <ErrorMsg field="variety" />
                 </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Species *</label>
+                  <input {...register('species')} placeholder="e.g. Arabica" />
+                  <ErrorMsg field="species" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1.5">Process *</label>
                   <select {...register('process')}>
@@ -195,26 +203,25 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     <option value="Honey">Honey</option>
                   </select>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1.5">Altitude *</label>
                   <input {...register('altitude')} placeholder="e.g. 1900–2200m" />
                   <ErrorMsg field="altitude" />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1.5">Roast *</label>
                   <input {...register('roast')} placeholder="e.g. Light" />
                   <ErrorMsg field="roast" />
                 </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1.5">
-                  Badge <span className="text-muted-foreground/60">(optional)</span>
-                </label>
-                <input {...register('badge')} placeholder="e.g. Bestseller, Limited, New" />
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">
+                    Badge <span className="text-muted-foreground/60">(optional)</span>
+                  </label>
+                  <input {...register('badge')} placeholder="e.g. Bestseller, Limited, New" />
+                </div>
               </div>
 
               <div>
