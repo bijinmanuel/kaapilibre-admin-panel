@@ -35,6 +35,178 @@ const BLOCK_TYPES = [
   { type: 'image', icon: Image, label: 'Image', hint: 'Photo with caption' },
 ] as const
 
+const isUrl = (str?: string) => {
+  if (!str) return false
+  return str.startsWith('http://') || str.startsWith('https://')
+}
+
+const getDomainName = (urlStr: string) => {
+  try {
+    const url = new URL(urlStr)
+    return url.hostname.replace('www.', '')
+  } catch {
+    return 'Link'
+  }
+}
+
+const getImageLink = (imageObj?: { attribution?: string; attributes?: { key: string; value: string }[] }) => {
+  if (!imageObj) return null
+  if (imageObj.attribution && (imageObj.attribution.startsWith('http://') || imageObj.attribution.startsWith('https://'))) {
+    return imageObj.attribution
+  }
+  const linkAttr = imageObj.attributes?.find(attr => attr.value && (attr.value.startsWith('http://') || attr.value.startsWith('https://')))
+  if (linkAttr) {
+    return linkAttr.value
+  }
+  return null
+}
+
+// ── Image Attributes Section Helper ──────────────────────────────────────────
+interface ImageAttributesProps {
+  caption: string
+  altText: string
+  attribution: string
+  attributes: { key: string; value: string }[]
+  onChange: (field: string, value: any) => void
+  idKey: 'cover' | number
+  addingAttrFor: 'cover' | number | null
+  setAddingAttrFor: (val: 'cover' | number | null) => void
+  newAttrKey: string
+  setNewAttrKey: (val: string) => void
+  newAttrVal: string
+  setNewAttrVal: (val: string) => void
+}
+
+function ImageAttributesSection({
+  caption,
+  altText,
+  attribution,
+  attributes,
+  onChange,
+  idKey,
+  addingAttrFor,
+  setAddingAttrFor,
+  newAttrKey,
+  setNewAttrKey,
+  newAttrVal,
+  setNewAttrVal
+}: ImageAttributesProps) {
+  return (
+    <div className="space-y-2 mt-3 pt-3 border-t border-border/40">
+      <div>
+        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-1">Caption</label>
+        <input
+          type="text"
+          value={caption}
+          onChange={e => onChange('caption', e.target.value)}
+          placeholder="Image caption..."
+          className="text-xs h-7 px-2 py-1 rounded-lg border border-border bg-background w-full"
+          style={{ padding: '4px 8px' }}
+        />
+      </div>
+      <div>
+        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-1">Alt Text (SEO/Accessibility)</label>
+        <input
+          type="text"
+          value={altText}
+          onChange={e => onChange('altText', e.target.value)}
+          placeholder="Describe the image..."
+          className="text-xs h-7 px-2 py-1 rounded-lg border border-border bg-background w-full"
+          style={{ padding: '4px 8px' }}
+        />
+      </div>
+      <div>
+        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-1">Attribution / Credit</label>
+        <input
+          type="text"
+          value={attribution}
+          onChange={e => onChange('attribution', e.target.value)}
+          placeholder="Photo by... / Source..."
+          className="text-xs h-7 px-2 py-1 rounded-lg border border-border bg-background w-full"
+          style={{ padding: '4px 8px' }}
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block">Custom Attributes</label>
+        <div className="flex flex-wrap gap-1 mb-1">
+          {attributes.map((attr, aIdx) => (
+            <span key={aIdx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-accent text-accent-foreground border border-border">
+              <span className="font-semibold text-muted-foreground">{attr.key}:</span> {attr.value}
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = attributes.filter((_, idx) => idx !== aIdx);
+                  onChange('attributes', updated);
+                }}
+                className="text-muted-foreground hover:text-red-400 transition-colors ml-0.5"
+              >
+                <X className="w-2.5 h-2.5" />
+              </button>
+            </span>
+          ))}
+          {attributes.length === 0 && (
+            <span className="text-[10px] text-muted-foreground/60 italic">No custom attributes</span>
+          )}
+        </div>
+
+        {addingAttrFor === idKey ? (
+          <div className="flex gap-1 items-center bg-background/50 p-1 rounded-lg border border-border mt-1">
+            <input
+              type="text"
+              placeholder="Name"
+              value={newAttrKey}
+              onChange={e => setNewAttrKey(e.target.value)}
+              className="text-[9px] h-6 px-1 py-0.5 rounded border border-border bg-background w-[40%]"
+            />
+            <input
+              type="text"
+              placeholder="Value"
+              value={newAttrVal}
+              onChange={e => setNewAttrVal(e.target.value)}
+              className="text-[9px] h-6 px-1 py-0.5 rounded border border-border bg-background w-[40%]"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (newAttrKey.trim() && newAttrVal.trim()) {
+                  const updated = [...attributes, { key: newAttrKey.trim(), value: newAttrVal.trim() }];
+                  onChange('attributes', updated);
+                  setNewAttrKey('');
+                  setNewAttrVal('');
+                  setAddingAttrFor(null);
+                }
+              }}
+              className="p-1 rounded bg-[#d4a853] text-[#1a1713] hover:bg-[#c29642] transition-colors"
+            >
+              <Plus className="w-3 h-3" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setNewAttrKey('');
+                setNewAttrVal('');
+                setAddingAttrFor(null);
+              }}
+              className="p-1 rounded hover:bg-accent text-muted-foreground"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setAddingAttrFor(idKey)}
+            className="inline-flex items-center gap-1 text-[10px] text-amber-500 hover:text-amber-400 font-medium transition-colors"
+          >
+            <Plus className="w-2.5 h-2.5" /> Add custom attribute
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function BlogEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: urlParam } = use(params)
@@ -59,6 +231,19 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop')
   const [coverPreviewUrl, setCoverPreviewUrl] = useState('')
   const [coverFile, setCoverFile] = useState<File | null>(null)
+
+  // Cover image metadata local states
+  const [coverMetadata, setCoverMetadata] = useState<{
+    caption?: string;
+    altText?: string;
+    attribution?: string;
+    attributes?: { key: string; value: string }[];
+  }>({})
+
+  // Custom attributes adding state
+  const [addingAttrFor, setAddingAttrFor] = useState<'cover' | number | null>(null)
+  const [newAttrKey, setNewAttrKey] = useState('')
+  const [newAttrVal, setNewAttrVal] = useState('')
 
   useEffect(() => {
     if (coverFile) {
@@ -110,6 +295,12 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
         tags: blog.tags.join(', '),
       })
       setBlocks(blog.blocks.sort((a, b) => a.order - b.order))
+      setCoverMetadata({
+        caption: blog.coverImage?.caption || '',
+        altText: blog.coverImage?.altText || '',
+        attribution: blog.coverImage?.attribution || '',
+        attributes: blog.coverImage?.attributes || [],
+      })
     }
   }, [blog, reset])
 
@@ -123,6 +314,20 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
       excerpt: meta.excerpt,
       tags,
       blocks: orderedBlocks,
+      coverImage: blog?.coverImage ? {
+        ...blog.coverImage,
+        caption: coverMetadata.caption || '',
+        altText: coverMetadata.altText || '',
+        attribution: coverMetadata.attribution || '',
+        attributes: coverMetadata.attributes || [],
+      } : (coverFile ? {
+        url: '',
+        publicId: '',
+        caption: coverMetadata.caption || '',
+        altText: coverMetadata.altText || '',
+        attribution: coverMetadata.attribution || '',
+        attributes: coverMetadata.attributes || [],
+      } : undefined)
     }
 
     try {
@@ -171,7 +376,7 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
     setShowBlockMenu(false)
   }
 
-  const updateBlockContent = (idx: number, field: keyof BlogBlock, value: string) => {
+  const updateBlockContent = (idx: number, field: keyof BlogBlock, value: any) => {
     setBlocks(b => b.map((block, i) => i === idx ? { ...block, [field]: value } : block))
     setIsDirty(true)
   }
@@ -422,13 +627,22 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
                             />
                           </label>
                         )}
-                        {/* Caption */}
-                        <input
-                          value={block.caption ?? ''}
-                          onChange={e => updateBlockContent(idx, 'caption', e.target.value)}
-                          placeholder="Image caption (optional)..."
-                          style={{ fontSize: '12px' }}
-                        />
+                        {block.url && (
+                          <ImageAttributesSection
+                            caption={block.caption || ''}
+                            altText={block.altText || ''}
+                            attribution={block.attribution || ''}
+                            attributes={block.attributes || []}
+                            onChange={(field, val) => updateBlockContent(idx, field as any, val)}
+                            idKey={idx}
+                            addingAttrFor={addingAttrFor}
+                            setAddingAttrFor={setAddingAttrFor}
+                            newAttrKey={newAttrKey}
+                            setNewAttrKey={setNewAttrKey}
+                            newAttrVal={newAttrVal}
+                            setNewAttrVal={setNewAttrVal}
+                          />
+                        )}
                       </div>
                     )}
                   </div>
@@ -569,6 +783,25 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
                   }}
                 />
               </label>
+            )}
+            {(blog?.coverImage?.url || coverFile) && (
+              <ImageAttributesSection
+                caption={coverMetadata.caption || ''}
+                altText={coverMetadata.altText || ''}
+                attribution={coverMetadata.attribution || ''}
+                attributes={coverMetadata.attributes || []}
+                onChange={(field, val) => {
+                  setCoverMetadata(prev => ({ ...prev, [field]: val }));
+                  setIsDirty(true);
+                }}
+                idKey="cover"
+                addingAttrFor={addingAttrFor}
+                setAddingAttrFor={setAddingAttrFor}
+                newAttrKey={newAttrKey}
+                setNewAttrKey={setNewAttrKey}
+                newAttrVal={newAttrVal}
+                setNewAttrVal={setNewAttrVal}
+              />
             )}
             {!workingId && !coverFile && (
               <p className="text-[10px] text-muted-foreground text-center">Cover image will be uploaded when you create the post</p>
@@ -737,16 +970,75 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
               </div>
 
               {/* Cover Image */}
-              {(blog?.coverImage?.url || coverPreviewUrl) && (
-                <div className="mb-12 relative rounded-[32px] overflow-hidden bg-black/30 border border-white/10 shadow-2xl p-4 aspect-[16/9] w-full">
-                  <img
-                    src={blog?.coverImage?.url || coverPreviewUrl}
-                    alt={watchedTitle}
-                    className="w-full h-full object-cover rounded-[20px] p-2"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none rounded-[20px] m-4" />
-                </div>
-              )}
+              {(blog?.coverImage?.url || coverPreviewUrl) && (() => {
+                const coverLink = getImageLink({
+                  attribution: coverMetadata.attribution,
+                  attributes: coverMetadata.attributes
+                });
+                return (
+                  <div className="mb-12 space-y-2">
+                    <div className="product-image-container w-full">
+                      {coverLink ? (
+                        <a href={coverLink} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+                          <div className="relative rounded-[32px] overflow-hidden bg-black/30 border border-white/10 shadow-2xl p-4 aspect-[16/9] w-full">
+                            <img
+                              src={blog?.coverImage?.url || coverPreviewUrl}
+                              alt={coverMetadata.altText || watchedTitle}
+                              className="w-full h-full object-cover rounded-[20px] p-2"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none rounded-[20px] m-4" />
+                          </div>
+                        </a>
+                      ) : (
+                        <div className="relative rounded-[32px] overflow-hidden bg-black/30 border border-white/10 shadow-2xl p-4 aspect-[16/9] w-full">
+                          <img
+                            src={blog?.coverImage?.url || coverPreviewUrl}
+                            alt={coverMetadata.altText || watchedTitle}
+                            className="w-full h-full object-cover rounded-[20px] p-2"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none rounded-[20px] m-4" />
+                        </div>
+                      )}
+                    </div>
+                    {(coverMetadata.caption || coverMetadata.attribution || (coverMetadata.attributes && coverMetadata.attributes.length > 0)) && (
+                      <div className="flex flex-col items-end text-right space-y-1 text-[10px] text-white/40 font-mono tracking-wider px-4">
+                        {coverMetadata.caption && <p className="text-xs text-white/90 font-light font-sans mb-0.5">{coverMetadata.caption}</p>}
+                        <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                          {coverMetadata.attribution && (
+                            <span>
+                              Credit:{' '}
+                              {coverLink ? (
+                                <a href={coverLink} target="_blank" rel="noopener noreferrer" className="text-[#598aa6] hover:underline hover:text-white transition-colors">
+                                  {isUrl(coverMetadata.attribution) ? getDomainName(coverMetadata.attribution) : coverMetadata.attribution}
+                                </a>
+                              ) : (
+                                coverMetadata.attribution
+                              )}
+                            </span>
+                          )}
+                          {coverMetadata.attributes?.map((attr, aIdx) => {
+                            const isAttrUrl = isUrl(attr.value);
+                            return (
+                              <span key={attr.key} className="flex items-center gap-x-3">
+                                {(coverMetadata.attribution || aIdx > 0) && <span className="text-white/10">|</span>}
+                                {isAttrUrl ? (
+                                  <a href={attr.value} target="_blank" rel="noopener noreferrer" className="text-[#598aa6] hover:underline hover:text-white transition-colors uppercase font-bold">
+                                    {attr.key}
+                                  </a>
+                                ) : (
+                                  <span>
+                                    <span className="text-[#598aa6] uppercase font-bold">{attr.key}:</span> {attr.value}
+                                  </span>
+                                )}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Article Content Blocks */}
               <article className="prose prose-invert max-w-none text-white/80 font-light text-sm md:text-base leading-[2.0] space-y-6 pb-16">
@@ -772,27 +1064,78 @@ export default function BlogEditorPage({ params }: { params: Promise<{ id: strin
                               "{block.content}"
                             </blockquote>
                           )
-                        case 'image':
+                        case 'image': {
+                          const blockLink = getImageLink(block);
                           return (
-                            <div key={idx} className="relative w-full aspect-[16/9] rounded-[24px] overflow-hidden my-10 bg-black/10 border border-white/5 p-2">
-                              {block.url ? (
-                                <img
-                                  src={block.url}
-                                  alt={block.caption || watchedTitle}
-                                  className="w-full h-full object-cover rounded-[16px]"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 text-white/40 text-xs">
-                                  <span>No image uploaded for this block</span>
+                            <div key={idx} className="my-10 space-y-2">
+                              <div className="relative w-full aspect-[16/9] rounded-[24px] overflow-hidden bg-black/10 border border-white/5 p-2">
+                                {blockLink ? (
+                                  <a href={blockLink} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative cursor-pointer">
+                                    {block.url ? (
+                                      <img
+                                        src={block.url}
+                                        alt={block.altText || block.caption || watchedTitle}
+                                        className="w-full h-full object-cover rounded-[16px]"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 text-white/40 text-xs">
+                                        <span>No image uploaded for this block</span>
+                                      </div>
+                                    )}
+                                  </a>
+                                ) : (
+                                  block.url ? (
+                                    <img
+                                      src={block.url}
+                                      alt={block.altText || block.caption || watchedTitle}
+                                      className="w-full h-full object-cover rounded-[16px]"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 text-white/40 text-xs">
+                                      <span>No image uploaded for this block</span>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                              {(block.caption || block.attribution || (block.attributes && block.attributes.length > 0)) && (
+                                <div className="flex flex-col items-end text-right space-y-1 text-[10px] text-white/40 font-mono tracking-wider">
+                                  {block.caption && <p className="text-xs text-white/90 font-light font-sans mb-0.5">{block.caption}</p>}
+                                  <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                                    {block.attribution && (
+                                      <span>
+                                        Credit:{' '}
+                                        {blockLink ? (
+                                          <a href={blockLink} target="_blank" rel="noopener noreferrer" className="text-[#598aa6] hover:underline hover:text-white transition-colors">
+                                            {isUrl(block.attribution) ? getDomainName(block.attribution) : block.attribution}
+                                          </a>
+                                        ) : (
+                                          block.attribution
+                                        )}
+                                      </span>
+                                    )}
+                                    {block.attributes?.map((attr, aIdx) => {
+                                      const isAttrUrl = isUrl(attr.value);
+                                      return (
+                                        <span key={attr.key} className="flex items-center gap-x-3">
+                                          {(block.attribution || aIdx > 0) && <span className="text-white/10">|</span>}
+                                          {isAttrUrl ? (
+                                            <a href={attr.value} target="_blank" rel="noopener noreferrer" className="text-[#598aa6] hover:underline hover:text-white transition-colors uppercase font-bold">
+                                              {attr.key}
+                                            </a>
+                                          ) : (
+                                            <span>
+                                              <span className="text-[#598aa6] uppercase font-bold">{attr.key}:</span> {attr.value}
+                                            </span>
+                                          )}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                              )}
-                              {block.caption && (
-                                <span className="absolute bottom-4 left-4 bg-black/60 px-3 py-1 text-[10px] rounded-full text-white/70 typewriter">
-                                  {block.caption}
-                                </span>
                               )}
                             </div>
                           )
+                        }
                         default:
                           return null
                       }

@@ -9,6 +9,9 @@ export interface BlogBlock {
   url?: string
   publicId?: string
   caption?: string
+  altText?: string
+  attribution?: string
+  attributes?: { key: string; value: string }[]
   order: number
 }
 
@@ -17,7 +20,14 @@ export interface Blog {
   title: string
   slug: string
   excerpt: string
-  coverImage?: { url: string; publicId: string }
+  coverImage?: {
+    url: string
+    publicId: string
+    caption?: string
+    altText?: string
+    attribution?: string
+    attributes?: { key: string; value: string }[]
+  }
   blocks: BlogBlock[]
   tags: string[]
   status: 'draft' | 'published'

@@ -11,8 +11,8 @@ export function useAboutHero() {
   return useQuery<AboutHero>({
     queryKey: ['about-hero'],
     queryFn: async () => {
-      const res = await api.get('/about/hero') as any
-      return res.data
+      const res = await api.get('/about') as any
+      return res.data.hero
     },
   })
 }
@@ -53,8 +53,8 @@ export function useAboutManifesto() {
   return useQuery<AboutManifesto>({
     queryKey: ['about-manifesto'],
     queryFn: async () => {
-      const res = await api.get('/about/manifesto') as any
-      return res.data
+      const res = await api.get('/about') as any
+      return res.data.manifesto
     },
   })
 }
@@ -95,8 +95,8 @@ export function useAboutBrandFilm() {
   return useQuery<AboutBrandFilm>({
     queryKey: ['about-brand-film'],
     queryFn: async () => {
-      const res = await api.get('/about/brand-film') as any
-      return res.data
+      const res = await api.get('/about') as any
+      return res.data.brandFilm
     },
   })
 }
