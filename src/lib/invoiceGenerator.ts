@@ -2,6 +2,8 @@ import { LOGO, LOGO_KAAPILIBRE, KAPPI, AEKBLUE, CHEMEX } from './brandAssets'
 import type { Order, CafeOrder, Cafe } from '@/types'
 import { format } from 'date-fns'
 
+export const COMPANY_GSTIN = '32ABEFK2815J1ZJ'
+
 // Generate invoice number from order number
 export const getInvoiceNumber = (orderNumber: string) =>
   `INV-${orderNumber.replace('KL-', '')}`
@@ -225,7 +227,7 @@ export const generateInvoiceHTML = (order: Order): string => {
       <div class="inv-bottom-content">
         <div>
           <div class="inv-brand-name font-color">KaapiLibre LLP</div>
-          <div class="font-color" style="font-size:11px;">GSTIN: 32AABCK1234F1Z5</div>
+          <div class="font-color" style="font-size:11px;">GSTIN: ${COMPANY_GSTIN}</div>
         </div>
         <div class="font-color" style="text-align:right; font-size:12px;">contact@kaapilibre.com<br/>www.kaapilibre.com</div>
       </div>
@@ -423,7 +425,7 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
     </div>
     <footer class="inv-bottom-bar typewriter">
       <div class="inv-bottom-content">
-        <div><div class="inv-brand-name font-color">KaapiLibre LLP</div><div class="font-color" style="font-size:11px;">GSTIN: 32AABCK1234F1Z5</div></div>
+        <div><div class="inv-brand-name font-color">KaapiLibre LLP</div><div class="font-color" style="font-size:11px;">GSTIN: ${COMPANY_GSTIN}</div></div>
         <div class="font-color" style="text-align:right; font-size:12px;">contact@kaapilibre.com<br/>www.kaapilibre.com</div>
       </div>
     </footer>
@@ -663,7 +665,7 @@ export const generateConsolidatedCafeInvoiceHTML = (
     </div>
     <footer class="inv-bottom-bar typewriter">
       <div class="inv-bottom-content">
-        <div><div class="inv-brand-name font-color">KaapiLibre LLP</div><div class="font-color" style="font-size:11px;">GSTIN: 32AABCK1234F1Z5</div></div>
+        <div><div class="inv-brand-name font-color">KaapiLibre LLP</div><div class="font-color" style="font-size:11px;">GSTIN: ${COMPANY_GSTIN}</div></div>
         <div class="font-color" style="text-align:right; font-size:12px;">contact@kaapilibre.com<br/>www.kaapilibre.com</div>
       </div>
     </footer>
