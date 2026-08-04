@@ -40,11 +40,17 @@ export const generateInvoiceHTML = (order: Order): string => {
       ? 'Failed'
       : 'Pending'
 
-  const date = new Date().toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
+  const date = order.createdAt
+    ? new Date(order.createdAt).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      })
+    : new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      })
 
   const itemRows = order.items.map(item => `
     <tr class="inv-tbl-row font-color">
@@ -246,11 +252,17 @@ export const generateCafeInvoiceHTML = (order: CafeOrder): string => {
   const invoiceDate = format(new Date(order.createdAt), 'dd MMM yyyy')
   const cafe = order.cafeId as Cafe
 
-  const date = new Date().toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
+  const date = order.createdAt
+    ? new Date(order.createdAt).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      })
+    : new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      })
 
   const cafeStateObj = cafe?.state
   const cafeStateName = typeof cafeStateObj === 'object' && cafeStateObj ? (cafeStateObj as any).name : (typeof cafeStateObj === 'string' ? cafeStateObj : '')
