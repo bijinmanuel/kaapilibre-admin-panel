@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
-import { Search, Mail, Users, CheckSquare, Square, Send, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Mail, Users, CheckSquare, Square, Send, Loader2, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { SendCustomEmailModal } from '@/components/customers/SendCustomEmailModal'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { formatCurrency, formatDate, getInitials } from '@/lib/utils'
@@ -13,6 +14,8 @@ export default function GuestsPage() {
   const [page,     setPage]     = useState(1)
   const [selected, setSelected] = useState<string[]>([])
   const [sending,  setSending]  = useState<string | null>(null)
+  const [selectedGuest, setSelectedGuest] = useState<{ id: string; email: string; name: string } | null>(null)
+  const [showCustomEmailModal, setShowCustomEmailModal] = useState(false)
 
   const { data, isLoading } = useQuery<{ data: any[]; meta: any }>({
     queryKey: ['guests', search, page],
@@ -52,23 +55,40 @@ export default function GuestsPage() {
 
   const allSelected = guests.length > 0 && selected.length === guests.length
 
+  const handleOpenCustomEmail = (guest?: any) => {
+    if (guest) {
+      setSelectedGuest({ id: guest._id, email: guest.email, name: guest.name })
+    } else {
+      setSelectedGuest(null)
+    }
+    setShowCustomEmailModal(true)
+  }
+
   return (
     <div>
       <PageHeader
         title="Guest customers"
         description="Customers who ordered without creating an account"
         action={
-          selected.length > 0 ? (
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => bulkInvite.mutate(selected)}
-              disabled={bulkInvite.isPending}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-60"
-              style={{ background: '#d4a853', color: '#1a1713' }}>
-              {bulkInvite.isPending
-                ? <><Loader2 className="w-4 h-4 animate-spin" />Sending...</>
-                : <><Send className="w-4 h-4" />Send invite to {selected.length} selected</>}
+              onClick={() => handleOpenCustomEmail()}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+              style={{ background: '#d4a853', color: '#1a1713' }}
+            >
+              <Mail className="w-4 h-4" /> Send email
             </button>
-          ) : undefined
+            {selected.length > 0 && (
+              <button
+                onClick={() => bulkInvite.mutate(selected)}
+                disabled={bulkInvite.isPending}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-border bg-card hover:bg-accent transition-colors disabled:opacity-60 text-foreground">
+                {bulkInvite.isPending
+                  ? <><Loader2 className="w-4 h-4 animate-spin" />Sending...</>
+                  : <><Send className="w-4 h-4" style={{ color: '#d4a853' }} />Invite {selected.length} selected</>}
+              </button>
+            )}
+          </div>
         }
       />
 
@@ -76,9 +96,9 @@ export default function GuestsPage() {
       <div className="mb-5 rounded-xl border border-border bg-card p-4 flex items-start gap-3">
         <Users className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-medium text-foreground">Send account activation invites</p>
+          <p className="text-sm font-medium text-foreground">Send account activation invites or custom emails</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Guest customers have ordered but not created an account. Sending an invite email lets them activate an account using their order number — no registration form needed.
+            Guest customers have ordered but not created an account. You can send them an invite email or type a custom email directly.
           </p>
         </div>
       </div>
@@ -103,7 +123,7 @@ export default function GuestsPage() {
                     {allSelected ? <CheckSquare className="w-4 h-4" style={{ color: '#d4a853' }} /> : <Square className="w-4 h-4" />}
                   </button>
                 </th>
-                {['Customer', 'Phone', 'Orders', 'Total spent', 'Since', 'Action'].map(h => (
+                {['Customer', 'Phone', 'Orders', 'Total spent', 'Since', 'Actions'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">{h}</th>
                 ))}
               </tr>
@@ -144,14 +164,23 @@ export default function GuestsPage() {
                   <td className="px-4 py-3 font-medium text-foreground">{formatCurrency(guest.totalSpent)}</td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(guest.createdAt)}</td>
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => { setSending(guest._id); sendInvite.mutate(guest._id) }}
-                      disabled={sending === guest._id && sendInvite.isPending}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border hover:bg-accent transition-colors text-foreground disabled:opacity-50">
-                      {sending === guest._id && sendInvite.isPending
-                        ? <><Loader2 className="w-3 h-3 animate-spin" />Sending...</>
-                        : <><Mail className="w-3 h-3" />Send invite</>}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleOpenCustomEmail(guest)}
+                        title="Send custom email"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border hover:bg-accent transition-colors text-foreground">
+                        <Mail className="w-3 h-3" style={{ color: '#d4a853' }} /> Custom email
+                      </button>
+                      <button
+                        onClick={() => { setSending(guest._id); sendInvite.mutate(guest._id) }}
+                        disabled={sending === guest._id && sendInvite.isPending}
+                        title="Send activation invite"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border hover:bg-accent transition-colors text-muted-foreground hover:text-foreground disabled:opacity-50">
+                        {sending === guest._id && sendInvite.isPending
+                          ? <><Loader2 className="w-3 h-3 animate-spin" />Sending...</>
+                          : <><Send className="w-3 h-3" />Invite</>}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               )) : (
@@ -182,6 +211,15 @@ export default function GuestsPage() {
           </div>
         )}
       </div>
+
+      <SendCustomEmailModal
+        isOpen={showCustomEmailModal}
+        onClose={() => setShowCustomEmailModal(false)}
+        initialEmail={selectedGuest?.email || ''}
+        initialName={selectedGuest?.name || ''}
+        customerId={selectedGuest?.id || undefined}
+      />
     </div>
   )
 }
+

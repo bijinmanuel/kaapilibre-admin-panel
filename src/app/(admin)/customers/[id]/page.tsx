@@ -1,9 +1,10 @@
 'use client'
 import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Mail } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { SendCustomEmailModal } from '@/components/customers/SendCustomEmailModal'
 import { useCustomer, useCustomerOrders, useDeactivateCustomer } from '@/hooks/useData'
 import { formatCurrency, formatDate, formatDateTime, getInitials } from '@/lib/utils'
 import type { OrderStatus } from '@/types'
@@ -15,6 +16,8 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const { data: ordersData } = useCustomerOrders(id)
   const deactivate = useDeactivateCustomer()
   const [showDeactivate, setShowDeactivate] = useState(false)
+  const [showEmailModal, setShowEmailModal] = useState(false)
+
   const customer = data?.customer
   const orders = ordersData?.data || []
 
@@ -24,7 +27,20 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   return (
     <div>
       <PageHeader title={customer.name}
-        action={<button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="w-4 h-4" /> Back</button>}
+        action={
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowEmailModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+              style={{ background: '#d4a853', color: '#1a1713' }}
+            >
+              <Mail className="w-4 h-4" /> Send email
+            </button>
+            <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
+          </div>
+        }
       />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="space-y-5">
@@ -41,7 +57,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 </span>
               </div>
             </div>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-sm mb-5">
               {[['Email', customer.email], ['Phone', customer.phone || '—'], ['Joined', formatDate(customer.createdAt)], ['Address', customer.savedAddress || '—']].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-3">
                   <span className="text-muted-foreground flex-shrink-0">{k}</span>
@@ -49,6 +65,12 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 </div>
               ))}
             </div>
+            <button
+              onClick={() => setShowEmailModal(true)}
+              className="w-full h-9 rounded-lg text-xs font-medium border border-border hover:bg-accent transition-colors text-foreground flex items-center justify-center gap-2"
+            >
+              <Mail className="w-3.5 h-3.5" style={{ color: '#d4a853' }} /> Send custom email
+            </button>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {[{ label: 'Total orders', value: customer.totalOrders }, { label: 'Total spent', value: formatCurrency(customer.totalSpent) }].map(s => (
@@ -97,6 +119,15 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
       </div>
+
+      <SendCustomEmailModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        initialEmail={customer.email}
+        initialName={customer.name}
+        customerId={customer._id}
+      />
     </div>
   )
 }
+

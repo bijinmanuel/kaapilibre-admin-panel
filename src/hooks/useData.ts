@@ -44,6 +44,38 @@ export function useDeactivateCustomer() {
   })
 }
 
+export interface SendCustomEmailPayload {
+  to?: string | string[]
+  customerId?: string
+  recipientName?: string
+  subject: string
+  message: string
+  buttonText?: string
+  buttonUrl?: string
+  style?: string
+  badge?: string
+  heading?: string
+  highlightText?: string
+}
+
+export function useSendCustomEmail() {
+  return useMutation({
+    mutationFn: (data: SendCustomEmailPayload) => api.post('/customers/send-custom-email', data),
+    onSuccess: (res: any) => {
+      toast.success(res?.message || 'Email sent successfully')
+    },
+    onError: (e: Error) => toast.error(e.message || 'Failed to send email'),
+  })
+}
+
+export function usePreviewCustomEmail() {
+  return useMutation({
+    mutationFn: (data: Partial<SendCustomEmailPayload>) =>
+      api.post('/customers/preview-custom-email', data) as Promise<{ data: { html: string } }>,
+  })
+}
+
+
 // ── Inventory ────────────────────────────────────────────────────────────────
 export function useInventory() {
   return useQuery({
