@@ -29,6 +29,8 @@ const ROUTE_META: Record<string, { title: string; feature: string }> = {
   '/cafe-orders': { title: 'Cafe Orders', feature: 'cafe-orders' },
   '/cafe-dashboard': { title: 'Cafe Analytics', feature: 'cafe-analytics' },
   '/about': { title: 'About Page', feature: 'about' },
+  '/faq': { title: 'FAQ Management', feature: 'faq' },
+  '/policies': { title: 'Legal Policies', feature: 'policies' },
 }
 
 

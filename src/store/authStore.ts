@@ -3,8 +3,8 @@ import { api, setToken, removeToken, getToken } from '@/lib/api'
 import type { User, Role } from '@/types'
 
 export const PERMISSIONS: Record<string, string[]> = {
-  admin: ['dashboard', 'orders', 'products', 'customers', 'inventory', 'contact', 'analytics', 'payments', 'guests', 'complaints', 'blog', 'settings', 'cafe-orders', 'expenses', 'cafe', 'cafe-analytics', 'cafe-products', 'employees', 'finance', 'about', 'documents'],
-  subadmin: ['orders', 'products', 'inventory', 'contact', 'complaints', 'blog', 'cafe-orders', 'cafe', 'cafe-products'],
+  admin: ['dashboard', 'orders', 'products', 'customers', 'inventory', 'contact', 'analytics', 'payments', 'guests', 'complaints', 'blog', 'settings', 'cafe-orders', 'expenses', 'cafe', 'cafe-analytics', 'cafe-products', 'employees', 'finance', 'about', 'documents', 'faq', 'policies'],
+  subadmin: ['orders', 'products', 'inventory', 'contact', 'complaints', 'blog', 'cafe-orders', 'cafe', 'cafe-products', 'faq', 'policies'],
 }
 
 

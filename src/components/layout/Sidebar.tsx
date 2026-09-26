@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, ShoppingCart, Package, Users, Archive,
   MessageSquare, BarChart3, Settings, ChevronLeft, ChevronRight, LogOut, BookOpen, Users2, AlertTriangle, CreditCard,
-  Coffee, Wallet, Store, ChevronDown, ChevronUp, FileText, FolderLock
+  Coffee, Wallet, Store, ChevronDown, ChevronUp, FileText, FolderLock, HelpCircle, ShieldCheck
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { useAuthStore, useCanAccess } from '@/store/authStore'
@@ -30,6 +30,8 @@ const NAV_ITEMS = [
   { icon: Users2, label: 'Guests', href: '/guests', feature: 'guests' },
   { icon: AlertTriangle, label: 'Complaints', href: '/complaints', feature: 'complaints' },
   { icon: FileText, label: 'About Page', href: '/about', feature: 'about' },
+  { icon: HelpCircle, label: 'FAQs', href: '/faq', feature: 'faq' },
+  { icon: ShieldCheck, label: 'Policies', href: '/policies', feature: 'policies' },
   { icon: BookOpen, label: 'Blog', href: '/blog', feature: 'blog' },
   { icon: BarChart3, label: 'Finance', href: '/finance', feature: 'finance' },
   { icon: FolderLock, label: 'Company Docs', href: '/documents', feature: 'documents' },

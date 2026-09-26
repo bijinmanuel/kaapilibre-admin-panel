@@ -525,3 +525,61 @@ export interface TeamMember {
   updatedAt: string
 }
 
+export interface Faq {
+  _id: string
+  question: string
+  answer: string
+  category: string
+  order: number
+  isSelectedForWebsite: boolean
+  isVisible: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateFaqData {
+  question: string
+  answer: string
+  category?: string
+  order?: number
+  isSelectedForWebsite?: boolean
+  isVisible?: boolean
+}
+
+export interface UpdateFaqData {
+  question?: string
+  answer?: string
+  category?: string
+  order?: number
+  isSelectedForWebsite?: boolean
+  isVisible?: boolean
+}
+
+export type PolicySlug =
+  | 'privacy-policy'
+  | 'terms-and-conditions'
+  | 'shipping-policy'
+  | 'cancellation-refund-policy'
+  | 'cookie-policy'
+
+export interface Policy {
+  _id: string
+  slug: PolicySlug
+  title: string
+  summary?: string
+  content: string
+  isPublished: boolean
+  lastUpdatedBy?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UpdatePolicyData {
+  title?: string
+  summary?: string
+  content?: string
+  isPublished?: boolean
+}
+
+
+

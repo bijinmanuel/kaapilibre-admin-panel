@@ -205,3 +205,111 @@ button {
   overflow-y: auto;
   /* scrolls if rows overflow */
 }
+
+/* Policy Visual Document Editor */
+.policy-visual-editor {
+  outline: none;
+  min-height: 480px;
+  line-height: 1.7;
+  font-family: inherit;
+  color: var(--foreground);
+}
+
+.policy-visual-editor:empty:before {
+  content: 'Click here and start typing your policy content...';
+  color: var(--muted-foreground);
+  font-style: italic;
+  pointer-events: none;
+}
+
+.policy-visual-editor h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.policy-visual-editor h2:first-child {
+  margin-top: 0;
+}
+
+.policy-visual-editor h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.policy-visual-editor p {
+  font-size: 0.925rem;
+  line-height: 1.75;
+  color: var(--foreground);
+  margin-bottom: 0.95rem;
+}
+
+.policy-visual-editor ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.1rem;
+  font-size: 0.925rem;
+}
+
+.policy-visual-editor ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1.1rem;
+  font-size: 0.925rem;
+}
+
+.policy-visual-editor li {
+  margin-bottom: 0.4rem;
+  line-height: 1.65;
+}
+
+.policy-visual-editor strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.policy-visual-editor em {
+  font-style: italic;
+}
+
+.policy-visual-editor a {
+  color: var(--primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.policy-visual-editor blockquote {
+  border-left: 4px solid var(--primary);
+  background: rgba(212, 168, 83, 0.08);
+  padding: 0.85rem 1.1rem;
+  border-radius: 0.5rem;
+  margin: 1.25rem 0;
+  font-style: normal;
+}
+
+.policy-visual-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.875rem;
+}
+
+.policy-visual-editor th {
+  border-bottom: 2px solid var(--border);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.policy-visual-editor td {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+}
