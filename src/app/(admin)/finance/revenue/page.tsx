@@ -11,7 +11,7 @@ import { formatINR } from '@/utils/finance';
 import { useAuthStore } from '@/store/authStore';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
-import { Plus, Check, Trash2, Calendar, FileText, IndianRupee, Layers, RefreshCw, AlertTriangle, Loader2 } from 'lucide-react';
+import { Plus, Check, Trash2, Calendar, FileText, IndianRupee, Layers, RefreshCw, AlertTriangle, Loader2, Coffee, ShoppingBag, ArrowRight } from 'lucide-react';
 
 interface RevenueItem {
   _id: string;
@@ -268,27 +268,198 @@ export default function RevenueModulePage() {
     }
   };
 
+  const totalAllRevenue = (sourceTotals.cafe_order || 0) + (sourceTotals.online_order || 0) + (sourceTotals.manual || 0);
+  const cafePercent = totalAllRevenue > 0 ? Math.round(((sourceTotals.cafe_order || 0) / totalAllRevenue) * 100) : 0;
+  const onlinePercent = totalAllRevenue > 0 ? Math.round(((sourceTotals.online_order || 0) / totalAllRevenue) * 100) : 0;
+  const manualPercent = totalAllRevenue > 0 ? Math.round(((sourceTotals.manual || 0) / totalAllRevenue) * 100) : 0;
+
   return (
     <FinanceLayout
       title="Revenue Entries"
       description="Track order-synced sales and record other operational/capital receipts."
     >
-      {/* Source breakdown cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-card border border-border rounded-xl p-5 relative overflow-hidden">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Cafe Orders Revenue</p>
-          <h3 className="text-xl font-bold text-foreground mt-1">{formatINR(sourceTotals.cafe_order)}</h3>
-          <div className="absolute right-3 bottom-3 text-foreground/5"><IndianRupee className="w-12 h-12" /></div>
+      {/* Priority Bento Breakdown Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6 items-stretch">
+        {/* Priority 1: Hero / Big Card (Total Revenue - All Inflows) */}
+        <div
+          onClick={() => {
+            setSource('');
+            setPage(1);
+          }}
+          className={`lg:col-span-5 rounded-2xl border p-5 sm:p-6 shadow-sm flex flex-col justify-between cursor-pointer transition-all group relative overflow-hidden ${
+            source === ''
+              ? 'border-primary/40 bg-gradient-to-br from-card via-card to-primary/[0.08] shadow-[0_0_20px_rgba(212,168,83,0.06)]'
+              : 'border-border bg-card hover:border-primary/40'
+          }`}
+          title="Click to view all revenue entries"
+        >
+          {/* Subtle background ambient glow */}
+          <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-primary/10 blur-2xl pointer-events-none group-hover:bg-primary/20 transition-all" />
+
+          <div>
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shadow-xs shrink-0"
+                  style={{ background: 'rgba(212, 168, 83, 0.18)', color: '#d4a853' }}
+                >
+                  <IndianRupee className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Total Inflow Revenue
+                  </span>
+                  <p className="text-[11px] text-muted-foreground">All Channels Combined</p>
+                </div>
+              </div>
+              <span
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border shrink-0"
+                style={{
+                  background: 'rgba(212, 168, 83, 0.15)',
+                  color: '#d4a853',
+                  borderColor: 'rgba(212, 168, 83, 0.3)'
+                }}
+              >
+                {source ? 'Filtered View' : 'Primary Metric'}
+              </span>
+            </div>
+
+            {/* Giant Hero Number */}
+            <div className="my-3">
+              <h2 className="text-3xl sm:text-4xl xl:text-[38px] font-extrabold tracking-tight text-foreground leading-none font-mono">
+                {formatINR(totalAllRevenue)}
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Consolidated revenue generated across cafe POS counter, online web orders, and manual ledger receipts.
+            </p>
+          </div>
+
+          {/* Sub-breakdown mini pills (3 channels) */}
+          <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/70 mt-2">
+            <div className="bg-background/60 border border-border/60 rounded-lg p-2">
+              <div className="flex items-center justify-between gap-1 text-[9px] font-semibold text-amber-500 uppercase tracking-wider">
+                <span>Cafe POS</span>
+                <span className="font-mono opacity-80">{cafePercent}%</span>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-foreground mt-0.5 font-mono truncate">
+                {formatINR(sourceTotals.cafe_order)}
+              </p>
+            </div>
+
+            <div className="bg-background/60 border border-border/60 rounded-lg p-2">
+              <div className="flex items-center justify-between gap-1 text-[9px] font-semibold text-blue-400 uppercase tracking-wider">
+                <span>Online</span>
+                <span className="font-mono opacity-80">{onlinePercent}%</span>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-foreground mt-0.5 font-mono truncate">
+                {formatINR(sourceTotals.online_order)}
+              </p>
+            </div>
+
+            <div className="bg-background/60 border border-border/60 rounded-lg p-2">
+              <div className="flex items-center justify-between gap-1 text-[9px] font-semibold text-emerald-400 uppercase tracking-wider">
+                <span>Manual</span>
+                <span className="font-mono opacity-80">{manualPercent}%</span>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-foreground mt-0.5 font-mono truncate">
+                {formatINR(sourceTotals.manual)}
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-5 relative overflow-hidden">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Online Orders Revenue</p>
-          <h3 className="text-xl font-bold text-foreground mt-1">{formatINR(sourceTotals.online_order)}</h3>
-          <div className="absolute right-3 bottom-3 text-foreground/5"><IndianRupee className="w-12 h-12" /></div>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-5 relative overflow-hidden">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Manual / Other Income</p>
-          <h3 className="text-xl font-bold text-foreground mt-1">{formatINR(sourceTotals.manual)}</h3>
-          <div className="absolute right-3 bottom-3 text-foreground/5"><IndianRupee className="w-12 h-12" /></div>
+
+        {/* Priority 2, 3, 4: Remaining 3 Secondary Cards (lg:col-span-7) */}
+        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-stretch">
+          {/* Card 1: Cafe Orders Revenue */}
+          <div
+            onClick={() => {
+              setSource(source === 'cafe_order' ? '' : 'cafe_order');
+              setPage(1);
+            }}
+            className={`rounded-2xl border p-4 sm:p-5 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] group ${
+              source === 'cafe_order'
+                ? 'border-amber-500/60 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
+                : 'border-border bg-card hover:border-amber-500/40'
+            }`}
+            title="Click to filter by Cafe Orders"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-amber-500 uppercase tracking-wider">Cafe Orders</span>
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                  <Coffee className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-amber-500 font-mono mt-3">
+                {formatINR(sourceTotals.cafe_order)}
+              </p>
+            </div>
+            <div className="pt-3 border-t border-border/60 mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>{cafePercent}% share · Counter POS</span>
+              <ArrowRight className={`w-3.5 h-3.5 text-amber-500 transition-opacity ${source === 'cafe_order' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+            </div>
+          </div>
+
+          {/* Card 2: Online Orders Revenue */}
+          <div
+            onClick={() => {
+              setSource(source === 'online_order' ? '' : 'online_order');
+              setPage(1);
+            }}
+            className={`rounded-2xl border p-4 sm:p-5 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] group ${
+              source === 'online_order'
+                ? 'border-blue-500/60 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                : 'border-border bg-card hover:border-blue-500/40'
+            }`}
+            title="Click to filter by Online Orders"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Online Orders</span>
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+                  <ShoppingBag className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-blue-400 font-mono mt-3">
+                {formatINR(sourceTotals.online_order)}
+              </p>
+            </div>
+            <div className="pt-3 border-t border-border/60 mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>{onlinePercent}% share · Web store</span>
+              <ArrowRight className={`w-3.5 h-3.5 text-blue-400 transition-opacity ${source === 'online_order' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+            </div>
+          </div>
+
+          {/* Card 3: Manual / Other Income */}
+          <div
+            onClick={() => {
+              setSource(source === 'manual' ? '' : 'manual');
+              setPage(1);
+            }}
+            className={`rounded-2xl border p-4 sm:p-5 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] group ${
+              source === 'manual'
+                ? 'border-emerald-500/60 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+                : 'border-border bg-card hover:border-emerald-500/40'
+            }`}
+            title="Click to filter by Manual Receipts"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Manual / Other</span>
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-emerald-400 font-mono mt-3">
+                {formatINR(sourceTotals.manual)}
+              </p>
+            </div>
+            <div className="pt-3 border-t border-border/60 mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>{manualPercent}% share · Direct entries</span>
+              <ArrowRight className={`w-3.5 h-3.5 text-emerald-400 transition-opacity ${source === 'manual' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+            </div>
+          </div>
         </div>
       </div>
 

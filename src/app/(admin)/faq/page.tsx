@@ -79,8 +79,8 @@ export default function FaqManagementPage() {
         activeFilter === 'all'
           ? true
           : activeFilter === 'website'
-          ? faq.isSelectedForWebsite
-          : !faq.isSelectedForWebsite
+            ? faq.isSelectedForWebsite
+            : !faq.isSelectedForWebsite
 
       const matchesCategory =
         selectedCategory === 'all' || faq.category === selectedCategory
@@ -182,7 +182,7 @@ export default function FaqManagementPage() {
 
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#d4a853] hover:bg-[#c29642] text-black font-medium text-sm transition-all shadow-lg shadow-[#d4a853]/20 hover:scale-[1.02] active:scale-[0.98]"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#d4a853] hover:bg-[#c29642] text-white font-medium text-sm transition-all shadow-lg shadow-[#d4a853]/20 hover:scale-[1.02] active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
           <span>Add New FAQ</span>
@@ -263,7 +263,7 @@ export default function FaqManagementPage() {
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-2xl border border-border bg-card/40">
         {/* Search */}
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          {/* <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" /> */}
           <input
             type="text"
             placeholder="Search questions or answers..."
@@ -278,31 +278,28 @@ export default function FaqManagementPage() {
           <div className="inline-flex p-1 rounded-xl bg-background border border-border text-xs">
             <button
               onClick={() => setActiveFilter('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeFilter === 'all'
-                  ? 'bg-[#d4a853] text-black font-semibold shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'all'
+                ? 'bg-[#d4a853] text-black font-semibold shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+                }`}
             >
               All ({faqs.length})
             </button>
             <button
               onClick={() => setActiveFilter('website')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeFilter === 'website'
-                  ? 'bg-[#d4a853] text-black font-semibold shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'website'
+                ? 'bg-[#d4a853] text-black font-semibold shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+                }`}
             >
               ⭐ On Website ({selectedCount})
             </button>
             <button
               onClick={() => setActiveFilter('not-website')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeFilter === 'not-website'
-                  ? 'bg-[#d4a853] text-black font-semibold shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'not-website'
+                ? 'bg-[#d4a853] text-black font-semibold shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+                }`}
             >
               Other ({faqs.length - selectedCount})
             </button>
@@ -369,11 +366,10 @@ export default function FaqManagementPage() {
             return (
               <div
                 key={faq._id}
-                className={`group p-5 rounded-2xl border transition-all duration-200 ${
-                  isSelected
-                    ? 'border-[#d4a853]/40 bg-[#161410]/70 hover:border-[#d4a853]/60 shadow-[0_4px_20px_-8px_rgba(212,168,83,0.12)]'
-                    : 'border-border/60 bg-card/40 hover:border-border hover:bg-card/70'
-                }`}
+                className={`group p-5 rounded-2xl border transition-all duration-200 ${isSelected
+                  ? 'border-[#d4a853]/40 bg-[#161410]/70 hover:border-[#d4a853]/60 shadow-[0_4px_20px_-8px_rgba(212,168,83,0.12)]'
+                  : 'border-border/60 bg-card/40 hover:border-border hover:bg-card/70'
+                  }`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   {/* Left: Reorder + Content */}
@@ -441,11 +437,10 @@ export default function FaqManagementPage() {
                     <button
                       onClick={() => toggleWebsite.mutate(faq._id)}
                       disabled={toggleWebsite.isPending}
-                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all ${
-                        isSelected
-                          ? 'bg-[#d4a853]/20 text-[#d4a853] border border-[#d4a853]/50 hover:bg-[#d4a853]/30'
-                          : 'bg-background hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
-                      }`}
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all ${isSelected
+                        ? 'bg-[#d4a853]/20 text-[#d4a853] border border-[#d4a853]/50 hover:bg-[#d4a853]/30'
+                        : 'bg-background hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
+                        }`}
                       title={
                         isSelected
                           ? 'Click to remove from storefront website'
@@ -453,9 +448,8 @@ export default function FaqManagementPage() {
                       }
                     >
                       <div
-                        className={`w-2 h-2 rounded-full ${
-                          isSelected ? 'bg-[#d4a853] animate-pulse' : 'bg-muted-foreground/40'
-                        }`}
+                        className={`w-2 h-2 rounded-full ${isSelected ? 'bg-[#d4a853] animate-pulse' : 'bg-muted-foreground/40'
+                          }`}
                       />
                       <span>{isSelected ? 'Show on Website' : 'Select for Website'}</span>
                     </button>
@@ -571,11 +565,10 @@ export default function FaqManagementPage() {
                       type="button"
                       key={sug}
                       onClick={() => setFormData({ ...formData, category: sug })}
-                      className={`text-[10px] px-2 py-0.5 rounded-md border transition-colors ${
-                        formData.category === sug
-                          ? 'border-[#d4a853] text-[#d4a853] bg-[#d4a853]/10'
-                          : 'border-border text-muted-foreground hover:text-foreground'
-                      }`}
+                      className={`text-[10px] px-2 py-0.5 rounded-md border transition-colors ${formData.category === sug
+                        ? 'border-[#d4a853] text-[#d4a853] bg-[#d4a853]/10'
+                        : 'border-border text-muted-foreground hover:text-foreground'
+                        }`}
                     >
                       {sug}
                     </button>
@@ -635,7 +628,7 @@ export default function FaqManagementPage() {
                 <button
                   type="submit"
                   disabled={createFaq.isPending || updateFaq.isPending}
-                  className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#d4a853] hover:bg-[#c29642] text-black transition-all shadow-md shadow-[#d4a853]/20 disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#d4a853] hover:bg-[#c29642] text-white transition-all shadow-md shadow-[#d4a853] disabled:opacity-50"
                 >
                   {createFaq.isPending || updateFaq.isPending ? (
                     <span className="flex items-center gap-1.5">

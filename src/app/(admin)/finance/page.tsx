@@ -77,58 +77,6 @@ interface LoanAlert {
   message: string;
 }
 
-interface FinanceStatCardProps {
-  title: string;
-  value: string | React.ReactNode;
-  icon: any;
-  iconColor?: string;
-  description: string;
-  isDark?: boolean;
-}
-
-function FinanceStatCard({ title, value, icon: Icon, iconColor = '#d4a853', description, isDark }: FinanceStatCardProps) {
-  return (
-    <div className={`relative overflow-hidden rounded-xl p-4 border border-border bg-gradient-to-br from-card via-card/95 to-card/90 transition-all duration-300 group hover:-translate-y-0.5 flex-1 flex flex-col justify-between ${isDark
-        ? 'hover:shadow-[0_8px_25px_rgba(0,0,0,0.4)] shadow-[0_2px_10px_rgba(0,0,0,0.1)]'
-        : 'hover:shadow-[0_8px_25px_rgba(0,0,0,0.06)] shadow-[0_1px_5px_rgba(0,0,0,0.02)]'
-      }`}
-      style={{
-        borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-      }}
-    >
-      {/* Corner Glow Effect */}
-      <div
-        className="absolute -right-8 -bottom-8 w-20 h-20 rounded-full blur-2xl opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none"
-        style={{ backgroundColor: iconColor }}
-      />
-
-      {/* Top Section */}
-      <div className="relative z-10 flex items-start justify-between gap-2 mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 leading-normal pr-1">{title}</p>
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 flex-shrink-0"
-          style={{
-            background: `${iconColor}12`,
-            border: `1px solid ${iconColor}20`
-          }}
-        >
-          <Icon className="w-4 h-4" style={{ color: iconColor }} />
-        </div>
-      </div>
-
-      {/* Bottom Section */}
-      <div className="relative z-10 mt-auto">
-        <h3 className={`text-base md:text-lg font-bold tracking-tight font-sans ${isDark ? 'text-[#ffffff]' : 'text-[#000000]'
-          }`}>
-          {value}
-        </h3>
-        <p className="text-[9px] text-muted-foreground/75 mt-1 leading-normal font-medium">
-          {description}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 export default function FinanceDashboardPage() {
   const { resolvedTheme } = useTheme();
@@ -325,12 +273,17 @@ export default function FinanceDashboardPage() {
         </div>
       )}
 
-      {/* 8 KPI Cards Slidable Section */}
+      {/* 8 KPI Cards Slidable Section with Priority-Based Bento Layout */}
       <div className="mb-6 p-4 bg-card/40 border border-border/40 rounded-2xl backdrop-blur-md">
         <div className="flex items-center justify-between gap-3 mb-4 px-1">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/90">
-            Key Performance Indicators (KPIs)
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/90">
+              Key Performance Indicators
+            </h2>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-secondary border border-border text-foreground/80">
+              {currentSlide === 0 ? 'Operating Performance' : 'Liquidity & Balances'}
+            </span>
+          </div>
 
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono text-muted-foreground">
@@ -340,7 +293,7 @@ export default function FinanceDashboardPage() {
               onClick={() => setCurrentSlide(0)}
               disabled={currentSlide === 0}
               className="p-1.5 rounded-lg border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer active:scale-95 disabled:opacity-30 shadow-sm"
-              title="Previous Page"
+              title="Operating Performance"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -348,7 +301,7 @@ export default function FinanceDashboardPage() {
               onClick={() => setCurrentSlide(1)}
               disabled={currentSlide === 1}
               className="p-1.5 rounded-lg border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer active:scale-95 disabled:opacity-30 shadow-sm"
-              title="Next Page"
+              title="Liquidity & Balances"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -358,79 +311,328 @@ export default function FinanceDashboardPage() {
         {/* Slidable Container without scrollbar */}
         <div className="relative overflow-hidden w-full">
           <div
-            className="flex transition-transform duration-500 ease-in-out"
+            className="flex transition-transform duration-500 ease-in-out items-stretch"
             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           >
-            {/* Page 1 (First 4 cards) */}
-            <div className="w-full flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pr-1">
-              <FinanceStatCard
-                title={`Total Revenue (${periodLabels[period]})`}
-                value={formatINR(kpis?.totalRevenue ?? 0)}
-                icon={DollarSign}
-                iconColor="#60a5fa"
-                description="Total income generated in the selected period."
-                isDark={isDark}
-              />
-              <FinanceStatCard
-                title={`Total Expenses (${periodLabels[period]})`}
-                value={formatINR(kpis?.totalExpenses ?? 0)}
-                icon={CreditCard}
-                iconColor="#ef4444"
-                description="Total expenditures incurred in the selected period."
-                isDark={isDark}
-              />
-              <FinanceStatCard
-                title={`Gross Profit (${periodLabels[period]})`}
-                value={formatINR(kpis?.grossProfit ?? 0)}
-                icon={TrendingUp}
-                iconColor="#34d399"
-                description="Earnings after direct production and fulfillment costs."
-                isDark={isDark}
-              />
-              <FinanceStatCard
-                title={`Net Profit (${periodLabels[period]})`}
-                value={formatINR(kpis?.netProfit ?? 0)}
-                icon={TrendingUp}
-                iconColor={(kpis?.netProfit ?? 0) >= 0 ? "#10b981" : "#ef4444"}
-                description="Bottom-line profit after all operational costs & interest."
-                isDark={isDark}
-              />
+            {/* Page 1 (Operating Performance) */}
+            <div className="w-full flex-shrink-0 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch pr-1">
+              {/* Priority 1: Hero / Big Card (Total Revenue) */}
+              <Link
+                href="/finance/revenue"
+                className="lg:col-span-5 rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/[0.08] p-5 sm:p-6 shadow-sm flex flex-col justify-between cursor-pointer hover:border-primary/60 transition-all group relative overflow-hidden"
+                title="Click to view detailed revenue entries"
+              >
+                {/* Subtle background ambient glow */}
+                <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-primary/10 blur-2xl pointer-events-none group-hover:bg-primary/20 transition-all" />
+
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shadow-xs shrink-0"
+                        style={{ background: 'rgba(212, 168, 83, 0.18)', color: '#d4a853' }}
+                      >
+                        <DollarSign className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                          Total Revenue
+                        </span>
+                        <p className="text-[11px] text-muted-foreground">Primary Sales & Inflows</p>
+                      </div>
+                    </div>
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border shrink-0"
+                      style={{
+                        background: 'rgba(212, 168, 83, 0.15)',
+                        color: '#d4a853',
+                        borderColor: 'rgba(212, 168, 83, 0.3)'
+                      }}
+                    >
+                      Top Metric · {periodLabels[period]}
+                    </span>
+                  </div>
+
+                  {/* Giant Hero Number */}
+                  <div className="my-3">
+                    <h2 className="text-3xl sm:text-4xl xl:text-[40px] font-extrabold tracking-tight text-foreground leading-none font-mono">
+                      {formatINR(kpis?.totalRevenue ?? 0)}
+                    </h2>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Aggregated revenue recorded across cafe orders, online sales, and manual inflows in {periodLabels[period]}
+                  </p>
+                </div>
+
+                {/* Sub-breakdown: Gross Profit vs Net Profit pills */}
+                <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border/70 mt-2">
+                  <div className="bg-background/60 border border-border/60 rounded-lg p-2.5">
+                    <div className="flex items-center justify-between gap-1 text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span>Gross Profit</span>
+                      </div>
+                      {kpis?.totalRevenue ? (
+                        <span className="text-[9px] font-mono opacity-80">
+                          {((kpis.grossProfit / kpis.totalRevenue) * 100).toFixed(0)}%
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="text-sm font-bold text-foreground mt-0.5 font-mono">
+                      {formatINR(kpis?.grossProfit ?? 0)}
+                    </p>
+                  </div>
+
+                  <div className="bg-background/60 border border-border/60 rounded-lg p-2.5">
+                    <div className="flex items-center justify-between gap-1 text-[10px] font-semibold uppercase tracking-wider"
+                      style={{ color: (kpis?.netProfit ?? 0) >= 0 ? '#10b981' : '#ef4444' }}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: (kpis?.netProfit ?? 0) >= 0 ? '#10b981' : '#ef4444' }} />
+                        <span>Net Profit</span>
+                      </div>
+                      {kpis?.totalRevenue ? (
+                        <span className="text-[9px] font-mono opacity-80">
+                          {((kpis.netProfit / kpis.totalRevenue) * 100).toFixed(0)}%
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="text-sm font-bold mt-0.5 font-mono"
+                      style={{ color: (kpis?.netProfit ?? 0) >= 0 ? '#10b981' : '#ef4444' }}
+                    >
+                      {formatINR(kpis?.netProfit ?? 0)}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Priority 2, 3, 4: Remaining 3 Secondary Cards */}
+              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-stretch">
+                {/* Card 2: Total Expenses */}
+                <Link
+                  href="/finance/expenses"
+                  className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:border-red-500/40 group"
+                  title="Click to view all expenses"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-red-400">Total Expenses</span>
+                      <div className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                        <CreditCard className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-bold text-red-400 font-mono mt-3">
+                      {formatINR(kpis?.totalExpenses ?? 0)}
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-border/60 mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>Approved expenditures</span>
+                    <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-red-400" />
+                  </div>
+                </Link>
+
+                {/* Card 3: Gross Profit */}
+                <Link
+                  href="/finance/profitability"
+                  className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:border-emerald-500/40 group"
+                  title="Click to view profitability breakdown"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-emerald-400">Gross Profit</span>
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                        <TrendingUp className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-bold text-emerald-400 font-mono mt-3">
+                      {formatINR(kpis?.grossProfit ?? 0)}
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-border/60 mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>After COGS & fulfillment</span>
+                    <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+                  </div>
+                </Link>
+
+                {/* Card 4: Net Profit */}
+                <Link
+                  href="/finance/profitability"
+                  className={`rounded-2xl border p-4 sm:p-5 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] group ${
+                    (kpis?.netProfit ?? 0) >= 0
+                      ? 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/50'
+                      : 'border-red-500/30 bg-red-500/5 hover:border-red-500/50'
+                  }`}
+                  title="Click to view profitability details"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-semibold ${(kpis?.netProfit ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        Net Profit
+                      </span>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                        (kpis?.netProfit ?? 0) >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                      }`}>
+                        <TrendingUp className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <p className={`text-2xl sm:text-3xl font-bold font-mono mt-3 ${
+                      (kpis?.netProfit ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
+                    }`}>
+                      {formatINR(kpis?.netProfit ?? 0)}
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-border/60 mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>Bottom-line margin</span>
+                    <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+                  </div>
+                </Link>
+              </div>
             </div>
 
-            {/* Page 2 (Next 4 cards) */}
-            <div className="w-full flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pl-1">
-              <FinanceStatCard
-                title="Cash Position (Now)"
-                value={formatINR(kpis?.cashPosition ?? 0)}
-                icon={Wallet}
-                iconColor="#d4a853"
-                description="Instantly accessible cash and liquid bank balances."
-                isDark={isDark}
-              />
-              <FinanceStatCard
-                title="Outstanding Loans"
-                value={formatINR(kpis?.outstandingLoans ?? 0)}
-                icon={Building2}
-                iconColor="#fb923c"
-                description="Total active principal liability balance owed to lenders."
-                isDark={isDark}
-              />
-              <FinanceStatCard
-                title="Accounts Receivable (AR)"
-                value={formatINR(kpis?.accountsReceivable ?? 0)}
-                icon={ArrowUpRight}
-                iconColor="#60a5fa"
-                description="Unpaid customer invoices and export sales outstanding."
-                isDark={isDark}
-              />
-              <FinanceStatCard
-                title="Accounts Payable (AP)"
-                value={formatINR(kpis?.accountsPayable ?? 0)}
-                icon={ArrowDownRight}
-                iconColor="#ef4444"
-                description="Pending supplier payments and operational claims."
-                isDark={isDark}
-              />
+            {/* Page 2 (Liquidity & Balances) */}
+            <div className="w-full flex-shrink-0 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch pl-1">
+              {/* Priority 1: Hero / Big Card (Cash Position) */}
+              <Link
+                href="/finance/accounts"
+                className="lg:col-span-5 rounded-2xl border border-[#d4a853]/30 bg-gradient-to-br from-card via-card to-[#d4a853]/[0.08] p-5 sm:p-6 shadow-sm flex flex-col justify-between cursor-pointer hover:border-[#d4a853]/60 transition-all group relative overflow-hidden"
+                title="Click to view all bank and cash accounts"
+              >
+                {/* Subtle background ambient glow */}
+                <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-[#d4a853]/10 blur-2xl pointer-events-none group-hover:bg-[#d4a853]/20 transition-all" />
+
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shadow-xs shrink-0"
+                        style={{ background: 'rgba(212, 168, 83, 0.18)', color: '#d4a853' }}
+                      >
+                        <Wallet className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                          Cash Position
+                        </span>
+                        <p className="text-[11px] text-muted-foreground">Liquid Capital Available</p>
+                      </div>
+                    </div>
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border shrink-0"
+                      style={{
+                        background: 'rgba(212, 168, 83, 0.15)',
+                        color: '#d4a853',
+                        borderColor: 'rgba(212, 168, 83, 0.3)'
+                      }}
+                    >
+                      Instant Funds
+                    </span>
+                  </div>
+
+                  {/* Giant Hero Number */}
+                  <div className="my-3">
+                    <h2 className="text-3xl sm:text-4xl xl:text-[40px] font-extrabold tracking-tight text-[#d4a853] font-mono leading-none">
+                      {formatINR(kpis?.cashPosition ?? 0)}
+                    </h2>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Total accessible liquid funds across active bank accounts, counter cash tills, and petty cash reserves
+                  </p>
+                </div>
+
+                {/* Sub-breakdown: AR vs AP pills */}
+                <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border/70 mt-2">
+                  <div className="bg-background/60 border border-border/60 rounded-lg p-2.5">
+                    <div className="flex items-center gap-1.5 text-[10px] font-semibold text-blue-400 uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                      <span>Receivables (AR)</span>
+                    </div>
+                    <p className="text-sm font-bold text-foreground mt-0.5 font-mono">
+                      {formatINR(kpis?.accountsReceivable ?? 0)}
+                    </p>
+                  </div>
+                  <div className="bg-background/60 border border-border/60 rounded-lg p-2.5">
+                    <div className="flex items-center gap-1.5 text-[10px] font-semibold text-red-400 uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                      <span>Payables (AP)</span>
+                    </div>
+                    <p className="text-sm font-bold text-foreground mt-0.5 font-mono">
+                      {formatINR(kpis?.accountsPayable ?? 0)}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Priority 2, 3, 4: Remaining 3 Secondary Cards */}
+              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-stretch">
+                {/* Card 2: Outstanding Loans */}
+                <Link
+                  href="/finance/liabilities"
+                  className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:border-orange-500/40 group"
+                  title="Click to view loan liabilities"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-orange-400">Outstanding Loans</span>
+                      <div className="w-8 h-8 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center shrink-0">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-bold text-orange-400 font-mono mt-3">
+                      {formatINR(kpis?.outstandingLoans ?? 0)}
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-border/60 mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>Principal debt balance</span>
+                    <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-orange-400" />
+                  </div>
+                </Link>
+
+                {/* Card 3: Accounts Receivable */}
+                <Link
+                  href="/finance/reports"
+                  className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:border-blue-500/40 group"
+                  title="Click to view customer receivables"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-blue-400">Receivables (AR)</span>
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+                        <ArrowUpRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-bold text-blue-400 font-mono mt-3">
+                      {formatINR(kpis?.accountsReceivable ?? 0)}
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-border/60 mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>Unpaid invoices owed</span>
+                    <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
+                  </div>
+                </Link>
+
+                {/* Card 4: Accounts Payable */}
+                <Link
+                  href="/finance/expenses"
+                  className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:border-red-500/40 group"
+                  title="Click to view supplier payables"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-red-400">Payables (AP)</span>
+                      <div className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                        <ArrowDownRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-bold text-red-400 font-mono mt-3">
+                      {formatINR(kpis?.accountsPayable ?? 0)}
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-border/60 mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>Supplier obligations</span>
+                    <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-red-400" />
+                  </div>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
