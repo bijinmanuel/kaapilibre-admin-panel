@@ -1,8 +1,8 @@
 'use client'
+
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ShoppingCart, DollarSign, Store, TrendingUp } from 'lucide-react'
-import { StatCard } from '@/components/dashboard/StatCard'
 import { DashboardHeader } from '@/components/cafe-dashboard/DashboardHeader'
 import { useGlobalCafeAnalytics, useCafeOrders } from '@/hooks/useCafeOrders'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
@@ -77,43 +77,164 @@ export default function CafeDashboardPage() {
         bannerGap={bannerGap}
       />
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard 
-          title="Revenue (Paid)" 
-          value={formatCurrency(totalPaid)} 
-          icon={DollarSign} 
-          iconColor="#22c55e" 
-          isLoading={analyticsLoading} 
-        />
-        <StatCard 
-          title="Revenue (Pending)" 
-          value={formatCurrency(totalPending)} 
-          icon={DollarSign} 
-          iconColor="#f59e0b" 
-          isLoading={analyticsLoading} 
-        />
-        <StatCard 
-          title="Total Orders" 
-          value={totalOrders} 
-          icon={ShoppingCart} 
-          iconColor="#d4a853"
-          isLoading={analyticsLoading} 
-        />
-        <StatCard 
-          title="Active Cafes" 
-          value={activeCafes} 
-          icon={Store} 
-          iconColor="#60a5fa"
-          isLoading={analyticsLoading} 
-        />
-        <StatCard 
-          title="Avg. Order Value" 
-          value={formatCurrency(avgOrderValue)} 
-          icon={TrendingUp} 
-          iconColor="#8b5cf6"
-          isLoading={analyticsLoading} 
-        />
+      {/* Priority-Based KPI Stats Bar */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6 items-stretch">
+        {/* Priority 1: Hero / Big Card (Total Cafe Revenue) */}
+        <div
+          onClick={() => router.push('/cafe-orders')}
+          className="lg:col-span-5 rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/[0.08] p-5 sm:p-6 shadow-sm flex flex-col justify-between cursor-pointer hover:border-primary/60 transition-all group relative overflow-hidden"
+          title="Click to view cafe orders"
+        >
+          {/* Subtle background ambient glow */}
+          <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-primary/10 blur-2xl pointer-events-none group-hover:bg-primary/20 transition-all" />
+
+          <div>
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shadow-xs shrink-0"
+                  style={{ background: 'rgba(212, 168, 83, 0.18)', color: '#d4a853' }}
+                >
+                  <DollarSign className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Total Cafe Revenue
+                  </span>
+                  <p className="text-[11px] text-muted-foreground">All Locations & Walk-ins</p>
+                </div>
+              </div>
+              <span
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border shrink-0"
+                style={{
+                  background: 'rgba(212, 168, 83, 0.15)',
+                  color: '#d4a853',
+                  borderColor: 'rgba(212, 168, 83, 0.3)'
+                }}
+              >
+                Top Metric
+              </span>
+            </div>
+
+            {/* Giant Hero Number */}
+            <div className="my-3">
+              {analyticsLoading ? (
+                <div className="h-10 w-44 rounded bg-muted animate-pulse my-2" />
+              ) : (
+                <h2 className="text-3xl sm:text-4xl xl:text-[40px] font-extrabold tracking-tight text-foreground leading-none">
+                  {formatCurrency(totalRevenue)}
+                </h2>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Combined billed revenue from partner cafes and physical store sales
+            </p>
+          </div>
+
+          {/* Sub-breakdown mini-cards: Paid vs Pending */}
+          <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border/70 mt-2">
+            <div className="bg-background/60 border border-border/60 rounded-lg p-2.5">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Paid</span>
+              </div>
+              <p className="text-sm font-bold text-foreground mt-0.5">
+                {analyticsLoading ? '...' : formatCurrency(totalPaid)}
+              </p>
+            </div>
+            <div className="bg-background/60 border border-border/60 rounded-lg p-2.5">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-amber-500 uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <span>Pending</span>
+              </div>
+              <p className="text-sm font-bold text-foreground mt-0.5">
+                {analyticsLoading ? '...' : formatCurrency(totalPending)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Priority 2, 3, 4: Remaining 3 Secondary Cards */}
+        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-stretch">
+          {/* Card 2: Total Orders */}
+          <div
+            onClick={() => router.push('/cafe-orders')}
+            className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:border-primary/40"
+            title="Click to view cafe orders"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground">Total Orders</span>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: 'rgba(212, 168, 83, 0.15)', color: '#d4a853' }}
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                </div>
+              </div>
+              {analyticsLoading ? (
+                <div className="h-8 w-16 rounded bg-muted animate-pulse mt-3" />
+              ) : (
+                <p className="text-2xl sm:text-3xl font-bold text-foreground mt-3">
+                  {totalOrders}
+                </p>
+              )}
+            </div>
+            <div className="pt-3 border-t border-border/60 mt-3">
+              <span className="text-[11px] text-muted-foreground">Cafe order volume</span>
+            </div>
+          </div>
+
+          {/* Card 3: Active Cafes */}
+          <div
+            onClick={() => router.push('/cafes')}
+            className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:border-blue-500/40"
+            title="Click to view cafes"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-blue-400">Active Cafes</span>
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+                  <Store className="w-4 h-4" />
+                </div>
+              </div>
+              {analyticsLoading ? (
+                <div className="h-8 w-16 rounded bg-muted animate-pulse mt-3" />
+              ) : (
+                <p className="text-2xl sm:text-3xl font-bold text-foreground mt-3">
+                  {activeCafes}
+                </p>
+              )}
+            </div>
+            <div className="pt-3 border-t border-border/60 mt-3">
+              <span className="text-[11px] text-muted-foreground">Partner branches</span>
+            </div>
+          </div>
+
+          {/* Card 4: Avg Order Value */}
+          <div
+            className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col justify-between transition-all hover:border-purple-500/40"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-purple-400">Avg. Order Value</span>
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+              </div>
+              {analyticsLoading ? (
+                <div className="h-8 w-20 rounded bg-muted animate-pulse mt-3" />
+              ) : (
+                <p className="text-2xl sm:text-3xl font-bold text-foreground mt-3">
+                  {formatCurrency(avgOrderValue)}
+                </p>
+              )}
+            </div>
+            <div className="pt-3 border-t border-border/60 mt-3">
+              <span className="text-[11px] text-muted-foreground">Per order basket</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -136,7 +257,7 @@ export default function CafeDashboardPage() {
                 <YAxis 
                   tick={{ fontSize: 12, fill: '#888' }} 
                   axisLine={false} 
-                  tickLine={false}
+                  tickLine={false} 
                   tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip 
@@ -222,7 +343,7 @@ export default function CafeDashboardPage() {
                   dataKey="name"
                   tick={{ fontSize: 12, fill: '#888' }} 
                   axisLine={false} 
-                  tickLine={false}
+                  tickLine={false} 
                   width={100}
                 />
                 <Tooltip 

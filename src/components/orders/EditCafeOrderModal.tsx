@@ -5,7 +5,7 @@ import { useUpdateCafeOrder } from '@/hooks/useCafeOrders'
 import { useCafes } from '@/hooks/useCafes'
 import { useCafeProducts } from '@/hooks/useCafeProducts'
 import { formatCurrency } from '@/lib/utils'
-import type { CafeOrder } from '@/types'
+import type { CafeOrder, CafeOrderStatus } from '@/types'
 
 export function EditCafeOrderModal({ order, onClose }: { order: CafeOrder; onClose: () => void }) {
   const [items, setItems] = useState<{ name: string; qty: number; price: number }[]>(
@@ -13,9 +13,11 @@ export function EditCafeOrderModal({ order, onClose }: { order: CafeOrder; onClo
   )
   const [paymentMethod, setPaymentMethod] = useState<any>(order.paymentMethod)
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'paid'>(order.paymentStatus)
+  const [cafeId, setCafeId] = useState(
+    typeof order.cafeId === 'object' && order.cafeId ? (order.cafeId as any)._id : (typeof order.cafeId === 'string' ? order.cafeId : '')
+  )
   const [notes, setNotes] = useState(order.notes || '')
-  const [cafeId, setCafeId] = useState(order._id || (typeof order.cafeId === 'string' ? order.cafeId : ''))
-  const [status, setStatus] = useState(order.status)
+  const [status, setStatus] = useState<CafeOrderStatus>(order.status)
 
   const { data: cafes } = useCafes()
   const { data: menuItems } = useCafeProducts()

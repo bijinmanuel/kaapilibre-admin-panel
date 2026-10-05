@@ -5,6 +5,7 @@ import type { CafeOrder, ApiResponse, PaginationMeta, PerformanceInsightsData, C
 
 interface CafeOrderFilters {
   status?: string
+  paymentStatus?: string
   search?: string
   from?: string
   to?: string
@@ -17,7 +18,12 @@ export function useCafeOrders(filters: CafeOrderFilters = {}) {
   return useQuery<{ data: CafeOrder[]; meta: PaginationMeta }>({
     queryKey: ['cafe/orders', filters],
     queryFn: async () => {
-      const res = await api.get('/cafe/orders', { params: { ...filters, limit: filters.limit || 20 } }) as ApiResponse<CafeOrder[]>
+      const res = await api.get('/cafe/orders', {
+        params: {
+          ...filters,
+          limit: filters.limit !== undefined ? filters.limit : 20
+        }
+      }) as ApiResponse<CafeOrder[]>
       return { data: res.data, meta: res.meta! }
     },
   })
