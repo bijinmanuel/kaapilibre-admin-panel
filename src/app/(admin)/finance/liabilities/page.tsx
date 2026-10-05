@@ -12,7 +12,7 @@ import {
   Plus, X, ChevronDown, ChevronRight, Loader2,
   Building2, Users, User, TrendingDown, AlertTriangle,
   CheckCircle2, Clock, DollarSign, Calendar, CreditCard,
-  ArrowDownLeft, RefreshCw, Eye
+  ArrowDownLeft, RefreshCw, Eye, ArrowRightLeft, Sparkles, Trash2, ShieldCheck
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ interface Loan {
   term_months: number;
   disbursed_at: string;
   account_id: { _id: string; code: number; name: string } | string;
-  status: 'active' | 'closed';
+  status: 'active' | 'closed' | 'reclassified' | 'voided';
   notes?: string;
 }
 
@@ -97,7 +97,7 @@ export default function LiabilitiesPage() {
 
   // UI state
   const [activeTab, setActiveTab] = useState<'loans' | 'lenders'>('loans');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed'>('active');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed' | 'reclassified'>('active');
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
   const [loanDetail, setLoanDetail] = useState<LoanDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -123,6 +123,19 @@ export default function LiabilitiesPage() {
     principal_paid: '', interest_paid: '', account_id: '', notes: ''
   });
   const [savingRepayment, setSavingRepayment] = useState(false);
+
+  // Reclassify Modal state
+  const [showReclassifyModal, setShowReclassifyModal] = useState(false);
+  const [reclassifyLoanTarget, setReclassifyLoanTarget] = useState<Loan | null>(null);
+  const [reclassifyHandling, setReclassifyHandling] = useState<'drawings' | 'void'>('drawings');
+  const [reclassifyNotes, setReclassifyNotes] = useState('');
+  const [savingReclassify, setSavingReclassify] = useState(false);
+
+  // Void Loan Modal state
+  const [showVoidModal, setShowVoidModal] = useState(false);
+  const [voidLoanTarget, setVoidLoanTarget] = useState<Loan | null>(null);
+  const [voidReason, setVoidReason] = useState('');
+  const [savingVoid, setSavingVoid] = useState(false);
 
   // Confirmation popup state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -300,6 +313,77 @@ export default function LiabilitiesPage() {
     );
   };
 
+  // ── Reclassify as Owner's Capital ──────────────────────────────────────────
+  const handleOpenReclassify = async (loan: Loan) => {
+    setReclassifyLoanTarget(loan);
+    setReclassifyHandling('drawings');
+    setReclassifyNotes('Owner capital mistakenly entered into liabilities — reclassified to equity');
+    setShowReclassifyModal(true);
+    if (selectedLoanId !== loan._id || !loanDetail) {
+      try {
+        const res: any = await api.get(`/finance/loans/${loan._id}`);
+        if (res?.success) setLoanDetail(res.data);
+      } catch (e) {
+        // ignore
+      }
+    }
+  };
+
+  const handleConfirmReclassify = async () => {
+    if (!reclassifyLoanTarget) return;
+    setSavingReclassify(true);
+    try {
+      const res: any = await api.post(`/finance/loans/${reclassifyLoanTarget._id}/reclassify`, {
+        repaymentHandling: reclassifyHandling,
+        notes: reclassifyNotes,
+      });
+      if (res?.success) {
+        toast.success(res.message || "Loan successfully reclassified as Owner's Capital!");
+        setShowReclassifyModal(false);
+        setReclassifyLoanTarget(null);
+        await loadAll();
+        if (selectedLoanId === reclassifyLoanTarget._id) {
+          openLoanDetail(reclassifyLoanTarget._id);
+        }
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to reclassify loan');
+    } finally {
+      setSavingReclassify(false);
+    }
+  };
+
+  // ── Void Loan ──────────────────────────────────────────────────────────────
+  const handleOpenVoid = (loan: Loan) => {
+    setVoidLoanTarget(loan);
+    setVoidReason('');
+    setShowVoidModal(true);
+  };
+
+  const handleConfirmVoid = async () => {
+    if (!voidLoanTarget) return;
+    setSavingVoid(true);
+    try {
+      const res: any = await api.post(`/finance/loans/${voidLoanTarget._id}/void`, {
+        reason: voidReason || 'Entered into system in error',
+      });
+      if (res?.success) {
+        toast.success('Loan and associated repayments voided successfully');
+        setShowVoidModal(false);
+        setVoidLoanTarget(null);
+        await loadAll();
+        if (selectedLoanId === voidLoanTarget._id) {
+          setSelectedLoanId(null);
+          setLoanDetail(null);
+        }
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to void loan');
+    } finally {
+      setSavingVoid(false);
+    }
+  };
+
   // ─── Render ────────────────────────────────────────────────────────────────
   if (loading) return <FinanceLayout title="Liabilities & Loans"><LoadingState /></FinanceLayout>;
   if (error) return <FinanceLayout title="Liabilities & Loans"><ErrorState message={error} onRetry={loadAll} /></FinanceLayout>;
@@ -373,16 +457,16 @@ export default function LiabilitiesPage() {
         <div className="flex items-center gap-2">
           {activeTab === 'loans' && (
             <div className="flex gap-1 bg-secondary p-1 rounded-xl">
-              {(['active', 'all', 'closed'] as const).map(s => (
+              {(['active', 'all', 'closed', 'reclassified'] as const).map(s => (
                 <button
                   key={s}
                   onClick={() => setStatusFilter(s)}
                   className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all capitalize ${statusFilter === s
-                    ? 'bg-[#d4a853] shadow'
+                    ? 'bg-[#d4a853] text-[#1a1713] shadow'
                     : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
                     }`}
                 >
-                  {s}
+                  {s === 'reclassified' ? 'Equity Reclassified' : s}
                 </button>
               ))}
             </div>
@@ -443,9 +527,13 @@ export default function LiabilitiesPage() {
                         </span>
                         <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${loan.status === 'active'
                           ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : loan.status === 'closed'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : loan.status === 'reclassified'
+                          ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                          : 'bg-neutral-500/10 text-neutral-400 border border-neutral-500/20'
                           }`}>
-                          {loan.status}
+                          {loan.status === 'reclassified' ? 'Reclassified to Equity' : loan.status}
                         </span>
                       </div>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -540,21 +628,66 @@ export default function LiabilitiesPage() {
                           </div>
                         )}
 
+                        {/* Reclassified Banner */}
+                        {loan.status === 'reclassified' && (
+                          <div className="mb-4 p-3.5 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-start gap-3">
+                            <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                            <div className="text-xs space-y-1">
+                              <p className="font-semibold text-purple-300">Reclassified as Owner's Capital (Equity)</p>
+                              <p className="text-purple-300/80 leading-relaxed text-[11px]">
+                                This entry has been moved from Liabilities (2011) to Owner's Capital (3001). It no longer counts as debt, carries zero liability obligations, and your balance sheet and equity figures are accurately reflected.
+                              </p>
+                              {loan.notes && (
+                                <p className="text-[10px] text-muted-foreground mt-1 italic font-mono">
+                                  {loan.notes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Voided Banner */}
+                        {loan.status === 'voided' && (
+                          <div className="mb-4 p-3.5 bg-neutral-500/10 border border-neutral-500/20 rounded-xl flex items-start gap-3">
+                            <AlertTriangle className="w-4 h-4 text-neutral-400 flex-shrink-0 mt-0.5" />
+                            <div className="text-xs space-y-1">
+                              <p className="font-semibold text-neutral-300">Voided / Cancelled Loan</p>
+                              <p className="text-neutral-400 leading-relaxed text-[11px]">
+                                This loan and its ledger transactions were reversed. It does not affect financial balances.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Action Buttons */}
                         {isAdmin && loan.status === 'active' && (
-                          <div className="flex gap-2 flex-wrap">
+                          <div className="flex gap-2 flex-wrap items-center pt-2 border-t border-border/50">
                             <button
                               onClick={() => { setRepaymentLoanId(loan._id); setShowRepaymentModal(true); }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-sm"
                               style={{ background: '#d4a853', color: '#1a1713' }}
                             >
                               <ArrowDownLeft className="w-3.5 h-3.5" /> Record Repayment
+                            </button>
+                            <button
+                              onClick={() => handleOpenReclassify(loan)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:border-purple-500/50 text-xs font-semibold transition-all shadow-sm"
+                              title="Reclassify this mistakenly entered loan into Owner's Capital (Equity)"
+                            >
+                              <ArrowRightLeft className="w-3.5 h-3.5" /> Reclassify as Owner's Capital
                             </button>
                             <button
                               onClick={() => handleCloseLoan(loan._id)}
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" /> Mark Closed
+                            </button>
+                            <button
+                              onClick={() => handleOpenVoid(loan)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all ml-auto"
+                              title="Void this entry completely if created in error"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Void Loan
                             </button>
                           </div>
                         )}
@@ -945,6 +1078,239 @@ export default function LiabilitiesPage() {
               >
                 {savingRepayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowDownLeft className="w-4 h-4" />}
                 Post Repayment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: Reclassify as Owner's Capital ───────────────────────── */}
+      {showReclassifyModal && reclassifyLoanTarget && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-lg shadow-2xl relative overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                  <ArrowRightLeft className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">Reclassify as Owner's Capital</h3>
+                  <p className="text-[11px] text-muted-foreground">Move mistaken loan liability to Owner's Equity (3001)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setShowReclassifyModal(false); setReclassifyLoanTarget(null); }}
+                className="text-muted-foreground hover:text-foreground transition-colors p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Loan Overview Box */}
+            <div className="bg-secondary/60 border border-border rounded-xl p-3.5 mb-4 text-xs space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Lender:</span>
+                <span className="font-semibold text-foreground">
+                  {typeof reclassifyLoanTarget.lender_id === 'object' ? (reclassifyLoanTarget.lender_id as any).name : 'Lender'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Capital / Principal Amount:</span>
+                <span className="font-bold text-foreground font-mono text-sm">{formatINR(reclassifyLoanTarget.principal)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Disbursed Date:</span>
+                <span className="text-foreground">
+                  {new Date(reclassifyLoanTarget.disbursed_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </span>
+              </div>
+            </div>
+
+            {/* Repayments Status & Options */}
+            {loanDetail && loanDetail.repayments && loanDetail.repayments.length > 0 ? (
+              <div className="mb-4 p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs">
+                    <p className="font-bold text-amber-300">
+                      {loanDetail.repayments.length} Repayment{loanDetail.repayments.length > 1 ? 's' : ''} Detected ({formatINR(loanDetail.summary.totalPaid)})
+                    </p>
+                    <p className="text-amber-300/80 text-[11px] mt-0.5">
+                      Principal paid: <strong className="font-mono">{formatINR(loanDetail.summary.principalPaid)}</strong> · Interest expensed: <strong className="font-mono">{formatINR(loanDetail.summary.interestPaid)}</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-amber-500/20 space-y-2.5">
+                  <p className="text-[11px] font-bold text-foreground uppercase tracking-wider">
+                    How should these repayment payments be handled?
+                  </p>
+
+                  <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    reclassifyHandling === 'drawings'
+                      ? 'border-[#d4a853] bg-[#d4a853]/10'
+                      : 'border-border bg-secondary/50 hover:bg-secondary'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="repaymentHandling"
+                      value="drawings"
+                      checked={reclassifyHandling === 'drawings'}
+                      onChange={() => setReclassifyHandling('drawings')}
+                      className="mt-0.5 accent-[#d4a853]"
+                    />
+                    <div className="text-xs">
+                      <p className="font-semibold text-foreground">
+                        Treat as Owner Drawings (Real money withdrawn)
+                      </p>
+                      <p className="text-muted-foreground text-[11px] mt-0.5 leading-relaxed">
+                        Keeps bank cash as paid out. Moves ₹{loanDetail.summary.totalPaid.toLocaleString('en-IN')} to <span className="font-mono font-medium text-foreground">3002 Owner's Drawings</span> (Equity) and reverses the ₹{loanDetail.summary.interestPaid.toLocaleString('en-IN')} interest expense so your business net profit is corrected.
+                      </p>
+                    </div>
+                  </label>
+
+                  <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    reclassifyHandling === 'void'
+                      ? 'border-[#d4a853] bg-[#d4a853]/10'
+                      : 'border-border bg-secondary/50 hover:bg-secondary'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="repaymentHandling"
+                      value="void"
+                      checked={reclassifyHandling === 'void'}
+                      onChange={() => setReclassifyHandling('void')}
+                      className="mt-0.5 accent-[#d4a853]"
+                    />
+                    <div className="text-xs">
+                      <p className="font-semibold text-foreground">
+                        Void Repayments (Accidental entry — no real money moved)
+                      </p>
+                      <p className="text-muted-foreground text-[11px] mt-0.5 leading-relaxed">
+                        Reverses the repayment completely. Restores ₹{loanDetail.summary.totalPaid.toLocaleString('en-IN')} back into your bank account balance and reverses the interest expense.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-4 p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 flex items-start gap-2.5 text-xs text-emerald-300">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-400" />
+                <p className="leading-relaxed text-[11px]">
+                  No repayments recorded against this loan. The full {formatINR(reclassifyLoanTarget.principal)} will be cleanly transferred from Loans Payable (2011) to Owner's Capital (3001) with zero cash impact.
+                </p>
+              </div>
+            )}
+
+            {/* Note input */}
+            <div className="mb-5">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
+                Audit Note / Reason
+              </label>
+              <input
+                value={reclassifyNotes}
+                onChange={e => setReclassifyNotes(e.target.value)}
+                placeholder="e.g. Owner capital mistakenly entered into liabilities"
+                className="w-full px-3 py-2 bg-secondary border border-border rounded-xl text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-purple-500/50"
+              />
+            </div>
+
+            {/* Impact Highlights */}
+            <div className="p-3 bg-secondary/40 rounded-xl border border-border text-[11px] space-y-1 text-muted-foreground mb-5">
+              <p className="flex items-center gap-1.5 text-foreground font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Accounting Impact:
+              </p>
+              <p>• Liabilities (2011) will decrease to ₹0.</p>
+              <p>• Owner's Capital (3001) will increase by {formatINR(reclassifyLoanTarget.principal)}.</p>
+              <p>• False interest obligations & expenses will be fully corrected.</p>
+              <p>• The double-entry ledger remains 100% balanced.</p>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowReclassifyModal(false); setReclassifyLoanTarget(null); }}
+                className="flex-1 py-2.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmReclassify}
+                disabled={savingReclassify}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+              >
+                {savingReclassify ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Reclassifying...
+                  </>
+                ) : (
+                  <>
+                    <ArrowRightLeft className="w-4 h-4" />
+                    Confirm & Reclassify
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: Void Loan ─────────────────────────────────────────────────── */}
+      {showVoidModal && voidLoanTarget && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl relative overflow-hidden">
+            <div className="flex items-center gap-3 mb-4 text-red-400">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+              <h3 className="text-base font-bold text-foreground">Void / Remove Loan Entry</h3>
+            </div>
+
+            <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+              Are you sure you want to completely void this loan from <strong className="text-foreground">{typeof voidLoanTarget.lender_id === 'object' ? (voidLoanTarget.lender_id as any).name : 'Lender'}</strong> for <strong className="text-foreground font-mono">{formatINR(voidLoanTarget.principal)}</strong>?
+            </p>
+
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-[11px] text-red-300 space-y-1 mb-4">
+              <p className="font-semibold">⚠️ Ledger Reversal Warning:</p>
+              <p>• All ledger postings (disbursement and repayments) will be reversed.</p>
+              <p>• Net cash balances and liabilities will be restored to their pre-loan state.</p>
+              <p>• This action cannot be undone.</p>
+            </div>
+
+            <div className="mb-5">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
+                Reason for Voiding *
+              </label>
+              <input
+                value={voidReason}
+                onChange={e => setVoidReason(e.target.value)}
+                placeholder="e.g. Accidental duplicate or test entry"
+                className="w-full px-3 py-2 bg-secondary border border-border rounded-xl text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-red-500/50"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowVoidModal(false); setVoidLoanTarget(null); }}
+                className="flex-1 py-2.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmVoid}
+                disabled={savingVoid}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-red-600 hover:bg-red-500 text-white flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {savingVoid ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Voiding...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Confirm Void
+                  </>
+                )}
               </button>
             </div>
           </div>
