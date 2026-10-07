@@ -105,8 +105,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Priority 2, 3, 4, 5: Secondary Small Cards */}
-          <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-3.5 items-stretch">
+          {/* Priority 2, 3, 4, 5: Secondary Small Cards (2 on top, 2 below) */}
+          <div className="lg:col-span-7 grid grid-cols-2 gap-3.5 items-stretch">
             {/* Orders Card */}
             <div
               onClick={() => router.push('/orders')}
