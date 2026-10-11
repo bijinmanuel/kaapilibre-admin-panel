@@ -6,11 +6,12 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, ShoppingCart, Package, Users, Archive,
   MessageSquare, BarChart3, Settings, ChevronLeft, ChevronRight, LogOut, BookOpen, Users2, AlertTriangle, CreditCard,
-  Coffee, Wallet, Store, ChevronDown, ChevronUp, FileText, FolderLock, HelpCircle, ShieldCheck
+  Coffee, Wallet, Store, ChevronDown, ChevronUp, FileText, FolderLock, HelpCircle, ShieldCheck, Star
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { useAuthStore, useCanAccess } from '@/store/authStore'
 import { useSidebarStore } from '@/store/sidebarStore'
+import { useReviewStats } from '@/hooks/useReviews'
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', feature: 'dashboard' },
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { icon: Coffee, label: 'Cafe Orders', href: '/cafe-orders', feature: 'cafe-orders' },
   { icon: BarChart3, label: 'Cafe Analytics', href: '/cafe-dashboard', feature: 'cafe-analytics' },
   { icon: Package, label: 'Products', href: '/products', feature: 'products' },
+  { icon: Star, label: 'Reviews', href: '/reviews', feature: 'reviews' },
   { icon: Users, label: 'Customers', href: '/customers', feature: 'customers' },
   { icon: Users2, label: 'Employees', href: '/employees', feature: 'employees' },
   { icon: Archive, label: 'Inventory', href: '/inventory', feature: 'inventory' },
@@ -57,6 +59,7 @@ export function Sidebar() {
   const { user, logout } = useAuthStore()
   const { collapsed, toggle } = useSidebarStore()
   const canAccess = useCanAccess()
+  const { data: reviewStats } = useReviewStats()
   const [financeOpen, setFinanceOpen] = useState(false)
   const financeSublinksRef = useRef<HTMLDivElement>(null)
 
@@ -169,6 +172,11 @@ export function Sidebar() {
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
               {!collapsed && <span>{item.label}</span>}
+              {!collapsed && item.feature === 'reviews' && (reviewStats?.pending ?? 0) > 0 && (
+                <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  {reviewStats?.pending}
+                </span>
+              )}
             </Link>
           )
         })}

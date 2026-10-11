@@ -581,5 +581,46 @@ export interface UpdatePolicyData {
   isPublished?: boolean
 }
 
+export type ReviewStatus = 'pending' | 'approved' | 'rejected'
 
+export interface Review {
+  _id: string
+  product: {
+    _id: string
+    name: string
+    slug: string
+    images?: Array<{ url: string; isPrimary: boolean }>
+    prices?: Record<string, number>
+  }
+  customer?: {
+    _id: string
+    name: string
+    email: string
+    isGuest?: boolean
+  }
+  name: string
+  email: string
+  rating: number
+  title?: string
+  comment: string
+  status: ReviewStatus
+  isVerifiedPurchase: boolean
+  adminReply?: {
+    comment: string
+    repliedAt: string
+    repliedBy?: {
+      _id: string
+      name: string
+      email: string
+    }
+  }
+  createdAt: string
+  updatedAt: string
+}
 
+export interface ReviewStats {
+  pending: number
+  approved: number
+  rejected: number
+  total: number
+}
