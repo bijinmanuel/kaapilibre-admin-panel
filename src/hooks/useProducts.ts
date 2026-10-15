@@ -5,6 +5,7 @@ import type { Product, ApiResponse, PaginationMeta } from '@/types'
 
 interface ProductFilters {
   search?: string
+  category?: string
   variety?: string
   species?: string
   process?: string

@@ -4,12 +4,15 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { ArrowLeft, Loader2, X, Upload, ToggleLeft, ToggleRight, Trash2, Star } from 'lucide-react'
+import { ArrowLeft, Loader2, X, Upload, ToggleLeft, ToggleRight, Trash2, Star, Plus, Tag } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useProduct, useUpdateProduct, useCreateProduct, useDeleteProduct, useToggleProduct, useUploadProductImage, useDeleteProductImage, useSetPrimaryImage } from '@/hooks/useProducts'
+import { useCategories } from '@/hooks/useCategories'
+import { CategoryModal } from '@/components/products/CategoryModal'
 
 const schema = z.object({
   name: z.string().min(2, 'Name required'),
+  category: z.string().optional(),
   origin: z.string().min(1, 'Origin required'),
   region: z.string().min(1, 'Region required'),
   variety: z.string().min(1, 'Variety required'),
@@ -34,6 +37,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   // Fetch using the URL param — could be _id or slug, backend handles both
   const { data: product, isLoading } = useProduct(isNew ? '' : urlParam)
+  const { data: categories = [] } = useCategories({ includeInactive: true })
 
   // The actual MongoDB _id to use for all mutations
   const productId = product?._id ?? urlParam
@@ -49,16 +53,21 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [flavourNotes, setFlavourNotes] = useState<string[]>([])
   const [noteInput, setNoteInput] = useState('')
   const [showDelete, setShowDelete] = useState(false)
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<any>({
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<any>({
     resolver: zodResolver(schema),
-    defaultValues: { variety: '', species: '', process: 'Washed' },
+    defaultValues: { variety: '', species: '', process: 'Washed', category: '' },
   })
 
   useEffect(() => {
     if (product) {
+      const catId = typeof product.category === 'object' && product.category !== null
+        ? product.category._id
+        : product.category || ''
       reset({
         name: product.name,
+        category: catId,
         origin: product.origin,
         region: product.region,
         variety: product.variety,
@@ -79,9 +88,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const onSubmit = async (data: any) => {
     const payload = {
-      name: data.name, origin: data.origin, region: data.region,
-      variety: data.variety, species: data.species, process: data.process, altitude: data.altitude,
-      roast: data.roast, blend: data.blend, story: data.story,
+      name: data.name,
+      category: data.category && data.category !== '' ? data.category : undefined,
+      origin: data.origin,
+      region: data.region,
+      variety: data.variety,
+      species: data.species,
+      process: data.process,
+      altitude: data.altitude,
+      roast: data.roast,
+      blend: data.blend,
+      story: data.story,
       badge: data.badge || '',
       flavourNotes,
       prices: {
@@ -154,17 +171,48 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
             <div className="rounded-xl border border-border bg-card p-5 space-y-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Basic info</p>
+              
               <div className="grid grid-cols-2 gap-4">
-
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1.5">Product name *</label>
                   <input {...register('name')} placeholder="e.g. Bale Mountain Natural" />
                   <ErrorMsg field="name" />
                 </div>
                 <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-medium text-muted-foreground block">Category</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCategoryModal(true)}
+                      className="text-[11px] flex items-center gap-1 font-medium hover:underline"
+                      style={{ color: '#d4a853' }}
+                    >
+                      <Plus className="w-3 h-3" /> New category
+                    </button>
+                  </div>
+                  <select {...register('category')}>
+                    <option value="">Select category (optional)</option>
+                    {categories.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.name} {!c.isActive ? '(Inactive)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <ErrorMsg field="category" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1.5">Blend *</label>
                   <input {...register('blend')} placeholder="e.g. 70:30" />
                   <ErrorMsg field="blend" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">
+                    Badge <span className="text-muted-foreground/60">(optional)</span>
+                  </label>
+                  <input {...register('badge')} placeholder="e.g. Bestseller, Limited, New" />
                 </div>
               </div>
 
@@ -215,12 +263,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <label className="text-xs font-medium text-muted-foreground block mb-1.5">Roast *</label>
                   <input {...register('roast')} placeholder="e.g. Light" />
                   <ErrorMsg field="roast" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">
-                    Badge <span className="text-muted-foreground/60">(optional)</span>
-                  </label>
-                  <input {...register('badge')} placeholder="e.g. Bestseller, Limited, New" />
                 </div>
               </div>
 
@@ -456,6 +498,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </div>
         )}
       </div>
+
+      {showCategoryModal && (
+        <CategoryModal
+          onClose={() => setShowCategoryModal(false)}
+          onSuccess={(newCat) => {
+            setValue('category', newCat._id)
+          }}
+        />
+      )}
     </div>
   )
 }

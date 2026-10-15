@@ -26,10 +26,24 @@ export interface StockVariant {
   reorderAt: number
 }
 
+export interface Category {
+  _id: string
+  name: string
+  slug: string
+  description?: string
+  image?: string
+  isActive: boolean
+  order?: number
+  productCount?: number
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Product {
   _id: string
   name: string
   slug: string
+  category?: string | Category | { _id: string; name: string; slug: string } | null
   origin: string
   region: string
   variety: ProductVariety
