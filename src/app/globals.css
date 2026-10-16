@@ -313,3 +313,34 @@ button {
   border-bottom: 1px solid var(--border);
   padding: 10px 14px;
 }
+
+/* Dedicated Login Page Light Inputs */
+.login-input,
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover, 
+.login-input:-webkit-autofill:focus, 
+.login-input:-webkit-autofill:active {
+  background-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  color: #111827 !important;
+  caret-color: #111827 !important;
+  border: 1px solid #e5e0d8 !important;
+  transition: background-color 5000s ease-in-out 0s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.login-input:focus {
+  border-color: #d4a853 !important;
+  box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.25) !important;
+}
+
+/* General Dark Autofill for other pages */
+.dark :not(.login-input):-webkit-autofill,
+.dark :not(.login-input):-webkit-autofill:hover, 
+.dark :not(.login-input):-webkit-autofill:focus, 
+.dark :not(.login-input):-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #17130f inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
