@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { X, Store, MapPin, Phone, Mail, Upload, Loader2, FileText } from 'lucide-react'
+import { X, Store, MapPin, Phone, Mail, Upload, Loader2, FileText, Coffee, Plus } from 'lucide-react'
 import { useCreateCafe, useUploadCafeLogo, useStates } from '@/hooks/useCafes'
+import { useCafeProducts } from '@/hooks/useCafeProducts'
 
 export function CreateCafeModal({ onClose }: { onClose: () => void }) {
   const [formData, setFormData] = useState({
@@ -11,13 +12,31 @@ export function CreateCafeModal({ onClose }: { onClose: () => void }) {
     email: '',
     gstin: '',
     state: '',
+    targetBeans: [] as string[],
   })
+  const [newBlendInput, setNewBlendInput] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
 
   const { data: states, isLoading: isLoadingStates } = useStates()
+  const { data: products } = useCafeProducts()
   const { mutateAsync: createCafe, isPending: isCreating } = useCreateCafe()
   const { mutateAsync: uploadLogo, isPending: isUploading } = useUploadCafeLogo()
+
+  const handleAddBlend = (blendName: string) => {
+    const trimmed = blendName.trim()
+    if (!trimmed) return
+    if (!formData.targetBeans.some((b) => b.toLowerCase() === trimmed.toLowerCase())) {
+      setFormData({ ...formData, targetBeans: [...formData.targetBeans, trimmed] })
+    }
+  }
+
+  const handleRemoveBlend = (blendName: string) => {
+    setFormData({
+      ...formData,
+      targetBeans: formData.targetBeans.filter((b) => b.toLowerCase() !== blendName.toLowerCase()),
+    })
+  }
 
   useEffect(() => {
     if (states && states.length > 0) {
@@ -168,6 +187,96 @@ export function CreateCafeModal({ onClose }: { onClose: () => void }) {
                   placeholder="cafe@example.com"
                   className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Dedicated Cafe Blends Section */}
+          <div className="space-y-2 pt-2 border-t border-border">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Coffee className="w-3.5 h-3.5 text-primary" /> Dedicated Blends ({formData.targetBeans.length})
+              </span>
+              <span className="text-[10px] text-muted-foreground font-normal lowercase">optional initial blends</span>
+            </label>
+
+            {/* Tag pills */}
+            <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-muted/20 border border-border rounded-lg items-center">
+              {formData.targetBeans.length > 0 ? (
+                formData.targetBeans.map((bean) => (
+                  <span
+                    key={bean}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20"
+                  >
+                    {bean}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveBlend(bean)}
+                      className="hover:text-red-400 rounded transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-muted-foreground/60 italic">
+                  No blends assigned yet. Select below or add custom.
+                </span>
+              )}
+            </div>
+
+            {/* Quick add from catalog or custom input */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  if (e.target.value) {
+                    handleAddBlend(e.target.value)
+                    e.target.value = ''
+                  }
+                }}
+                className="w-full px-3 py-2 bg-card border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
+              >
+                <option value="" disabled>
+                  + Add from wholesale catalog...
+                </option>
+                {products?.map((p) => (
+                  <option key={p._id} value={p.name}>
+                    {p.name} ({p.category})
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex gap-1.5">
+                <input
+                  value={newBlendInput}
+                  onChange={(e) => setNewBlendInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      if (newBlendInput.trim()) {
+                        handleAddBlend(newBlendInput)
+                        setNewBlendInput('')
+                      }
+                    }
+                  }}
+                  placeholder="Or type custom blend..."
+                  className="flex-1 px-3 py-2 bg-card border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newBlendInput.trim()) {
+                      handleAddBlend(newBlendInput)
+                      setNewBlendInput('')
+                    }
+                  }}
+                  disabled={!newBlendInput.trim()}
+                  className="px-3 py-2 rounded-lg text-xs font-bold transition-all disabled:opacity-40"
+                  style={{ background: '#d4a853', color: '#1a1713' }}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           </div>

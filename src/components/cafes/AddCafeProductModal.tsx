@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Coffee, Sparkles } from 'lucide-react'
 import { useCreateCafeProduct, useUpdateCafeProduct } from '@/hooks/useCafeProducts'
+import { useCafes, useUpdateCafe } from '@/hooks/useCafes'
 import type { CafeCategory, CafeProduct } from '@/types'
 
 export function AddCafeProductModal({
@@ -15,26 +16,54 @@ export function AddCafeProductModal({
     name: initialData?.name || '',
     category: (initialData?.category || 'Coffee Beans') as CafeCategory,
     price: initialData?.price?.toString() || '',
+    roast: initialData?.roast || 'Medium-Dark Roast',
+    variety: initialData?.variety || '',
+    origin: initialData?.origin || '',
     description: initialData?.description || '',
   })
+  const [assignCafeId, setAssignCafeId] = useState<string>('')
 
-  const { mutate: createProduct, isPending: isCreating } = useCreateCafeProduct()
-  const { mutate: updateProduct, isPending: isUpdating } = useUpdateCafeProduct()
+  const { data: cafes } = useCafes()
+  const { mutate: updateCafe } = useUpdateCafe()
+  const { mutateAsync: createProduct, isPending: isCreating } = useCreateCafeProduct()
+  const { mutateAsync: updateProduct, isPending: isUpdating } = useUpdateCafeProduct()
 
   const isEdit = !!initialData
   const isPending = isCreating || isUpdating
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const payload = {
+    const payload: any = {
       ...formData,
-      price: parseFloat(formData.price)
+      price: parseFloat(formData.price),
+      ...(assignCafeId ? { cafeId: assignCafeId } : {})
     }
 
-    if (isEdit) {
-      updateProduct({ id: initialData._id, data: payload }, { onSuccess: onClose })
-    } else {
-      createProduct(payload, { onSuccess: onClose })
+    try {
+      if (isEdit) {
+        await updateProduct({ id: initialData._id, data: payload })
+      } else {
+        await createProduct(payload)
+      }
+
+      // If user selected a cafe to assign this blend to:
+      if (assignCafeId && cafes) {
+        const targetCafe = cafes.find(c => c._id === assignCafeId)
+        if (targetCafe) {
+          const currentBeans = targetCafe.targetBeans || []
+          const trimmedName = formData.name.trim()
+          if (!currentBeans.some(b => b.toLowerCase() === trimmedName.toLowerCase())) {
+            updateCafe({
+              id: targetCafe._id,
+              data: { targetBeans: [...currentBeans, trimmedName] }
+            })
+          }
+        }
+      }
+
+      onClose()
+    } catch (err) {
+      // handled in hooks
     }
   }
 
@@ -90,25 +119,86 @@ export function AddCafeProductModal({
                   className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
                 >
                   <option value="Coffee Beans">Coffee Beans</option>
-                  {/* <option value="Tea">Tea</option> */}
+                  <option value="Equipment">Equipment</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
             </div>
           </div>
 
+          {formData.category === 'Coffee Beans' && (
+            <div className="space-y-4 pt-1 border-t border-border/50">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Roast Profile</label>
+                  <select
+                    value={formData.roast}
+                    onChange={(e) => setFormData({ ...formData, roast: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                  >
+                    <option value="Medium Roast">Medium Roast</option>
+                    <option value="Medium-Dark Roast">Medium-Dark Roast</option>
+                    <option value="Dark Roast">Dark Roast</option>
+                    <option value="Light Roast">Light Roast</option>
+                    <option value="Omni Roast">Omni Roast</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Variety</label>
+                  <input
+                    value={formData.variety}
+                    onChange={(e) => setFormData({ ...formData, variety: e.target.value })}
+                    placeholder="e.g. 100% Arabica"
+                    className="w-full px-3 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Origin / Estate</label>
+                <input
+                  value={formData.origin}
+                  onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
+                  placeholder="e.g. Chikmagalur & Wayanad"
+                  className="w-full px-3 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</label>
             <div className="relative">
-              {/* <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
               <input
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Optional details..."
-                className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="Optional tasting notes or details..."
+                className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
               />
             </div>
           </div>
+
+          {!isEdit && (
+            <div className="space-y-1 pt-2 border-t border-border/50">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+                <span>Assign to Partner Cafe (Optional)</span>
+                <span className="text-[10px] text-muted-foreground lowercase">tags for cafe wholesale</span>
+              </label>
+              <select
+                value={assignCafeId}
+                onChange={(e) => setAssignCafeId(e.target.value)}
+                className="w-full px-3 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm text-foreground"
+              >
+                <option value="">-- None (General wholesale roast) --</option>
+                {cafes?.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name} {c.location ? `(${c.location})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="pt-4">
             <button

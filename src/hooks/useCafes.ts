@@ -62,8 +62,10 @@ export function useUpdateCafe() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Cafe> }) =>
       api.patch(`/cafe/${id}`, data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ['cafes'] })
+      qc.invalidateQueries({ queryKey: ['cafe', variables.id] })
+      qc.invalidateQueries({ queryKey: ['cafe-analytics', variables.id] })
       toast.success('Cafe updated successfully')
     },
     onError: (e: Error) => toast.error(e.message),

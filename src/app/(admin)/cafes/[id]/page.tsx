@@ -3,21 +3,23 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft, Store, TrendingUp, ShoppingBag, Calendar,
-  ArrowUpRight, Clock, Star, MapPin, Phone, FileText
+  ArrowUpRight, Clock, Star, MapPin, Phone, FileText,
+  Coffee, Sparkles, Trash2, Plus, Flame, Settings
 } from 'lucide-react'
 import Link from 'next/link'
 import { useCafeOrders } from '@/hooks/useCafeOrders'
 import { ConsolidatedCafeInvoiceModal } from '@/components/invoice/ConsolidatedCafeInvoiceModal'
 import { format } from 'date-fns'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { useCafeAnalytics } from '@/hooks/useCafes'
+import { useCafeAnalytics, useUpdateCafe } from '@/hooks/useCafes'
+import { useCafeProducts } from '@/hooks/useCafeProducts'
 import { formatCurrency } from '@/lib/utils'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, LineChart, Line
 } from 'recharts'
 import { EditCafeModal } from '@/components/cafes/EditCafeModal'
-import { Settings } from 'lucide-react'
+import { AssignBlendModal } from '@/components/cafes/AssignBlendModal'
 
 export default function CafeDetailsPage() {
   const { id } = useParams()
@@ -25,6 +27,20 @@ export default function CafeDetailsPage() {
   const { data: analytics, isLoading } = useCafeAnalytics(id as string)
   const [mounted, setMounted] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
+  const [showAssignBlend, setShowAssignBlend] = useState(false)
+
+  const { data: allCafeProducts } = useCafeProducts()
+  const { mutate: updateCafe } = useUpdateCafe()
+
+  const handleRemoveBlend = (blendName: string) => {
+    if (!analytics?.cafe) return
+    const current = analytics.cafe.targetBeans || []
+    const updated = current.filter(b => b.toLowerCase() !== blendName.toLowerCase())
+    updateCafe({
+      id: analytics.cafe._id,
+      data: { targetBeans: updated }
+    })
+  }
 
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([])
   const [showConsolidatedModal, setShowConsolidatedModal] = useState(false)
@@ -124,6 +140,13 @@ export default function CafeDetailsPage() {
         description="Detailed performance and sales analytics"
         action={
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAssignBlend(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-[1.02] shadow-sm"
+              style={{ background: '#d4a853', color: '#1a1713' }}
+            >
+              <Coffee className="w-4 h-4" /> Assign Blend
+            </button>
             <button
               onClick={() => setShowEdit(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border text-sm font-medium hover:bg-accent transition-all"
@@ -278,6 +301,121 @@ export default function CafeDetailsPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Dedicated Cafe Blends Section */}
+      <div className="bg-card border border-border rounded-2xl p-8 mt-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+              <Coffee className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-lg font-bold text-foreground">Dedicated Cafe Blends</h4>
+                <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full">
+                  {cafe.targetBeans?.length || 0} Assigned
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Wholesale bean profiles tagged specifically for <span className="text-primary font-medium">{cafe.name}</span> to order in their cafe portal.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowAssignBlend(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-[1.02] shadow-sm self-start sm:self-auto"
+            style={{ background: '#d4a853', color: '#1a1713' }}
+          >
+            <Plus className="w-4 h-4" /> Assign Blend
+          </button>
+        </div>
+
+        {cafe.targetBeans && cafe.targetBeans.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {cafe.targetBeans.map((blendName) => {
+              const matchedProduct = allCafeProducts?.find(
+                (p) => p.name.toLowerCase() === blendName.toLowerCase()
+              )
+
+              return (
+                <div
+                  key={blendName}
+                  className="p-5 rounded-xl bg-gradient-to-br from-card via-card to-accent/20 border border-border hover:border-primary/40 transition-all space-y-3 relative group overflow-hidden"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-primary">
+                        <Sparkles className="w-3 h-3" />
+                        <span>Signature Wholesale Blend</span>
+                      </div>
+                      <h5 className="font-bold text-base text-foreground group-hover:text-primary transition-colors">
+                        {blendName}
+                      </h5>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveBlend(blendName)}
+                      title="Remove blend from this cafe"
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors opacity-70 group-hover:opacity-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {matchedProduct ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-2 p-2.5 rounded-lg bg-background/50 border border-border/50 text-xs">
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase font-bold block">Roast</span>
+                          <span className="font-medium text-foreground flex items-center gap-1">
+                            <Flame className="w-3 h-3 text-primary" /> {matchedProduct.roast || 'Medium Roast'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase font-bold block">Price per Kg</span>
+                          <span className="font-bold text-primary font-mono">
+                            {formatCurrency(matchedProduct.price)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {(matchedProduct.origin || matchedProduct.variety) && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {[matchedProduct.variety, matchedProduct.origin].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                      {matchedProduct.description && (
+                        <p className="text-xs text-muted-foreground/80 line-clamp-2">
+                          {matchedProduct.description}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <div className="p-3 rounded-lg bg-background/40 border border-border/40 text-xs text-muted-foreground flex items-center justify-between">
+                      <span>Custom tagged bean</span>
+                      <span className="text-[10px] font-bold text-primary">Active Tag</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="py-10 text-center border border-dashed border-border rounded-xl bg-muted/10">
+            <Coffee className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+            <h5 className="font-bold text-sm text-foreground mb-1">No Dedicated Blends Assigned</h5>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto mb-4">
+              This cafe currently sees default wholesale roasts. Assign a specific blend to enable custom wholesale ordering tailored to this cafe.
+            </p>
+            <button
+              onClick={() => setShowAssignBlend(true)}
+              className="px-4 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] shadow-sm inline-flex items-center gap-1.5"
+              style={{ background: '#d4a853', color: '#1a1713' }}
+            >
+              <Plus className="w-3.5 h-3.5" /> Assign First Blend
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Cafe Orders & Invoicing Section */}
@@ -436,6 +574,13 @@ export default function CafeDetailsPage() {
           orders={orders.filter(o => selectedOrderIds.includes(o._id))}
           billingPeriod={getBillingPeriodLabel(orders.filter(o => selectedOrderIds.includes(o._id)))}
           onClose={() => setShowConsolidatedModal(false)}
+        />
+      )}
+
+      {showAssignBlend && cafe && (
+        <AssignBlendModal
+          cafe={cafe}
+          onClose={() => setShowAssignBlend(false)}
         />
       )}
     </>

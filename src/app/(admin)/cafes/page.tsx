@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Store, MapPin, Phone, Mail, ChevronRight, MoreVertical, FileText } from 'lucide-react'
+import { Plus, Store, MapPin, Phone, Mail, ChevronRight, MoreVertical, FileText, Coffee } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCafes } from '@/hooks/useCafes'
 import { CreateCafeModal } from '@/components/cafes/CreateCafeModal'
@@ -65,7 +65,27 @@ export default function CafesPage() {
                 </button>
               </div>
 
-              <h3 className="text-lg font-bold text-foreground mb-4">{cafe.name}</h3>
+              <h3 className="text-lg font-bold text-foreground mb-2">{cafe.name}</h3>
+
+              {/* Dedicated Blends Badges */}
+              <div className="mb-4">
+                {cafe.targetBeans && cafe.targetBeans.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5 items-center">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+                      <Coffee className="w-3 h-3" />
+                      {cafe.targetBeans.length} Blend{cafe.targetBeans.length > 1 ? 's' : ''}
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate max-w-[200px]" title={cafe.targetBeans.join(', ')}>
+                      {cafe.targetBeans.slice(0, 2).join(', ')}
+                      {cafe.targetBeans.length > 2 && ` +${cafe.targetBeans.length - 2}`}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground/60 italic flex items-center gap-1">
+                    <Coffee className="w-3 h-3 opacity-40" /> No dedicated blend assigned
+                  </span>
+                )}
+              </div>
 
               <div className="space-y-2 mb-6">
                 {cafe.location && (

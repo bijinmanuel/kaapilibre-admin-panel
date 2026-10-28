@@ -119,6 +119,7 @@ export interface Customer {
   totalSpent: number
   savedAddress?: string
   isActive: boolean
+  cafeId?: string
   createdAt: string
 }
 
@@ -214,13 +215,16 @@ export interface CafeOrderItem {
   subtotal: number
 }
 
-export type CafeCategory = 'Coffee Beans' | 'Other'
+export type CafeCategory = 'Coffee Beans' | 'Equipment' | 'Other'
 
 export interface CafeProduct {
   _id: string
   name: string
   category: CafeCategory
   price: number
+  roast?: string
+  variety?: string
+  origin?: string
   description?: string
   image?: string
   isActive: boolean
