@@ -128,11 +128,8 @@ export default function LoginPage() {
 
         {/* Big Clean Statement */}
         <div className="relative z-10 max-w-md my-auto py-12">
-          <blockquote className="text-4xl xl:text-5xl font-light text-white leading-[1.2] tracking-tight">
-            &ldquo;Every great cup starts with{' '}
-            <span className="font-normal text-[#d4a853]">
-              great data.&rdquo;
-            </span>
+          <blockquote className="text-4xl xl:text-5xl text-white leading-[1.2] tracking-tight">
+            Old World Coffee: Ordinary Hands
           </blockquote>
         </div>
 
