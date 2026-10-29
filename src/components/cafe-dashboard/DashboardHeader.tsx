@@ -8,9 +8,16 @@ interface DashboardHeaderProps {
   description: string;
   showBanner?: boolean;
   bannerGap?: number;
+  bannerDropPct?: number;
 }
 
-export function DashboardHeader({ title, description, showBanner = false, bannerGap = 0 }: DashboardHeaderProps) {
+export function DashboardHeader({
+  title,
+  description,
+  showBanner = false,
+  bannerGap = 0,
+  bannerDropPct = 0,
+}: DashboardHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -82,7 +89,9 @@ export function DashboardHeader({ title, description, showBanner = false, banner
               ⚠️ Month-over-Month Revenue Drop Detected
             </h4>
             <p className="text-xs text-muted-foreground">
-              Total monthly revenue across all cafes dropped by <strong className="text-foreground">₹{bannerGap.toLocaleString('en-IN')}</strong> (-29.3%) compared to last month.
+              Total monthly revenue across all cafes dropped by{' '}
+              <strong className="text-foreground">₹{bannerGap.toLocaleString('en-IN')}</strong>
+              {bannerDropPct > 0 ? ` (-${bannerDropPct.toFixed(1)}%)` : ''} compared to last month.
             </p>
           </div>
           <Link

@@ -30,6 +30,7 @@ export default function CafeDashboardPage() {
   const monthlyStats = analytics?.monthlyStats || []
   let showBanner = false
   let bannerGap = 0
+  let bannerDropPct = 0
 
   if (monthlyStats.length >= 2) {
     const current = monthlyStats[monthlyStats.length - 1]
@@ -37,6 +38,7 @@ export default function CafeDashboardPage() {
     if (previous.amount > current.amount) {
       showBanner = true
       bannerGap = previous.amount - current.amount
+      bannerDropPct = previous.amount > 0 ? ((previous.amount - current.amount) / previous.amount) * 100 : 0
     }
   }
 
@@ -141,6 +143,7 @@ export default function CafeDashboardPage() {
         description="Aggregated business intelligence for all cafe locations"
         showBanner={showBanner}
         bannerGap={bannerGap}
+        bannerDropPct={bannerDropPct}
       />
 
       {/* Priority-Based KPI Stats Bar */}
