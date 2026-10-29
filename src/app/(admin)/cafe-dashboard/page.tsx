@@ -6,7 +6,7 @@ import { ShoppingCart, DollarSign, Store, TrendingUp, TrendingDown, Award, Check
 import { DashboardHeader } from '@/components/cafe-dashboard/DashboardHeader'
 import { useGlobalCafeAnalytics, useCafeOrders } from '@/hooks/useCafeOrders'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area
 } from 'recharts'
@@ -30,7 +30,7 @@ export default function CafeDashboardPage() {
   const monthlyStats = analytics?.monthlyStats || []
   let showBanner = false
   let bannerGap = 0
-  
+
   if (monthlyStats.length >= 2) {
     const current = monthlyStats[monthlyStats.length - 1]
     const previous = monthlyStats[monthlyStats.length - 2]
@@ -50,7 +50,7 @@ export default function CafeDashboardPage() {
   }).slice(0, 10) || []
 
   // Re-calculate Summary Cards based on Region Filter
-  const totalPaid = region 
+  const totalPaid = region
     ? filteredBreakdown.reduce((sum: number, c: any) => sum + c.paidRevenue, 0)
     : (analytics?.totalPaid ?? 0)
 
@@ -82,8 +82,8 @@ export default function CafeDashboardPage() {
     timeRange === '3m'
       ? revenueData.slice(-3)
       : timeRange === '6m'
-      ? revenueData.slice(-6)
-      : revenueData
+        ? revenueData.slice(-6)
+        : revenueData
 
   // Compute actionable insights for Revenue Growth card based on filtered range & metric
   const metricKey = growthMetric
@@ -94,7 +94,7 @@ export default function CafeDashboardPage() {
   const avgMonthlyMetric =
     filteredRevenueData.length > 0
       ? filteredRevenueData.reduce((sum: number, r: any) => sum + (r[metricKey] || 0), 0) /
-        filteredRevenueData.length
+      filteredRevenueData.length
       : 0
   const latestMonth =
     filteredRevenueData.length > 0 ? filteredRevenueData[filteredRevenueData.length - 1] : null
@@ -136,9 +136,9 @@ export default function CafeDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <DashboardHeader 
-        title="Cafe Analytics Overview" 
-        description="Aggregated business intelligence for all cafe locations" 
+      <DashboardHeader
+        title="Cafe Analytics Overview"
+        description="Aggregated business intelligence for all cafe locations"
         showBanner={showBanner}
         bannerGap={bannerGap}
       />
@@ -303,106 +303,103 @@ export default function CafeDashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
-        {/* Revenue Growth Chart */}
-        <div className="lg:col-span-3 min-w-0 rounded-xl border border-border bg-card p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5">
-              <div>
-                <h3 className="text-lg font-bold text-foreground">
-                  {growthMetric === 'revenue'
-                    ? 'Revenue Growth'
-                    : growthMetric === 'orders'
+      {/* Full-Width Revenue Growth Chart */}
+      <div className="w-full min-w-0 rounded-xl border border-border bg-card p-6 flex flex-col justify-between">
+        <div>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5">
+            <div>
+              <h3 className="text-lg font-bold text-foreground">
+                {growthMetric === 'revenue'
+                  ? 'Revenue Growth'
+                  : growthMetric === 'orders'
                     ? 'Monthly Order Volume'
                     : 'Average Order Value Trend'}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {growthMetric === 'revenue'
-                    ? 'Monthly invoiced vs collected revenue across all cafes'
-                    : growthMetric === 'orders'
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {growthMetric === 'revenue'
+                  ? 'Monthly invoiced vs collected revenue across all cafes'
+                  : growthMetric === 'orders'
                     ? 'Total number of cafe orders placed per month'
                     : 'Average basket size per cafe order over time'}
-                </p>
-              </div>
-
-              {/* Metric & Time-Range Controls */}
-              <div className="flex flex-wrap items-center gap-2">
-                {/* Metric Switcher */}
-                <div className="flex items-center bg-muted/60 border border-border p-0.5 rounded-lg text-[11px]">
-                  {(
-                    [
-                      { id: 'revenue', label: 'Revenue' },
-                      { id: 'orders', label: 'Orders' },
-                      { id: 'aov', label: 'Avg Basket' },
-                    ] as const
-                  ).map((m) => {
-                    const active = growthMetric === m.id
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => setGrowthMetric(m.id)}
-                        className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
-                          active
-                            ? 'shadow-xs'
-                            : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                        style={
-                          active ? { background: '#d4a853', color: '#1a1713' } : {}
-                        }
-                      >
-                        {m.label}
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {/* Time Range Switcher */}
-                <div className="flex items-center bg-muted/60 border border-border p-0.5 rounded-lg text-[11px]">
-                  {(
-                    [
-                      { id: '3m', label: '3M' },
-                      { id: '6m', label: '6M' },
-                      { id: 'all', label: 'All' },
-                    ] as const
-                  ).map((range) => {
-                    const active = timeRange === range.id
-                    return (
-                      <button
-                        key={range.id}
-                        type="button"
-                        onClick={() => setTimeRange(range.id)}
-                        className={`px-2 py-1 rounded-md font-semibold transition-all ${
-                          active
-                            ? 'bg-foreground text-background shadow-xs'
-                            : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        {range.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
+              </p>
             </div>
 
-            {growthMetric === 'revenue' && (
-              <div className="flex items-center justify-end gap-4 text-xs mb-2">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#d4a853' }} />
-                  Invoiced
-                </span>
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  Paid
-                </span>
-              </div>
-            )}
+            {/* Metric & Time-Range Controls */}
+            <div className="flex flex-wrap items-center gap-3">
+              {growthMetric === 'revenue' && (
+                <div className="flex items-center gap-4 text-xs mr-1">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#d4a853' }} />
+                    Invoiced
+                  </span>
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                    Paid
+                  </span>
+                </div>
+              )}
 
-            <div className="h-[300px] w-full min-w-0">
-              {chartMounted && (
-                <ResponsiveContainer width="100%" height={290} minWidth={0} debounce={100}>
-                  <AreaChart data={filteredRevenueData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+              {/* Metric Switcher */}
+              <div className="flex items-center bg-muted/60 border border-border p-0.5 rounded-lg text-[11px]">
+                {(
+                  [
+                    { id: 'revenue', label: 'Revenue' },
+                    { id: 'orders', label: 'Orders' },
+                    { id: 'aov', label: 'Avg Basket' },
+                  ] as const
+                ).map((m) => {
+                  const active = growthMetric === m.id
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setGrowthMetric(m.id)}
+                      className={`px-2.5 py-1 rounded-md font-semibold transition-all ${active
+                          ? 'shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      style={
+                        active ? { background: '#d4a853', color: '#1a1713' } : {}
+                      }
+                    >
+                      {m.label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Time Range Switcher */}
+              <div className="flex items-center bg-muted/60 border border-border p-0.5 rounded-lg text-[11px]">
+                {(
+                  [
+                    { id: '3m', label: '3M' },
+                    { id: '6m', label: '6M' },
+                    { id: 'all', label: 'All' },
+                  ] as const
+                ).map((range) => {
+                  const active = timeRange === range.id
+                  return (
+                    <button
+                      key={range.id}
+                      type="button"
+                      onClick={() => setTimeRange(range.id)}
+                      className={`px-2.5 py-1 rounded-md font-semibold transition-all ${active
+                          ? 'bg-foreground shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                      {range.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="h-[340px] w-full min-w-0">
+            {chartMounted && (
+              <ResponsiveContainer width="100%" height={330} minWidth={0} debounce={100}>
+                <AreaChart data={filteredRevenueData} margin={{ top: 12, right: 20, left: 4, bottom: 4 }}>
                   <defs>
                     <linearGradient id="cafeRevGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#d4a853" stopOpacity={0.32} />
@@ -416,14 +413,17 @@ export default function CafeDashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
                   <XAxis
                     dataKey="label"
-                    tick={{ fontSize: 11, fill: '#888' }}
+                    interval={0}
+                    tick={{ fontSize: 12, fill: '#a8a29e' }}
                     axisLine={false}
                     tickLine={false}
+                    dy={6}
                   />
                   <YAxis
-                    tick={{ fontSize: 11, fill: '#888' }}
+                    tick={{ fontSize: 12, fill: '#a8a29e' }}
                     axisLine={false}
                     tickLine={false}
+                    width={56}
                     tickFormatter={(v) =>
                       growthMetric === 'orders'
                         ? `${v}`
@@ -459,8 +459,8 @@ export default function CafeDashboardPage() {
                     strokeWidth={3}
                     fillOpacity={1}
                     fill="url(#cafeRevGrad)"
-                    dot={{ r: 4, fill: '#d4a853', strokeWidth: 0 }}
-                    activeDot={{ r: 6 }}
+                    dot={{ r: 4.5, fill: '#d4a853', strokeWidth: 0 }}
+                    activeDot={{ r: 6.5 }}
                   />
                   {growthMetric === 'revenue' && (
                     <Area
@@ -471,103 +471,104 @@ export default function CafeDashboardPage() {
                       strokeDasharray="4 4"
                       fillOpacity={1}
                       fill="url(#cafePaidGrad)"
-                      dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }}
+                      dot={{ r: 3.5, fill: '#10b981', strokeWidth: 0 }}
                     />
                   )}
                 </AreaChart>
               </ResponsiveContainer>
-              )}
-            </div>
-          </div>
-
-          {/* Bottom Summary KPI Strip to eliminate dead space & surface key metrics */}
-          <div className="pt-5 mt-5 border-t border-border/70 space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="rounded-xl bg-muted/30 border border-border/60 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Peak Month
-                </p>
-                <p className="text-sm font-bold text-foreground mt-1">
-                  {peakMonth ? formatMetricValue(peakMonth[metricKey]) : '—'}
-                </p>
-                <p className="text-[11px] font-mono mt-0.5" style={{ color: '#d4a853' }}>
-                  {peakMonth ? `${peakMonth.label} (${peakMonth.orders} orders)` : 'No data'}
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-muted/30 border border-border/60 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Monthly Avg
-                </p>
-                <p className="text-sm font-bold text-foreground mt-1">
-                  {formatMetricValue(avgMonthlyMetric)}
-                </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Across {filteredRevenueData.length} month{filteredRevenueData.length === 1 ? '' : 's'}
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-muted/30 border border-border/60 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Latest MoM
-                </p>
-                <div className="flex items-center gap-1 mt-1">
-                  {momGrowthPct >= 0 ? (
-                    <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-                  ) : (
-                    <TrendingDown className="w-3.5 h-3.5 text-red-500" />
-                  )}
-                  <span
-                    className={`text-sm font-bold ${
-                      momGrowthPct >= 0 ? 'text-emerald-500' : 'text-red-500'
-                    }`}
-                  >
-                    {momGrowthPct >= 0 ? '+' : ''}
-                    {momGrowthPct.toFixed(1)}%
-                  </span>
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {latestMonth ? `In ${latestMonth.label}` : '—'}
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-muted/30 border border-border/60 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Collection Rate
-                </p>
-                <p className="text-sm font-bold text-emerald-500 mt-1">
-                  {collectionRate.toFixed(1)}%
-                </p>
-                <p className="text-[11px] text-amber-500 mt-0.5">
-                  {rangeTotalPending > 0 ? `${formatCurrency(rangeTotalPending)} due` : 'All settled'}
-                </p>
-              </div>
-            </div>
-
-            {/* Collection Progress Bar */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-muted-foreground">
-                  Period Payment Realization ({formatCurrency(rangeTotalPaid)} collected of {formatCurrency(rangeTotalInvoiced)})
-                </span>
-                <span className="font-semibold text-emerald-500">{collectionRate.toFixed(1)}%</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-muted overflow-hidden flex">
-                <div
-                  className="h-full bg-emerald-500 transition-all duration-500"
-                  style={{ width: `${Math.min(100, collectionRate)}%` }}
-                />
-                <div
-                  className="h-full bg-amber-500/80 transition-all duration-500"
-                  style={{ width: `${Math.max(0, 100 - collectionRate)}%` }}
-                />
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
+        {/* Bottom Summary KPI Strip */}
+        <div className="pt-5 mt-5 border-t border-border/70 space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="rounded-xl bg-muted/30 border border-border/60 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Peak Month
+              </p>
+              <p className="text-sm font-bold text-foreground mt-1">
+                {peakMonth ? formatMetricValue(peakMonth[metricKey]) : '—'}
+              </p>
+              <p className="text-[11px] font-mono mt-0.5" style={{ color: '#d4a853' }}>
+                {peakMonth ? `${peakMonth.label} (${peakMonth.orders} orders)` : 'No data'}
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-muted/30 border border-border/60 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Monthly Avg
+              </p>
+              <p className="text-sm font-bold text-foreground mt-1">
+                {formatMetricValue(avgMonthlyMetric)}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Across {filteredRevenueData.length} month{filteredRevenueData.length === 1 ? '' : 's'}
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-muted/30 border border-border/60 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Latest MoM
+              </p>
+              <div className="flex items-center gap-1 mt-1">
+                {momGrowthPct >= 0 ? (
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                ) : (
+                  <TrendingDown className="w-3.5 h-3.5 text-red-500" />
+                )}
+                <span
+                  className={`text-sm font-bold ${momGrowthPct >= 0 ? 'text-emerald-500' : 'text-red-500'
+                    }`}
+                >
+                  {momGrowthPct >= 0 ? '+' : ''}
+                  {momGrowthPct.toFixed(1)}%
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {latestMonth ? `In ${latestMonth.label}` : '—'}
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-muted/30 border border-border/60 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Collection Rate
+              </p>
+              <p className="text-sm font-bold text-emerald-500 mt-1">
+                {collectionRate.toFixed(1)}%
+              </p>
+              <p className="text-[11px] text-amber-500 mt-0.5">
+                {rangeTotalPending > 0 ? `${formatCurrency(rangeTotalPending)} due` : 'All settled'}
+              </p>
+            </div>
+          </div>
+
+          {/* Collection Progress Bar */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-muted-foreground">
+                Period Payment Realization ({formatCurrency(rangeTotalPaid)} collected of {formatCurrency(rangeTotalInvoiced)})
+              </span>
+              <span className="font-semibold text-emerald-500">{collectionRate.toFixed(1)}%</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden flex">
+              <div
+                className="h-full bg-emerald-500 transition-all duration-500"
+                style={{ width: `${Math.min(100, collectionRate)}%` }}
+              />
+              <div
+                className="h-full bg-amber-500/80 transition-all duration-500"
+                style={{ width: `${Math.max(0, 100 - collectionRate)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Side-by-Side Leaderboards: Top Products & Revenue by Location */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* Top Products */}
-        <div className="lg:col-span-2 rounded-xl border border-border bg-card p-6 flex flex-col justify-between">
+        <div className="min-w-0 rounded-xl border border-border bg-card p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-5">
               <div>
@@ -581,7 +582,7 @@ export default function CafeDashboardPage() {
               )}
             </div>
 
-            <div className="space-y-3.5 max-h-[430px] overflow-y-auto pr-1">
+            <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
               {topProducts.map((p: any, i: number) => {
                 const sharePct =
                   totalTopProductsRev > 0 ? (p.totalRevenue / totalTopProductsRev) * 100 : 0
@@ -649,80 +650,6 @@ export default function CafeDashboardPage() {
             </div>
           )}
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        {/* Monthly Table */}
-        <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col justify-between">
-          <div>
-            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-foreground">Monthly Performance</h3>
-                <p className="text-xs text-muted-foreground">Month-by-month billing & realization breakdown</p>
-              </div>
-              <span className="text-xs font-mono text-muted-foreground">
-                {monthlyStats.length} months
-              </span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-muted/30 text-muted-foreground">
-                    <th className="text-left px-5 py-3 font-medium text-[10px] uppercase">Month</th>
-                    <th className="text-left px-4 py-3 font-medium text-[10px] uppercase">Orders</th>
-                    <th className="text-right px-5 py-3 font-medium text-[10px] uppercase">Total Invoiced</th>
-                    <th className="text-right px-5 py-3 font-medium text-[10px] uppercase">Actually Paid</th>
-                    <th className="text-right px-5 py-3 font-medium text-[10px] uppercase">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {monthlyStats.map((s: any) => {
-                    const due = Math.max(0, (s.amount || 0) - (s.paidAmount || 0))
-                    return (
-                      <tr key={s.month} className="hover:bg-accent/20 transition-colors">
-                        <td className="px-5 py-3 font-mono text-xs font-semibold">{s.month}</td>
-                        <td className="px-4 py-3 text-xs">{s.count}</td>
-                        <td className="px-5 py-3 text-right font-bold text-foreground">
-                          {formatCurrency(s.amount)}
-                        </td>
-                        <td className="px-5 py-3 text-right font-bold text-emerald-500">
-                          {formatCurrency(s.paidAmount)}
-                        </td>
-                        <td className="px-5 py-3 text-right">
-                          {due <= 0 ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                              <CheckCircle2 className="w-3 h-3" /> Settled
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                              <Clock className="w-3 h-3" /> {formatCurrency(due)} due
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {monthlyStats.length > 0 && (
-            <div className="px-5 py-3.5 bg-muted/30 border-t border-border flex flex-wrap items-center justify-between gap-2 text-xs">
-              <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">
-                Cumulative Total ({monthlyStats.reduce((a: number, b: any) => a + (b.count || 0), 0)} orders)
-              </span>
-              <div className="flex items-center gap-4">
-                <span className="text-muted-foreground">
-                  Invoiced: <strong className="text-foreground">{formatCurrency(totalRevenue)}</strong>
-                </span>
-                <span className="text-muted-foreground">
-                  Paid: <strong className="text-emerald-500">{formatCurrency(totalPaid)}</strong>
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* Cafe Breakdown Chart + Location Leaderboard */}
         <div className="min-w-0 rounded-xl border border-border bg-card p-6 flex flex-col justify-between">
@@ -760,44 +687,44 @@ export default function CafeDashboardPage() {
                     layout="vertical"
                     margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
                   >
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                  <XAxis
-                    type="number"
-                    tick={{ fontSize: 11, fill: '#888' }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    interval={0}
-                    tick={{ fontSize: 11, fill: '#a8a29e' }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={135}
-                    tickFormatter={(name: string) =>
-                      name && name.length > 18 ? `${name.slice(0, 17)}…` : name
-                    }
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: '#1a1713',
-                      border: '1px solid rgba(96,165,250,0.3)',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                    }}
-                    formatter={(value: any, _name: any, props: any) => {
-                      const item = props?.payload
-                      return [
-                        `${formatCurrency(Number(value) || 0)} (${item?.orders ?? 0} orders)`,
-                        'Revenue',
-                      ]
-                    }}
-                  />
-                  <Bar dataKey="revenue" fill="#60a5fa" radius={[0, 6, 6, 0]} barSize={18} />
-                </BarChart>
-              </ResponsiveContainer>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                    <XAxis
+                      type="number"
+                      tick={{ fontSize: 11, fill: '#888' }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      interval={0}
+                      tick={{ fontSize: 11, fill: '#a8a29e' }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={135}
+                      tickFormatter={(name: string) =>
+                        name && name.length > 18 ? `${name.slice(0, 17)}…` : name
+                      }
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: '#1a1713',
+                        border: '1px solid rgba(96,165,250,0.3)',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                      }}
+                      formatter={(value: any, _name: any, props: any) => {
+                        const item = props?.payload
+                        return [
+                          `${formatCurrency(Number(value) || 0)} (${item?.orders ?? 0} orders)`,
+                          'Revenue',
+                        ]
+                      }}
+                    />
+                    <Bar dataKey="revenue" fill="#60a5fa" radius={[0, 6, 6, 0]} barSize={18} />
+                  </BarChart>
+                </ResponsiveContainer>
               )}
             </div>
           </div>
@@ -848,11 +775,83 @@ export default function CafeDashboardPage() {
         </div>
       </div>
 
+      {/* Full-Width Monthly Performance Table */}
+      <div className="w-full rounded-xl border border-border bg-card overflow-hidden flex flex-col justify-between">
+        <div>
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-foreground">Monthly Performance</h3>
+              <p className="text-xs text-muted-foreground">Month-by-month billing & realization breakdown</p>
+            </div>
+            <span className="text-xs font-mono text-muted-foreground">
+              {monthlyStats.length} months
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/30 text-muted-foreground">
+                  <th className="text-left px-6 py-3 font-medium text-[10px] uppercase">Month</th>
+                  <th className="text-left px-6 py-3 font-medium text-[10px] uppercase">Orders</th>
+                  <th className="text-right px-6 py-3 font-medium text-[10px] uppercase">Total Invoiced</th>
+                  <th className="text-right px-6 py-3 font-medium text-[10px] uppercase">Actually Paid</th>
+                  <th className="text-right px-6 py-3 font-medium text-[10px] uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {monthlyStats.map((s: any) => {
+                  const due = Math.max(0, (s.amount || 0) - (s.paidAmount || 0))
+                  return (
+                    <tr key={s.month} className="hover:bg-accent/20 transition-colors">
+                      <td className="px-6 py-3 font-mono text-xs font-semibold">{s.month}</td>
+                      <td className="px-6 py-3 text-xs">{s.count}</td>
+                      <td className="px-6 py-3 text-right font-bold text-foreground">
+                        {formatCurrency(s.amount)}
+                      </td>
+                      <td className="px-6 py-3 text-right font-bold text-emerald-500">
+                        {formatCurrency(s.paidAmount)}
+                      </td>
+                      <td className="px-6 py-3 text-right">
+                        {due <= 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                            <CheckCircle2 className="w-3 h-3" /> Settled
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                            <Clock className="w-3 h-3" /> {formatCurrency(due)} due
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {monthlyStats.length > 0 && (
+          <div className="px-6 py-3.5 bg-muted/30 border-t border-border flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">
+              Cumulative Total ({monthlyStats.reduce((a: number, b: any) => a + (b.count || 0), 0)} orders)
+            </span>
+            <div className="flex items-center gap-4">
+              <span className="text-muted-foreground">
+                Invoiced: <strong className="text-foreground">{formatCurrency(totalRevenue)}</strong>
+              </span>
+              <span className="text-muted-foreground">
+                Paid: <strong className="text-emerald-500">{formatCurrency(totalPaid)}</strong>
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Recent Orders */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <h3 className="text-lg font-bold text-foreground">Recent Cafe Orders</h3>
-          <button 
+          <button
             onClick={() => router.push('/cafe-orders')}
             className="text-xs font-medium text-primary hover:underline"
           >
@@ -873,7 +872,7 @@ export default function CafeDashboardPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {filteredOrders.map((order) => (
-                <tr 
+                <tr
                   key={order._id}
                   onClick={() => router.push(`/cafe-orders/${order._id}`)}
                   className="hover:bg-accent/30 transition-colors cursor-pointer"
@@ -887,9 +886,8 @@ export default function CafeDashboardPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest ${
-                      order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest ${order.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
+                      }`}>
                       {order.paymentStatus}
                     </span>
                   </td>
