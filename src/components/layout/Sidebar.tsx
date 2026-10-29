@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { icon: Coffee, label: 'Cafe Menu', href: '/cafe-menu', feature: 'cafe-products' },
   { icon: Coffee, label: 'Cafe Orders', href: '/cafe-orders', feature: 'cafe-orders' },
   { icon: BarChart3, label: 'Cafe Analytics', href: '/cafe-dashboard', feature: 'cafe-analytics' },
+  { icon: AlertTriangle, label: 'Cafe Complaints', href: '/cafe-complaints', feature: 'cafe-complaints' },
   { icon: Package, label: 'Products', href: '/products', feature: 'products' },
   { icon: Star, label: 'Reviews', href: '/reviews', feature: 'reviews' },
   { icon: Users, label: 'Customers', href: '/customers', feature: 'customers' },
