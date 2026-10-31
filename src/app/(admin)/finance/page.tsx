@@ -16,8 +16,8 @@ import {
   Cell,
   Tooltip,
   Legend,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -41,7 +41,10 @@ import {
   RefreshCw,
   Info,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  X
 } from 'lucide-react';
 
 interface AccountItem {
@@ -100,6 +103,8 @@ export default function FinanceDashboardPage() {
   const [period, setPeriod] = useState<string>('this_month');
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [alertsExpanded, setAlertsExpanded] = useState(false);
+  const [alertsDismissed, setAlertsDismissed] = useState(false);
 
   const [accountsLoaded, setAccountsLoaded] = useState(false);
 
@@ -246,32 +251,93 @@ export default function FinanceDashboardPage() {
         </div>
       </div>
 
-      {/* Loan Alerts Section */}
-      {loanAlerts.length > 0 && (
-        <div className="flex flex-col gap-3 mb-6">
-          {loanAlerts.map((alert, idx) => (
-            <div
-              key={idx}
-              className={`flex items-center justify-between p-4 rounded-xl border transition-all ${alert.type === 'danger'
-                  ? 'bg-red-500/5 border-red-500/20 text-red-400/90 shadow-[0_0_15px_-3px_rgba(239,68,68,0.05)]'
-                  : 'bg-amber-500/5 border-amber-500/20 text-amber-400/90 shadow-[0_0_15px_-3px_rgba(245,158,11,0.05)]'
-                }`}
-            >
-              <div className="flex items-center gap-3">
-                <AlertTriangle className={`w-4 h-4 flex-shrink-0 ${alert.type === 'danger' ? 'text-red-400' : 'text-amber-400'}`} />
-                <span className="text-xs font-medium leading-relaxed">{alert.message}</span>
-              </div>
-              <Link
-                href="/finance/liabilities"
-                className={`text-xs font-bold flex items-center gap-1 hover:underline flex-shrink-0 ml-4 ${alert.type === 'danger' ? 'text-red-400' : 'text-amber-400'
-                  }`}
+      {/* Compact, Collapsible & Dismissible Loan Alerts Bar */}
+      {loanAlerts.length > 0 && !alertsDismissed && (() => {
+        const dangerCount = loanAlerts.filter((a) => a.type === 'danger').length;
+        const warningCount = loanAlerts.length - dangerCount;
+        const hasDanger = dangerCount > 0;
+
+        return (
+          <div
+            className={`mb-5 rounded-xl border transition-all overflow-hidden ${
+              hasDanger
+                ? 'bg-red-500/5 border-red-500/20 text-red-400'
+                : 'bg-amber-500/5 border-amber-500/20 text-amber-400'
+            }`}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5">
+              <button
+                type="button"
+                onClick={() => setAlertsExpanded(!alertsExpanded)}
+                className="flex items-center gap-2.5 text-left cursor-pointer group"
               >
-                View Loans <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span className="text-xs font-semibold text-foreground">
+                  {loanAlerts.length === 1
+                    ? loanAlerts[0].message
+                    : `${loanAlerts.length} Loan & EMI Alerts (${
+                        dangerCount > 0 ? `${dangerCount} overdue` : ''
+                      }${dangerCount > 0 && warningCount > 0 ? ', ' : ''}${
+                        warningCount > 0 ? `${warningCount} upcoming` : ''
+                      })`}
+                </span>
+                {loanAlerts.length > 1 && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground group-hover:text-foreground">
+                    {alertsExpanded ? (
+                      <>
+                        Hide details <ChevronUp className="w-3.5 h-3.5" />
+                      </>
+                    ) : (
+                      <>
+                        Show details <ChevronDown className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </span>
+                )}
+              </button>
+
+              <div className="flex items-center gap-3 ml-auto">
+                <Link
+                  href="/finance/liabilities"
+                  className="text-xs font-bold flex items-center gap-1 hover:underline shrink-0"
+                >
+                  Manage Loans <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setAlertsDismissed(true)}
+                  title="Dismiss alerts"
+                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+
+            {alertsExpanded && loanAlerts.length > 1 && (
+              <div className="border-t border-border/50 px-4 py-2.5 space-y-1.5 max-h-40 overflow-y-auto bg-card/50">
+                {loanAlerts.map((alert, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between gap-3 text-xs py-1 border-b border-border/30 last:border-0"
+                  >
+                    <span
+                      className={`truncate ${
+                        alert.type === 'danger' ? 'text-red-400' : 'text-amber-400'
+                      }`}
+                    >
+                      • {alert.message}
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground shrink-0">
+                      {alert.lenderName}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* 8 KPI Cards Slidable Section with Priority-Based Bento Layout */}
       <div className="mb-6 p-4 bg-card/40 border border-border/40 rounded-2xl backdrop-blur-md">
@@ -638,19 +704,131 @@ export default function FinanceDashboardPage() {
         </div>
       </div>
 
-      {/* 3 Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      {/* Full-Width Monthly Profit Trend (Area Chart) */}
+      <div className="w-full min-w-0 bg-card border border-border rounded-2xl p-6 mb-6 flex flex-col justify-between shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <h3 className="text-base font-bold text-foreground mb-0.5">Monthly Profit Trend</h3>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">
+              6-Month Historical Revenue, Expenses & Net Profit
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-4 text-xs">
+            <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#d4a853' }} />
+              Revenue
+            </span>
+            <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+              Expenses
+            </span>
+            <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              Profit
+            </span>
+          </div>
+        </div>
+
+        <div className="h-[300px] w-full min-w-0">
+          {mounted && charts?.line && charts.line.length > 0 ? (
+            <ResponsiveContainer width="100%" height={290} minWidth={0} debounce={100}>
+              <AreaChart data={charts.line} margin={{ top: 10, right: 16, left: 0, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="finRevGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#d4a853" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#d4a853" stopOpacity={0.0} />
+                  </linearGradient>
+                  <linearGradient id="finExpGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.22} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0} />
+                  </linearGradient>
+                  <linearGradient id="finProfGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.28} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  interval={0}
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                  axisLine={false}
+                  tickLine={false}
+                  dy={6}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={56}
+                  tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                />
+                <Tooltip
+                  formatter={(value: any, name: any) => [
+                    formatINR(Number(value) || 0),
+                    String(name).charAt(0).toUpperCase() + String(name).slice(1),
+                  ]}
+                  contentStyle={{
+                    background: 'var(--card)',
+                    borderColor: 'var(--border)',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#d4a853"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#finRevGrad)"
+                  dot={{ r: 3.5, fill: '#d4a853', strokeWidth: 0 }}
+                  activeDot={{ r: 5.5 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="expenses"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#finExpGrad)"
+                  dot={{ r: 3, fill: '#ef4444', strokeWidth: 0 }}
+                  activeDot={{ r: 5 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="profit"
+                  stroke="#10b981"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#finProfGrad)"
+                  dot={{ r: 3.5, fill: '#10b981', strokeWidth: 0 }}
+                  activeDot={{ r: 5.5 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-xs text-muted-foreground flex-col gap-1.5">
+              <Info className="w-4 h-4 text-muted-foreground/60" />
+              No historical trend data available.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Revenue Source Breakdown & Expense Distribution Side-by-Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Chart 1: Revenue Source Breakdown (Pie/Donut Chart) */}
-        <div className="bg-card border border-border rounded-2xl p-5 flex flex-col justify-between shadow-sm">
+        <div className="min-w-0 bg-card border border-border rounded-2xl p-5 flex flex-col justify-between shadow-sm">
           <div>
             <h3 className="text-sm font-bold text-foreground mb-1">Revenue Source Breakdown</h3>
             <p className="text-[10px] text-muted-foreground mb-4 uppercase tracking-wider font-semibold">
               Share for {periodLabels[period]}
             </p>
           </div>
-          <div className="h-56 flex items-center justify-center">
-            {charts?.pie && charts.pie.some((d: any) => d.value > 0) ? (
-              <ResponsiveContainer width="100%" height="100%">
+          <div className="h-56 flex items-center justify-center min-w-0">
+            {mounted && charts?.pie && charts.pie.some((d: any) => d.value > 0) ? (
+              <ResponsiveContainer width="100%" height={220} minWidth={0}>
                 <PieChart>
                   <Pie
                     data={charts.pie}
@@ -685,54 +863,45 @@ export default function FinanceDashboardPage() {
           </div>
         </div>
 
-        {/* Chart 2: Monthly Profit Trend (Line Chart) */}
-        <div className="bg-card border border-border rounded-2xl p-5 lg:col-span-2 flex flex-col justify-between shadow-sm">
+        {/* Chart 2: Expense Category Distribution (Bar Chart) */}
+        <div className="min-w-0 bg-card border border-border rounded-2xl p-5 flex flex-col justify-between shadow-sm">
           <div>
-            <h3 className="text-sm font-bold text-foreground mb-1">Monthly Profit Trend</h3>
+            <h3 className="text-sm font-bold text-foreground mb-1">Expense Distribution</h3>
             <p className="text-[10px] text-muted-foreground mb-4 uppercase tracking-wider font-semibold">
-              6-Month Historical Revenue, Expenses & Profit
+              Top Categories for {periodLabels[period]}
             </p>
           </div>
-          <div className="h-56">
-            {charts?.line && charts.line.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={charts.line} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
-                  <XAxis dataKey="month" tick={{ fontSize: 9, fill: 'var(--muted-foreground)' }} tickLine={false} />
+          <div className="h-56 min-w-0">
+            {mounted && charts?.bar && charts.bar.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220} minWidth={0}>
+                <BarChart data={charts.bar} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} vertical={false} />
+                  <XAxis dataKey="category" tick={{ fontSize: 9, fill: 'var(--muted-foreground)' }} tickLine={false} />
                   <YAxis
                     tick={{ fontSize: 9, fill: 'var(--muted-foreground)' }}
                     tickLine={false}
                     tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
                   />
                   <Tooltip
-                    formatter={(value: any) => [formatINR(value), '']}
+                    formatter={(value: any) => [formatINR(value), 'Spent']}
                     contentStyle={{ background: 'var(--card)', borderColor: 'var(--border)', borderRadius: '12px' }}
                   />
-                  <Legend
-                    verticalAlign="top"
-                    height={36}
-                    iconSize={8}
-                    formatter={(value) => <span className="text-[10px] font-semibold text-muted-foreground capitalize">{value}</span>}
-                  />
-                  <Line type="monotone" dataKey="revenue" stroke="#d4a853" strokeWidth={2.5} dot={{ r: 2 }} activeDot={{ r: 4 }} />
-                  <Line type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 2 }} activeDot={{ r: 4 }} />
-                  <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={2.5} dot={{ r: 2 }} activeDot={{ r: 4 }} />
-                </LineChart>
+                  <Bar dataKey="amount" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-xs text-muted-foreground flex flex-col gap-1.5">
+              <div className="h-full flex items-center justify-center text-xs text-muted-foreground flex-col gap-1.5">
                 <Info className="w-4 h-4 text-muted-foreground/60" />
-                No historical trend data available.
+                No expenses recorded for this period.
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Chart 3 & Balance Sheet Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Left: Balance Sheet Preview & Verification */}
-        <div className="bg-card border border-border rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between shadow-sm">
+      {/* Balance Sheet Summary Preview (Full Width) */}
+      <div className="mb-6">
+        <div className="bg-card border border-border rounded-2xl p-6 flex flex-col justify-between shadow-sm">
           <div>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -785,41 +954,6 @@ export default function FinanceDashboardPage() {
                   {formatINR(balanceSheet?.discrepancy ?? 0)}. Please verify ledger postings, opening balances, or audit logs.
                 </span>
               </>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Expense Category Distribution (Bar Chart) */}
-        <div className="bg-card border border-border rounded-2xl p-5 flex flex-col justify-between shadow-sm">
-          <div>
-            <h3 className="text-sm font-bold text-foreground mb-1">Expense Distribution</h3>
-            <p className="text-[10px] text-muted-foreground mb-4 uppercase tracking-wider font-semibold">
-              Top Categories for {periodLabels[period]}
-            </p>
-          </div>
-          <div className="h-56">
-            {charts?.bar && charts.bar.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={charts.bar} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} vertical={false} />
-                  <XAxis dataKey="category" tick={{ fontSize: 9, fill: 'var(--muted-foreground)' }} tickLine={false} />
-                  <YAxis
-                    tick={{ fontSize: 9, fill: 'var(--muted-foreground)' }}
-                    tickLine={false}
-                    tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip
-                    formatter={(value: any) => [formatINR(value), 'Spent']}
-                    contentStyle={{ background: 'var(--card)', borderColor: 'var(--border)', borderRadius: '12px' }}
-                  />
-                  <Bar dataKey="amount" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={30} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-xs text-muted-foreground flex flex-col gap-1.5">
-                <Info className="w-4 h-4 text-muted-foreground/60" />
-                No expenses recorded for this period.
-              </div>
             )}
           </div>
         </div>
