@@ -64,9 +64,9 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="bg-card border border-border w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+      <div className="bg-card border border-border w-full max-w-lg max-h-[90vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+          <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
             <Store className="w-5 h-5 text-primary" /> Edit Cafe Details
           </h3>
           <button onClick={onClose} className="p-2 hover:bg-accent rounded-full transition-colors">
@@ -74,7 +74,8 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {/* Logo Section */}
           <div className="flex flex-col items-center gap-4 mb-2">
             <div className="relative group">
@@ -287,12 +288,20 @@ export function EditCafeModal({ cafe, onClose }: EditCafeModalProps) {
               <span className="text-sm font-medium text-foreground">Cafe is active and accepting orders</span>
             </label>
           </div>
+          </div>
 
-          <div className="pt-4">
+          <div className="px-6 py-4 border-t border-border bg-card shrink-0 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl font-semibold text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={isPending}
-              className="w-full py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99]"
+              className="flex-2 py-2.5 px-6 rounded-xl font-bold text-sm transition-all disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99]"
               style={{ background: '#d4a853', color: '#1a1713' }}
             >
               {isPending ? 'Updating...' : 'Save Changes'}
