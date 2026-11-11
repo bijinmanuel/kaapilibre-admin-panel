@@ -12,6 +12,7 @@ import { cn, getInitials } from '@/lib/utils'
 import { useAuthStore, useCanAccess } from '@/store/authStore'
 import { useSidebarStore } from '@/store/sidebarStore'
 import { useReviewStats } from '@/hooks/useReviews'
+import { useOpenComplaintsSummary } from '@/hooks/useNotifications'
 
 interface NavSublink {
   label: string
@@ -130,6 +131,25 @@ export function Sidebar() {
   const { collapsed, toggle } = useSidebarStore()
   const canAccess = useCanAccess()
   const { data: reviewStats } = useReviewStats()
+  const { data: complaintsSummary } = useOpenComplaintsSummary()
+
+  const getItemBadge = (
+    feature: string
+  ): { count: number; variant: 'red' | 'amber' } | null => {
+    if (feature === 'cafe-complaints' && (complaintsSummary?.openCafeCount ?? 0) > 0) {
+      return { count: complaintsSummary!.openCafeCount, variant: 'red' }
+    }
+    if (feature === 'complaints' && (complaintsSummary?.openCustomerCount ?? 0) > 0) {
+      return { count: complaintsSummary!.openCustomerCount, variant: 'red' }
+    }
+    if (feature === 'contact' && (complaintsSummary?.unreadContactCount ?? 0) > 0) {
+      return { count: complaintsSummary!.unreadContactCount, variant: 'amber' }
+    }
+    if (feature === 'reviews' && (reviewStats?.pending ?? 0) > 0) {
+      return { count: reviewStats!.pending, variant: 'amber' }
+    }
+    return null
+  }
 
   const [searchQuery, setSearchQuery] = useState('')
   const [financeOpen, setFinanceOpen] = useState(false)
@@ -280,6 +300,10 @@ export function Sidebar() {
         {filteredSections.map((section, sectionIdx) => {
           const isSectionOpen = isSearching || openSectionId === section.id
           const hasActiveChild = section.items.some((i) => isItemActive(i.href))
+          const sectionBadgeTotal = section.items.reduce(
+            (sum, i) => sum + (getItemBadge(i.feature)?.count ?? 0),
+            0
+          )
 
           return (
             <div key={section.id} className="space-y-0.5">
@@ -294,7 +318,12 @@ export function Sidebar() {
                 >
                   <span className="flex items-center gap-1.5">
                     {section.title}
-                    {!isSectionOpen && hasActiveChild && (
+                    {!isSectionOpen && sectionBadgeTotal > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-red-500 text-white">
+                        {sectionBadgeTotal}
+                      </span>
+                    )}
+                    {!isSectionOpen && sectionBadgeTotal === 0 && hasActiveChild && (
                       <span
                         className="w-1.5 h-1.5 rounded-full"
                         style={{ background: '#d4a853' }}
@@ -387,13 +416,15 @@ export function Sidebar() {
                       )
                     }
 
+                    const badge = getItemBadge(item.feature)
+
                     return (
                       <Link
                         key={item.href}
                         href={item.href}
                         title={collapsed ? item.label : undefined}
                         className={cn(
-                          'flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all duration-150',
+                          'relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all duration-150',
                           collapsed ? 'justify-center px-0 py-2.5' : '',
                           active
                             ? 'text-primary font-semibold'
@@ -411,13 +442,26 @@ export function Sidebar() {
                       >
                         <Icon className="w-4 h-4 flex-shrink-0" />
                         {!collapsed && <span className="truncate">{item.label}</span>}
-                        {!collapsed &&
-                          item.feature === 'reviews' &&
-                          (reviewStats?.pending ?? 0) > 0 && (
-                            <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                              {reviewStats?.pending}
-                            </span>
-                          )}
+                        {!collapsed && badge && (
+                          <span
+                            className={cn(
+                              'ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full border',
+                              badge.variant === 'red'
+                                ? 'bg-red-500/20 text-red-400 border-red-500/30 animate-pulse'
+                                : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                            )}
+                          >
+                            {badge.count}
+                          </span>
+                        )}
+                        {collapsed && badge && (
+                          <span
+                            className={cn(
+                              'absolute top-1.5 right-2 w-2 h-2 rounded-full',
+                              badge.variant === 'red' ? 'bg-red-500 animate-pulse' : 'bg-amber-400'
+                            )}
+                          />
+                        )}
                       </Link>
                     )
                   })}

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { api, setToken, removeToken, getToken } from '@/lib/api'
+import { clearDeviceNotifications } from '@/lib/pushNotifications'
 import type { User, Role } from '@/types'
 
 export const PERMISSIONS: Record<string, string[]> = {
@@ -47,6 +48,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     try { await api.post('/auth/logout') } catch { }
+    await clearDeviceNotifications()
     removeToken()
     set({ user: null, isAuthenticated: false })
     if (typeof window !== 'undefined') window.location.href = '/login'
