@@ -160,13 +160,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     <td className="px-4 py-3 text-muted-foreground">{item.weight}</td>
                     <td className="px-4 py-3 text-muted-foreground">{item.grind}</td>
                     <td className="px-4 py-3 text-foreground">{item.qty}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatCurrency(item.unitPrice)}</td>
-                    <td className="px-4 py-3 font-semibold text-foreground">{formatCurrency(item.subtotal)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatCurrency(item.unitPrice, order.currency)}</td>
+                    <td className="px-4 py-3 font-semibold text-foreground">{formatCurrency(item.subtotal, order.currency)}</td>
                   </tr>
                 ))}
                 <tr className="bg-muted/20">
                   <td colSpan={5} className="px-4 py-3 text-right font-medium text-foreground">Total</td>
-                  <td className="px-4 py-3 font-bold text-lg" style={{ color: '#d4a853' }}>{formatCurrency(order.totalAmount)}</td>
+                  <td className="px-4 py-3 font-bold text-lg" style={{ color: '#d4a853' }}>{formatCurrency(order.totalAmount, order.currency)}</td>
                 </tr>
               </tbody>
             </table>
@@ -213,7 +213,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Amount</p>
-                  <p className="font-semibold text-foreground mt-0.5">{formatCurrency(order.payment?.amount ?? order.totalAmount)}</p>
+                  <p className="font-semibold text-foreground mt-0.5">{formatCurrency(order.payment?.amount ?? order.totalAmount, order.currency)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Paid at</p>
@@ -284,7 +284,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total</span>
-                <span className="font-semibold text-foreground">{formatCurrency(order.totalAmount)}</span>
+                <span className="font-semibold text-foreground">{formatCurrency(order.totalAmount, order.currency)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Payment</span>

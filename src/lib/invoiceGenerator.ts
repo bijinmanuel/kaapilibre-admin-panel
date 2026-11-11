@@ -52,15 +52,18 @@ export const generateInvoiceHTML = (order: Order): string => {
         year: 'numeric'
       })
 
+  const sym = order.currency === 'USD' ? '$' : '₹'
+  const numLocale = order.currency === 'USD' ? 'en-US' : 'en-IN'
+
   const itemRows = order.items.map(item => `
     <tr class="inv-tbl-row font-color">
       <td style="padding:10px 20px;border-bottom:1px solid #f3f4f6;vertical-align:middle;">
         <div class="font-color" style="font-weight:600;font-size:14px;">${item.name}</div>
         <div style="font-size:12px;color:#6b7280;margin-top:4px;font-weight:400;">${item.weight || ''} ${item.grind ? `&middot; ${item.grind}` : ''}</div>
       </td>
-      <td class="font-color" style="padding:10px 20px;border-bottom:1px solid #f3f4f6;text-align:center;font-size:14px;">₹${item.unitPrice.toLocaleString('en-IN')}</td>
+      <td class="font-color" style="padding:10px 20px;border-bottom:1px solid #f3f4f6;text-align:center;font-size:14px;">${sym}${item.unitPrice.toLocaleString(numLocale)}</td>
       <td class="font-color" style="padding:10px 20px;border-bottom:1px solid #f3f4f6;text-align:start;font-size:14px;">${item.qty}</td>
-      <td class="font-color" style="padding:10px 10px;border-bottom:1px solid #f3f4f6;text-align:start;font-weight:700;font-size:14px;">₹${item.subtotal.toLocaleString('en-IN')}</td>
+      <td class="font-color" style="padding:10px 10px;border-bottom:1px solid #f3f4f6;text-align:start;font-weight:700;font-size:14px;">${sym}${item.subtotal.toLocaleString(numLocale)}</td>
     </tr>`).join('')
 
   const paidAt = order.payment?.paidAt
@@ -194,7 +197,7 @@ export const generateInvoiceHTML = (order: Order): string => {
     <div class="inv-total-bar typewriter">
       <div style="background-color:#f0f0f0; display:flex; justify-content:flex-end; align-items:center; height:40px; padding:0 16px; gap:20px; width:100%; box-sizing:border-box;">
         <span class="font-color" style="font-size:12px; font-weight:700;">TOTAL</span>
-        <span class="font-color" style="font-weight:600;">₹${order.totalAmount.toLocaleString('en-IN')}</span>
+        <span class="font-color" style="font-weight:600;">${sym}${order.totalAmount.toLocaleString(numLocale)}</span>
       </div>
     </div>
 

@@ -120,7 +120,7 @@ export default function OrdersPage() {
                   </td>
                   <td className="px-4 py-3"><StatusBadge status={order.status as OrderStatus} /></td>
                   <td className="px-4 py-3 text-muted-foreground">{order.items?.length || 0}</td>
-                  <td className="px-4 py-3 font-semibold text-foreground">{formatCurrency(order.totalAmount)}</td>
+                  <td className="px-4 py-3 font-semibold text-foreground">{formatCurrency(order.totalAmount, order.currency)}</td>
                   <td className="px-4 py-3 capitalize text-muted-foreground text-xs">{order.payment?.method ?? '—'}</td>
                   <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{formatDateTime(order.createdAt)}</td>
                   <td className="px-4 py-3">

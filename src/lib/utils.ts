@@ -7,12 +7,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-IN', {
+export function formatCurrency(amount: number, currency: 'INR' | 'USD' = 'INR'): string {
+  const isUSD = currency === 'USD'
+  return new Intl.NumberFormat(isUSD ? 'en-US' : 'en-IN', {
     style: 'currency',
-    currency: 'INR',
+    currency: isUSD ? 'USD' : 'INR',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    maximumFractionDigits: isUSD ? 2 : 0,
   }).format(amount)
 }
 
