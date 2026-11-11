@@ -1,7 +1,7 @@
 export type Role = 'admin' | 'subadmin' | 'customer'
 export type OrderStatus = 'pending' | 'confirmed' | 'roasting' | 'dispatched' | 'delivered' | 'cancelled' | 'completed'
 export type WeightVariant = '250g' | '500g' | '1kg'
-export type GrindType = 'Whole Bean' | 'Coarse' | 'Medium' | 'Fine'
+export type GrindType = 'Whole Bean' | 'Coarse' | 'Medium' | 'Fine' | 'Standard'
 export type PaymentMethod = 'whatsapp' | 'website' | 'email' | 'cash' | 'upi' | 'card' | 'netbanking'
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
 export type ProductVariety = string
@@ -58,6 +58,7 @@ export interface Product {
   stock: Record<WeightVariant, StockVariant>
   images: ProductImage[]
   badge?: string
+  hasFormatOption?: boolean
   isActive: boolean
   totalSold: number
   createdAt: string
@@ -103,6 +104,7 @@ export interface Order {
   payment: Payment
   shippingAddress: string
   notes?: string
+  termsAndCondition?: string
   isRead: boolean
   createdAt: string
   updatedAt: string

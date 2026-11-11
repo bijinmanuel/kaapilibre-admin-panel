@@ -53,6 +53,7 @@ export function useUpdateProduct() {
       api.put(`/products/${id}`, data),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['products'] })
+      qc.invalidateQueries({ queryKey: ['product'] })
       qc.invalidateQueries({ queryKey: ['product', vars.id] })
       toast.success('Product updated')
     },

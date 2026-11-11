@@ -52,6 +52,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const [flavourNotes, setFlavourNotes] = useState<string[]>([])
   const [noteInput, setNoteInput] = useState('')
+  const [hasFormatOption, setHasFormatOption] = useState<boolean>(true)
   const [showDelete, setShowDelete] = useState(false)
   const [showCategoryModal, setShowCategoryModal] = useState(false)
 
@@ -83,8 +84,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         price1kg: product.prices['1kg'],
       })
       setFlavourNotes(product.flavourNotes || [])
+      setHasFormatOption(product.hasFormatOption ?? true)
     }
   }, [product, reset])
+
+  const handleToggleFormatOption = () => {
+    const next = !hasFormatOption
+    setHasFormatOption(next)
+    if (!isNew && productId) {
+      update.mutate({ id: productId, data: { hasFormatOption: next } as any })
+    }
+  }
 
   const onSubmit = async (data: any) => {
     const payload = {
@@ -100,6 +110,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       blend: data.blend,
       story: data.story,
       badge: data.badge || '',
+      hasFormatOption,
       flavourNotes,
       prices: {
         '250g': data.price250,
@@ -293,6 +304,32 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <input type="number" min={1} step={1} {...register('price1kg')} placeholder="2600" />
                   <ErrorMsg field="price1kg" />
                 </div>
+              </div>
+            </div>
+
+            {/* Format Option (Whole Bean / Ground) toggle */}
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Format Selection (Whole Bean / Ground)
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {hasFormatOption
+                      ? 'Customers can choose Whole Bean or Ground / Grind size when buying'
+                      : 'Format & grind selection hidden on storefront for this product'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleFormatOption}
+                  disabled={update.isPending}
+                  title={hasFormatOption ? 'Disable format option' : 'Enable format option'}
+                >
+                  {hasFormatOption
+                    ? <ToggleRight className="w-8 h-8 text-green-500" />
+                    : <ToggleLeft className="w-8 h-8 text-muted-foreground" />}
+                </button>
               </div>
             </div>
 
