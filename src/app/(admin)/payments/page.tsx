@@ -158,9 +158,9 @@ export default function PaymentsPage() {
                       <span className="text-xs text-muted-foreground">{METHOD_LABELS[p.method] ?? p.method}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-foreground">{formatCurrency(p.amount)}</p>
+                      <p className="font-semibold text-foreground">{formatCurrency(p.amount, p.currency as 'INR' | 'USD')}</p>
                       {p.refundAmount && p.refundAmount > 0 && (
-                        <p className="text-xs text-purple-500">−{formatCurrency(p.refundAmount)} refunded</p>
+                        <p className="text-xs text-purple-500">−{formatCurrency(p.refundAmount, p.currency as 'INR' | 'USD')} refunded</p>
                       )}
                     </td>
                     <td className="px-4 py-3">

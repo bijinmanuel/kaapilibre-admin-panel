@@ -102,7 +102,7 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
                 )}
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-foreground">{formatCurrency(payment.amount)}</p>
+                <p className="text-2xl font-bold text-foreground">{formatCurrency(payment.amount, payment.currency as 'INR' | 'USD')}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{payment.currency}</p>
               </div>
             </div>
@@ -115,7 +115,7 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
               {[
                 ['Order',          payment.orderNumber],
                 ['Method',         payment.method.toUpperCase()],
-                ['Amount',         formatCurrency(payment.amount)],
+                ['Amount',         formatCurrency(payment.amount, payment.currency as 'INR' | 'USD')],
                 ['Status',         sc.label],
                 ['Initiated',      formatDateTime(payment.initiatedAt)],
                 ['Paid at',        payment.paidAt ? formatDateTime(payment.paidAt) : '—'],
@@ -159,7 +159,7 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
               <p className="text-xs font-medium text-purple-500 uppercase tracking-wider mb-4">Refund details</p>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 {[
-                  ['Refund amount', formatCurrency(payment.refundAmount!)],
+                  ['Refund amount', formatCurrency(payment.refundAmount!, payment.currency as 'INR' | 'USD')],
                   ['Refund ID',     payment.refundId ?? '—'],
                   ['Refunded at',   payment.refundedAt ? formatDateTime(payment.refundedAt) : '—'],
                   ['Reason',        payment.refundReason ?? '—'],
