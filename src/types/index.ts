@@ -55,6 +55,7 @@ export interface Product {
   flavourNotes: string[]
   story: string
   prices: Record<WeightVariant, number>
+  pricesUSD?: Partial<Record<WeightVariant, number>>
   stock: Record<WeightVariant, StockVariant>
   images: ProductImage[]
   badge?: string
@@ -99,6 +100,7 @@ export interface Order {
   customer: { name: string; email: string; phone: string; userId?: string }
   items: OrderItem[]
   totalAmount: number
+  currency?: 'INR' | 'USD'
   status: OrderStatus
   statusHistory: StatusHistory[]
   payment: Payment

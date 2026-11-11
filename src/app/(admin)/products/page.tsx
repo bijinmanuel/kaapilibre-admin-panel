@@ -335,6 +335,7 @@ export default function ProductsPage() {
                           style={{ color: product.isActive ? '#d4a853' : 'var(--muted-foreground)' }}
                         >
                           from {formatCurrency(product.prices['250g'])}
+                          {product.pricesUSD?.['250g'] !== undefined ? ` · $${product.pricesUSD['250g']}` : ''}
                         </span>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button

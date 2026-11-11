@@ -10,6 +10,11 @@ import { useProduct, useUpdateProduct, useCreateProduct, useDeleteProduct, useTo
 import { useCategories } from '@/hooks/useCategories'
 import { CategoryModal } from '@/components/products/CategoryModal'
 
+const optionalUsdPrice = z.preprocess(
+  v => (v === '' || v === undefined || v === null || Number.isNaN(Number(v)) ? undefined : parseFloat(String(v))),
+  z.number().positive('Must be > 0').optional()
+)
+
 const schema = z.object({
   name: z.string().min(2, 'Name required'),
   category: z.string().optional(),
@@ -26,6 +31,9 @@ const schema = z.object({
   price250: z.preprocess(v => parseFloat(String(v)), z.number().positive('Must be > 0')),
   price500: z.preprocess(v => parseFloat(String(v)), z.number().positive('Must be > 0')),
   price1kg: z.preprocess(v => parseFloat(String(v)), z.number().positive('Must be > 0')),
+  priceUSD250: optionalUsdPrice,
+  priceUSD500: optionalUsdPrice,
+  priceUSD1kg: optionalUsdPrice,
 })
 
 // The URL param is either "new" or a MongoDB _id
@@ -82,6 +90,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         price250: product.prices['250g'],
         price500: product.prices['500g'],
         price1kg: product.prices['1kg'],
+        priceUSD250: product.pricesUSD?.['250g'] ?? '',
+        priceUSD500: product.pricesUSD?.['500g'] ?? '',
+        priceUSD1kg: product.pricesUSD?.['1kg'] ?? '',
       })
       setFlavourNotes(product.flavourNotes || [])
       setHasFormatOption(product.hasFormatOption ?? true)
@@ -116,6 +127,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         '250g': data.price250,
         '500g': data.price500,
         '1kg': data.price1kg,
+      },
+      pricesUSD: {
+        ...(data.priceUSD250 !== undefined ? { '250g': data.priceUSD250 } : {}),
+        ...(data.priceUSD500 !== undefined ? { '500g': data.priceUSD500 } : {}),
+        ...(data.priceUSD1kg !== undefined ? { '1kg': data.priceUSD1kg } : {}),
       },
     }
     if (isNew) {
@@ -286,23 +302,53 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Prices */}
-            <div className="rounded-xl border border-border bg-card p-5">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">Prices (₹) *</p>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">250g</label>
-                  <input type="number" min={1} step={1} {...register('price250')} placeholder="750" />
-                  <ErrorMsg field="price250" />
+            <div className="rounded-xl border border-border bg-card p-5 space-y-5">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                  India Prices (INR ₹) *
+                </p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">250g (₹)</label>
+                    <input type="number" min={1} step={1} {...register('price250')} placeholder="750" />
+                    <ErrorMsg field="price250" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">500g (₹)</label>
+                    <input type="number" min={1} step={1} {...register('price500')} placeholder="1400" />
+                    <ErrorMsg field="price500" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">1kg (₹)</label>
+                    <input type="number" min={1} step={1} {...register('price1kg')} placeholder="2600" />
+                    <ErrorMsg field="price1kg" />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">500g</label>
-                  <input type="number" min={1} step={1} {...register('price500')} placeholder="1400" />
-                  <ErrorMsg field="price500" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">1kg</label>
-                  <input type="number" min={1} step={1} {...register('price1kg')} placeholder="2600" />
-                  <ErrorMsg field="price1kg" />
+              </div>
+
+              <div className="border-t border-border pt-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                  International Prices (USD $)
+                </p>
+                <p className="text-[11px] text-muted-foreground/70 mb-3">
+                  Shown to customers outside India and charged in USD at checkout.
+                </p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">250g ($)</label>
+                    <input type="number" min={0.01} step="0.01" {...register('priceUSD250')} placeholder="15" />
+                    <ErrorMsg field="priceUSD250" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">500g ($)</label>
+                    <input type="number" min={0.01} step="0.01" {...register('priceUSD500')} placeholder="28" />
+                    <ErrorMsg field="priceUSD500" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">1kg ($)</label>
+                    <input type="number" min={0.01} step="0.01" {...register('priceUSD1kg')} placeholder="52" />
+                    <ErrorMsg field="priceUSD1kg" />
+                  </div>
                 </div>
               </div>
             </div>
