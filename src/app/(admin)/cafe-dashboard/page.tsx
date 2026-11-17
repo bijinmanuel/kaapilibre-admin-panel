@@ -16,7 +16,7 @@ export default function CafeDashboardPage() {
   const searchParams = useSearchParams()
   const region = searchParams.get('region') || ''
   const [chartMounted, setChartMounted] = useState(false)
-  const [growthMetric, setGrowthMetric] = useState<'revenue' | 'orders' | 'aov'>('revenue')
+  const [growthMetric, setGrowthMetric] = useState<'revenue' | 'orders' | 'aov' | 'weight'>('revenue')
   const [timeRange, setTimeRange] = useState<'3m' | '6m' | 'all'>('all')
 
   useEffect(() => {
@@ -71,12 +71,22 @@ export default function CafeDashboardPage() {
   const totalRevenue = totalPaid + totalPending
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
+  // Fallback monthly weight lookup from loaded orders if backend monthlyStats omits weight
+  const fallbackWeightByMonth: Record<string, number> = {}
+  ;(ordersData?.data || []).forEach((order: any) => {
+    if (order.status !== 'completed' || !order.createdAt) return
+    const monthKey = String(order.createdAt).slice(0, 7)
+    const orderWeight = (order.items || []).reduce((sum: number, item: any) => sum + (Number(item.qty) || 0), 0)
+    fallbackWeightByMonth[monthKey] = (fallbackWeightByMonth[monthKey] || 0) + orderWeight
+  })
+
   const revenueData = analytics?.monthlyStats?.map((s: any) => ({
     label: s.month,
     revenue: s.amount,
     paid: s.paidAmount ?? s.amount,
     pending: Math.max(0, (s.amount ?? 0) - (s.paidAmount ?? 0)),
     orders: s.count,
+    weight: s.weight ?? fallbackWeightByMonth[s.month] ?? 0,
     aov: s.count > 0 ? Math.round((s.amount ?? 0) / s.count) : 0,
   })) || []
 
@@ -112,11 +122,15 @@ export default function CafeDashboardPage() {
   )
   const rangeTotalPaid = filteredRevenueData.reduce((s: number, r: any) => s + (r.paid || 0), 0)
   const rangeTotalPending = Math.max(0, rangeTotalInvoiced - rangeTotalPaid)
+  const rangeTotalWeight = filteredRevenueData.reduce((s: number, r: any) => s + (r.weight || 0), 0)
   const collectionRate =
     rangeTotalInvoiced > 0 ? (rangeTotalPaid / rangeTotalInvoiced) * 100 : 100
 
-  const formatMetricValue = (val: number) =>
-    growthMetric === 'orders' ? `${Math.round(val)} orders` : formatCurrency(val)
+  const formatMetricValue = (val: number) => {
+    if (growthMetric === 'orders') return `${Math.round(val)} orders`
+    if (growthMetric === 'weight') return `${val.toLocaleString('en-IN', { maximumFractionDigits: 1 })} kg`
+    return formatCurrency(val)
+  }
 
   // Top products total & max for share bars
   const topProducts = analytics?.topProducts || []
@@ -316,14 +330,18 @@ export default function CafeDashboardPage() {
                   ? 'Revenue Growth'
                   : growthMetric === 'orders'
                     ? 'Monthly Order Volume'
-                    : 'Average Order Value Trend'}
+                    : growthMetric === 'weight'
+                      ? 'Monthly Weight Volume'
+                      : 'Average Order Value Trend'}
               </h3>
               <p className="text-xs text-muted-foreground">
                 {growthMetric === 'revenue'
                   ? 'Monthly invoiced vs collected revenue across all cafes'
                   : growthMetric === 'orders'
                     ? 'Total number of cafe orders placed per month'
-                    : 'Average basket size per cafe order over time'}
+                    : growthMetric === 'weight'
+                      ? 'Total coffee weight (kg) ordered per month across all cafes'
+                      : 'Average basket size per cafe order over time'}
               </p>
             </div>
 
@@ -348,6 +366,7 @@ export default function CafeDashboardPage() {
                   [
                     { id: 'revenue', label: 'Revenue' },
                     { id: 'orders', label: 'Orders' },
+                    { id: 'weight', label: 'Weight (kg)' },
                     { id: 'aov', label: 'Avg Basket' },
                   ] as const
                 ).map((m) => {
@@ -430,7 +449,9 @@ export default function CafeDashboardPage() {
                     tickFormatter={(v) =>
                       growthMetric === 'orders'
                         ? `${v}`
-                        : `₹${(v / 1000).toFixed(0)}k`
+                        : growthMetric === 'weight'
+                          ? `${v} kg`
+                          : `₹${(v / 1000).toFixed(0)}k`
                     }
                   />
                   <Tooltip
@@ -443,6 +464,7 @@ export default function CafeDashboardPage() {
                     formatter={(value: any, name: any) => {
                       const num = Number(value) || 0
                       if (name === 'orders') return [`${num} orders`, 'Order Volume']
+                      if (name === 'weight') return [`${num.toLocaleString('en-IN', { maximumFractionDigits: 1 })} kg`, 'Total Weight']
                       if (name === 'aov') return [formatCurrency(num), 'Avg Order Value']
                       return [
                         formatCurrency(num),
@@ -452,7 +474,7 @@ export default function CafeDashboardPage() {
                     labelFormatter={(label, payload) => {
                       const row = payload?.[0]?.payload
                       if (!row) return label
-                      return `${label} · ${row.orders} orders · ${formatCurrency(row.revenue)}`
+                      return `${label} · ${row.orders} orders · ${Number(row.weight || 0).toLocaleString('en-IN', { maximumFractionDigits: 1 })} kg · ${formatCurrency(row.revenue)}`
                     }}
                   />
                   <Area
@@ -485,7 +507,7 @@ export default function CafeDashboardPage() {
 
         {/* Bottom Summary KPI Strip */}
         <div className="pt-5 mt-5 border-t border-border/70 space-y-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             <div className="rounded-xl bg-muted/30 border border-border/60 p-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Peak Month
@@ -494,7 +516,7 @@ export default function CafeDashboardPage() {
                 {peakMonth ? formatMetricValue(peakMonth[metricKey]) : '—'}
               </p>
               <p className="text-[11px] font-mono mt-0.5" style={{ color: '#d4a853' }}>
-                {peakMonth ? `${peakMonth.label} (${peakMonth.orders} orders)` : 'No data'}
+                {peakMonth ? `${peakMonth.label} (${peakMonth.weight} kg)` : 'No data'}
               </p>
             </div>
 
@@ -507,6 +529,18 @@ export default function CafeDashboardPage() {
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 Across {filteredRevenueData.length} month{filteredRevenueData.length === 1 ? '' : 's'}
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-muted/30 border border-border/60 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Total Weight
+              </p>
+              <p className="text-sm font-bold text-foreground mt-1">
+                {rangeTotalWeight.toLocaleString('en-IN', { maximumFractionDigits: 1 })} kg
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Avg {(rangeTotalWeight / Math.max(1, filteredRevenueData.length)).toFixed(1)} kg/mo
               </p>
             </div>
 
