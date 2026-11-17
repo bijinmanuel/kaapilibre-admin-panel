@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { AlertTriangle, Check, X, Loader2, Plus, Trash2, Edit2, Package as PackageIcon } from 'lucide-react'
+import { AlertTriangle, Check, X, Loader2, Plus, Trash2, Edit2, Package as PackageIcon, Bell, Send, MessageCircle, Mail, Phone } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import {
   useInventory,
@@ -8,7 +8,10 @@ import {
   useUpdateStock,
   usePackages,
   useUpdatePackage,
-  useDeletePackage
+  useDeletePackage,
+  useRestockNotifications,
+  useTriggerRestockNotify,
+  useDeleteRestockNotification,
 } from '@/hooks/useData'
 import { cn } from '@/lib/utils'
 import { AddPackageModal } from '@/components/inventory/AddPackageModal'
@@ -31,7 +34,8 @@ interface EditPackageCell {
 }
 
 export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState<'products' | 'packages'>('products')
+  const [activeTab, setActiveTab] = useState<'products' | 'packages' | 'waitlist'>('products')
+  const [waitlistFilter, setWaitlistFilter] = useState<'pending' | 'notified' | 'all'>('pending')
   const [showAddPackage, setShowAddPackage] = useState(false)
   const [editingPackage, setEditingPackage] = useState<any>(null)
   const [confirmDeletePackage, setConfirmDeletePackage] = useState<string | null>(null)
@@ -47,6 +51,20 @@ export default function InventoryPage() {
   const updatePackage = useUpdatePackage()
   const deletePackage = useDeletePackage()
   const [editingPkgCell, setEditingPkgCell] = useState<EditPackageCell | null>(null)
+
+  // Restock Waitlist hooks
+  const { data: restockData, isLoading: isWaitlistLoading } = useRestockNotifications({ status: waitlistFilter })
+  const triggerNotify = useTriggerRestockNotify()
+  const deleteNotification = useDeleteRestockNotification()
+
+  const waitlistSummary = restockData?.waitlistSummary || []
+  const notifications = restockData?.notifications || []
+  const totalPendingWaitlist = waitlistSummary.reduce((sum, item) => sum + item.waitingCount, 0)
+
+  const getProductWaitingCount = (productId: string) =>
+    waitlistSummary
+      .filter(w => String(w.productId) === String(productId))
+      .reduce((sum, w) => sum + w.waitingCount, 0)
 
   // Product Inline Edit functions
   const startEdit = (productId: string, weight: Weight, currentQty: number) => {
@@ -170,6 +188,21 @@ export default function InventoryPage() {
         >
           Packaging Materials
         </button>
+        <button
+          onClick={() => setActiveTab('waitlist')}
+          className={cn(
+            'px-5 py-2.5 text-sm font-semibold border-b-2 -mb-[2px] transition-colors flex items-center gap-2',
+            activeTab === 'waitlist' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Bell className="w-3.5 h-3.5" />
+          <span>Restock Waitlist</span>
+          {totalPendingWaitlist > 0 && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 font-bold">
+              {totalPendingWaitlist}
+            </span>
+          )}
+        </button>
       </div>
 
       {activeTab === 'products' ? (
@@ -211,12 +244,24 @@ export default function InventoryPage() {
                           <div className="flex items-center gap-3">
                             <div>
                               <p className="font-medium text-foreground">{product.name}</p>
-                              {product.badge && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium mt-0.5 inline-block"
-                                  style={{ background: 'rgba(212,168,83,0.15)', color: '#d4a853' }}>
-                                  {product.badge}
-                                </span>
-                              )}
+                              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                {product.badge && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded font-medium inline-block"
+                                    style={{ background: 'rgba(212,168,83,0.15)', color: '#d4a853' }}>
+                                    {product.badge}
+                                  </span>
+                                )}
+                                {getProductWaitingCount(product._id) > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setActiveTab('waitlist')}
+                                    className="text-[10px] px-1.5 py-0.5 rounded font-medium inline-flex items-center gap-1 bg-amber-500/15 text-amber-500 border border-amber-500/30 hover:bg-amber-500/25 transition-colors"
+                                  >
+                                    <Bell className="w-2.5 h-2.5" />
+                                    {getProductWaitingCount(product._id)} waiting
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -299,7 +344,7 @@ export default function InventoryPage() {
             </table>
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'packages' ? (
         /* Packaging Materials Table */
         <div className="rounded-xl border border-border bg-card overflow-hidden">
           <div className="overflow-x-auto">
@@ -485,6 +530,193 @@ export default function InventoryPage() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      ) : (
+        /* Restock Waitlist Tab */
+        <div className="space-y-6">
+          {/* Demand Summary Cards */}
+          {waitlistSummary.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {waitlistSummary.map((item, idx) => (
+                <div
+                  key={`${item.productId}-${item.weight}-${idx}`}
+                  className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-3"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-foreground">{item.productName}</span>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-accent text-muted-foreground font-mono uppercase">
+                        {item.weight === 'any' ? 'Any Size' : item.weight}
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-500 font-medium mt-1">
+                      {item.waitingCount} {item.waitingCount === 1 ? 'customer' : 'customers'} waiting
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => triggerNotify.mutate({ productId: item.productId, weight: item.weight !== 'any' ? item.weight : undefined })}
+                    disabled={triggerNotify.isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border hover:bg-accent transition-colors"
+                    title="Send restock email if product is in stock"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Notify</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Filter Pills */}
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              {(['pending', 'notified', 'all'] as const).map(st => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setWaitlistFilter(st)}
+                  className={cn(
+                    'px-3.5 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors border',
+                    waitlistFilter === st
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-card text-muted-foreground border-border hover:text-foreground'
+                  )}
+                >
+                  {st === 'pending' ? `Waiting (${totalPendingWaitlist})` : st}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Emails are sent automatically when you update stock above 0 in the Coffee Products tab.
+            </p>
+          </div>
+
+          {/* Waitlist Subscribers Table */}
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/30">
+                    <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground">Product</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Bag Size</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Customer</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Phone / WhatsApp</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Requested</th>
+                    <th className="text-right px-5 py-3 text-xs font-medium text-muted-foreground">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isWaitlistLoading ? (
+                    [...Array(4)].map((_, i) => (
+                      <tr key={i} className="border-b border-border">
+                        {[...Array(7)].map((_, j) => (
+                          <td key={j} className="px-4 py-4">
+                            <div className="h-4 rounded bg-muted animate-pulse" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : (
+                    notifications.map((sub: any) => {
+                      const phoneVal = sub.whatsapp || sub.phone
+                      const cleanDigits = phoneVal ? String(phoneVal).replace(/[^0-9]/g, '') : ''
+                      const waLink = cleanDigits
+                        ? `https://wa.me/${cleanDigits.length === 10 ? `91${cleanDigits}` : cleanDigits}?text=${encodeURIComponent(
+                            `Hi ${sub.name || 'there'}! Good news from Kaapi Libre — ${sub.productName}${sub.weight !== 'any' ? ` (${sub.weight})` : ''} is now freshly roasted and back in stock: https://www.kaapilibre.com/products/${sub.productSlug}`
+                          )}`
+                        : null
+
+                      return (
+                        <tr key={sub._id} className="border-b border-border last:border-0 hover:bg-accent/30 transition-colors">
+                          <td className="px-5 py-4 font-medium text-foreground">
+                            {sub.productName}
+                          </td>
+                          <td className="px-4 py-4">
+                            <span className="text-xs px-2 py-0.5 rounded bg-accent text-foreground font-mono uppercase">
+                              {sub.weight === 'any' ? 'Any Size' : sub.weight}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="flex flex-col">
+                              {sub.name && <span className="font-medium text-foreground text-xs">{sub.name}</span>}
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Mail className="w-3 h-3" />
+                                {sub.email}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            {phoneVal ? (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-foreground flex items-center gap-1">
+                                  <Phone className="w-3 h-3 text-muted-foreground" />
+                                  {phoneVal}
+                                </span>
+                                {waLink && (
+                                  <a
+                                    href={waLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors"
+                                    title="Send WhatsApp restock message"
+                                  >
+                                    <MessageCircle className="w-3 h-3" />
+                                    WhatsApp
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-4">
+                            {sub.status === 'pending' ? (
+                              <span className="text-xs px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-500">
+                                Waiting
+                              </span>
+                            ) : (
+                              <div className="flex flex-col">
+                                <span className="text-xs px-2 py-0.5 rounded-full border border-green-500/30 bg-green-500/10 text-green-500 w-fit">
+                                  Notified
+                                </span>
+                                {sub.notifiedAt && (
+                                  <span className="text-[10px] text-muted-foreground mt-0.5">
+                                    {new Date(sub.notifiedAt).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 text-xs text-muted-foreground">
+                            {new Date(sub.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-5 py-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => deleteNotification.mutate(sub._id)}
+                              className="p-1.5 hover:bg-red-500/10 rounded-md transition-colors text-muted-foreground hover:text-red-500"
+                              title="Remove from waitlist"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                  {!isWaitlistLoading && notifications.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-5 py-12 text-center text-muted-foreground">
+                        No restock waitlist requests found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

@@ -96,7 +96,49 @@ export function useUpdateStock() {
   return useMutation({
     mutationFn: ({ productId, weight, quantity, operation }: { productId: string; weight: string; quantity: number; operation: string }) =>
       api.patch(`/inventory/${productId}`, { weight, quantity, operation }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['inventory'] }); toast.success('Stock updated') },
+    onSuccess: (res: any) => {
+      qc.invalidateQueries({ queryKey: ['inventory'] })
+      qc.invalidateQueries({ queryKey: ['restock-notifications'] })
+      toast.success(res?.message || 'Stock updated')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+export function useRestockNotifications(filters: { status?: string; productId?: string; weight?: string } = { status: 'all' }) {
+  return useQuery<{
+    notifications: any[]
+    waitlistSummary: { productId: string; productName: string; productSlug: string; weight: string; waitingCount: number }[]
+  }>({
+    queryKey: ['restock-notifications', filters],
+    queryFn: async () => {
+      const res = await api.get('/inventory/restock-notifications', { params: filters }) as any
+      return res.data
+    },
+  })
+}
+
+export function useTriggerRestockNotify() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ productId, weight }: { productId: string; weight?: string }) =>
+      api.post(`/inventory/restock-notifications/${productId}/notify`, { weight }),
+    onSuccess: (res: any) => {
+      qc.invalidateQueries({ queryKey: ['restock-notifications'] })
+      toast.success(res?.message || 'Notifications triggered')
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+}
+
+export function useDeleteRestockNotification() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/inventory/restock-notifications/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['restock-notifications'] })
+      toast.success('Waitlist entry removed')
+    },
     onError: (e: Error) => toast.error(e.message),
   })
 }
