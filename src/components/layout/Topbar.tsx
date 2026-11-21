@@ -39,6 +39,7 @@ import {
 import { getInitials, formatDateTime } from '@/lib/utils'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 const TYPE_ICON: Record<string, any> = {
@@ -65,6 +66,7 @@ export function Topbar({ title }: { title?: string }) {
   const { theme, setTheme } = useTheme()
   const { user, logout }    = useAuthStore()
   const router              = useRouter()
+  const queryClient         = useQueryClient()
   const [dropOpen,  setDropOpen]  = useState(false)
   const [bellOpen,  setBellOpen]  = useState(false)
   const bellRef  = useRef<HTMLDivElement>(null)
@@ -256,6 +258,7 @@ export function Topbar({ title }: { title?: string }) {
         const key = `contact-${m._id}`
         if (!seenIdsRef.current.has(key)) {
           seenIdsRef.current.add(key)
+          queryClient.invalidateQueries({ queryKey: ['messages'] })
           const title = `New Contact Inquiry from ${m.name || 'Visitor'}`
           const body = m.subject || m.message || 'New website inquiry received'
           sendDevicePushNotification({
