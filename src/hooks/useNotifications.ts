@@ -19,8 +19,9 @@ export function useNotifications() {
       const res = await api.get('/notifications') as any
       return res.data
     },
-    refetchInterval: 20_000, // poll every 20s for real-time push alerts
-    staleTime: 10_000,
+    refetchInterval: 15_000, // poll every 15s for real-time push alerts
+    refetchIntervalInBackground: true, // keep polling even when tab/PWA is in background
+    staleTime: 5_000,
   })
 }
 
@@ -120,7 +121,8 @@ export function useOpenComplaintsSummary() {
         unreadContactCount: unreadContactTotal,
       }
     },
-    refetchInterval: 20_000, // poll every 20s for live push notifications
-    staleTime: 10_000,
+    refetchInterval: 15_000, // poll every 15s for live push notifications
+    refetchIntervalInBackground: true, // keep polling even when tab/PWA is in background
+    staleTime: 5_000,
   })
 }
