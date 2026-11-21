@@ -139,22 +139,37 @@ export function Topbar({ title }: { title?: string }) {
     const list = notifData.notifications
 
     if (!initializedSourcesRef.current.notifs) {
-      list.forEach((n) => seenIdsRef.current.add(`notif-${n._id}`))
+      list.forEach((n) => {
+        seenIdsRef.current.add(`notif-${n._id}`)
+        if (n.type === 'new_contact' && n.metadata?.contactId) {
+          seenIdsRef.current.add(`contact-${String(n.metadata.contactId)}`)
+        }
+      })
       initializedSourcesRef.current.notifs = true
       return
     }
 
     list.forEach((n) => {
       const key = `notif-${n._id}`
+      const contactKey =
+        n.type === 'new_contact' && n.metadata?.contactId
+          ? `contact-${String(n.metadata.contactId)}`
+          : null
+
       if (!seenIdsRef.current.has(key)) {
         seenIdsRef.current.add(key)
+        if (contactKey && seenIdsRef.current.has(contactKey)) {
+          return
+        }
+        if (contactKey) seenIdsRef.current.add(contactKey)
+
         if (!n.isRead) {
           const targetUrl = n.link || '/dashboard'
           sendDevicePushNotification({
             title: n.title || 'KaapiLibre Admin Alert',
             body: n.message || 'You have a new admin notification',
             url: targetUrl,
-            tag: key,
+            tag: contactKey || key,
           })
           toast.info(n.title || 'New Notification', {
             description: n.message,
@@ -292,7 +307,7 @@ export function Topbar({ title }: { title?: string }) {
   }, [liveSummary, router])
 
   // Merge standard notifications with open Cafe Complaints and Unread Contacts for the Bell dropdown
-  const notifications = useMemo(() => {
+  const { notifications, extraUnreadContacts } = useMemo(() => {
     const baseNotifs = notifData?.notifications ?? []
     const cafeItems = (liveSummary?.openCafeComplaints ?? []).map((c: any) => ({
       _id: `cafe-complaint-${c._id}`,
@@ -305,30 +320,42 @@ export function Topbar({ title }: { title?: string }) {
       createdAt: c.createdAt || new Date().toISOString(),
     }))
 
-    const existingContactLinks = new Set(
+    const existingContactIds = new Set(
+      baseNotifs
+        .filter((n) => n.type === 'new_contact' && n.metadata?.contactId)
+        .map((n) => String(n.metadata!.contactId))
+    )
+    const existingContactTitles = new Set(
       baseNotifs.filter((n) => n.type === 'new_contact').map((n) => n.title)
     )
-    const contactItems = (liveSummary?.unreadContacts ?? [])
-      .filter((m: any) => !existingContactLinks.has(`New Contact: ${m.name}`))
-      .slice(0, 5)
-      .map((m: any) => ({
-        _id: `contact-inquiry-${m._id}`,
-        type: 'new_contact',
-        title: `Contact Inquiry: ${m.name || 'Website Visitor'}`,
-        message: m.subject || m.message || 'Unread contact message',
-        link: '/contact',
-        isRead: false,
-        isVirtual: true,
-        createdAt: m.createdAt || new Date().toISOString(),
-      }))
+    const missingContacts = (liveSummary?.unreadContacts ?? []).filter(
+      (m: any) =>
+        !existingContactIds.has(String(m._id)) &&
+        !existingContactTitles.has(`New Contact: ${m.name}`)
+    )
 
-    return [...cafeItems, ...contactItems, ...baseNotifs].sort(
+    const contactItems = missingContacts.slice(0, 10).map((m: any) => ({
+      _id: `contact-inquiry-${m._id}`,
+      type: 'new_contact',
+      title: `Contact Inquiry: ${m.name || 'Website Visitor'}`,
+      message: m.subject || m.message || 'Unread contact message',
+      link: '/contact',
+      isRead: false,
+      isVirtual: true,
+      createdAt: m.createdAt || new Date().toISOString(),
+    }))
+
+    const merged = [...cafeItems, ...contactItems, ...baseNotifs].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
+
+    return { notifications: merged, extraUnreadContacts: missingContacts.length }
   }, [notifData, liveSummary])
 
   const unreadCount =
-    (notifData?.unreadCount ?? 0) + (liveSummary?.openCafeCount ?? 0)
+    (notifData?.unreadCount ?? 0) +
+    (liveSummary?.openCafeCount ?? 0) +
+    extraUnreadContacts
 
   // Close dropdowns on outside click
   useEffect(() => {

@@ -210,7 +210,11 @@ export function useMarkAsRead() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.patch(`/contact/${id}/read`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['messages'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['messages'] })
+      qc.invalidateQueries({ queryKey: ['open-complaints-summary'] })
+      qc.invalidateQueries({ queryKey: ['notifications'] })
+    },
   })
 }
 
@@ -218,7 +222,12 @@ export function useDeleteMessage() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.delete(`/contact/${id}`),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages'] }); toast.success('Message deleted') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['messages'] })
+      qc.invalidateQueries({ queryKey: ['open-complaints-summary'] })
+      qc.invalidateQueries({ queryKey: ['notifications'] })
+      toast.success('Message deleted')
+    },
     onError: (e: Error) => toast.error(e.message),
   })
 }
