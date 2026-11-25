@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { ShoppingCart, DollarSign, Store, TrendingUp, TrendingDown, Award, CheckCircle2, Clock } from 'lucide-react'
 import { DashboardHeader } from '@/components/cafe-dashboard/DashboardHeader'
 import { useGlobalCafeAnalytics, useCafeOrders } from '@/hooks/useCafeOrders'
+import { useCafeProducts } from '@/hooks/useCafeProducts'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -25,6 +26,7 @@ export default function CafeDashboardPage() {
 
   const { data: analytics, isLoading: analyticsLoading } = useGlobalCafeAnalytics()
   const { data: ordersData, isLoading: ordersLoading } = useCafeOrders({ limit: 100 })
+  const { data: cafeProducts } = useCafeProducts()
 
   // Calculate MoM Drop for Banner
   const monthlyStats = analytics?.monthlyStats || []
@@ -71,12 +73,30 @@ export default function CafeDashboardPage() {
   const totalRevenue = totalPaid + totalPending
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
+  // Build per-unit kg map from Cafe Menu products (supports both g and kg)
+  const productUnitKgMap: Record<string, number> = {}
+  ;(cafeProducts || []).forEach((p) => {
+    const key = (p.name || '').trim().toLowerCase()
+    if (!key) return
+    if (typeof p.weight === 'number' && p.weight > 0) {
+      productUnitKgMap[key] = p.weightUnit === 'g' ? p.weight / 1000 : p.weight
+    } else if (p.category === 'Equipment') {
+      productUnitKgMap[key] = 0
+    } else {
+      productUnitKgMap[key] = 1
+    }
+  })
+
   // Fallback monthly weight lookup from loaded orders if backend monthlyStats omits weight
   const fallbackWeightByMonth: Record<string, number> = {}
   ;(ordersData?.data || []).forEach((order: any) => {
     if (order.status !== 'completed' || !order.createdAt) return
     const monthKey = String(order.createdAt).slice(0, 7)
-    const orderWeight = (order.items || []).reduce((sum: number, item: any) => sum + (Number(item.qty) || 0), 0)
+    const orderWeight = (order.items || []).reduce((sum: number, item: any) => {
+      const nameKey = String(item.name || '').trim().toLowerCase()
+      const unitKg = productUnitKgMap[nameKey] ?? 1
+      return sum + (Number(item.qty) || 0) * unitKg
+    }, 0)
     fallbackWeightByMonth[monthKey] = (fallbackWeightByMonth[monthKey] || 0) + orderWeight
   })
 
@@ -86,7 +106,7 @@ export default function CafeDashboardPage() {
     paid: s.paidAmount ?? s.amount,
     pending: Math.max(0, (s.amount ?? 0) - (s.paidAmount ?? 0)),
     orders: s.count,
-    weight: s.weight ?? fallbackWeightByMonth[s.month] ?? 0,
+    weight: Math.round(((s.weight ?? fallbackWeightByMonth[s.month] ?? 0)) * 100) / 100,
     aov: s.count > 0 ? Math.round((s.amount ?? 0) / s.count) : 0,
   })) || []
 
