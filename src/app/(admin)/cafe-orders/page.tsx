@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
   Search, Plus, Coffee, Calendar, CreditCard, Edit2, ChevronLeft, ChevronRight,
   ChevronsLeft, ChevronsRight, FileText, Download, LayoutGrid, List,
-  X, Eye, Store, CheckCircle, Clock, RefreshCw
+  X, Eye, Store, CheckCircle, Clock, RefreshCw, Scale
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -16,6 +16,7 @@ import {
   useUpdateCafeOrderPaymentStatus,
   useGlobalCafeAnalytics
 } from '@/hooks/useCafeOrders'
+import { useCafeProducts } from '@/hooks/useCafeProducts'
 import { useCafes } from '@/hooks/useCafes'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import type { CafeOrder, Cafe } from '@/types'
@@ -73,6 +74,7 @@ export default function CafeOrdersPage() {
 
   // Global Analytics for KPI summary cards
   const { data: globalAnalytics } = useGlobalCafeAnalytics()
+  const { data: cafeProducts } = useCafeProducts()
 
   const { mutate: updateStatus } = useUpdateCafeOrderStatus()
   const { mutate: updatePaymentStatus } = useUpdateCafeOrderPaymentStatus()
@@ -136,6 +138,41 @@ export default function CafeOrdersPage() {
     }
     return orders.filter(o => o.paymentStatus === 'pending').reduce((sum, o) => sum + (o.totalAmount || 0), 0)
   }, [globalAnalytics, orders])
+
+  const totalSoldWeight = useMemo(() => {
+    if (!isFiltered && Array.isArray(globalAnalytics?.monthlyStats)) {
+      const total = globalAnalytics.monthlyStats.reduce(
+        (sum: number, s: any) => sum + (Number(s.weight) || 0),
+        0
+      )
+      return Math.round(total * 100) / 100
+    }
+
+    const unitKgMap: Record<string, number> = {}
+      ; (cafeProducts || []).forEach((p) => {
+        const key = (p.name || '').trim().toLowerCase()
+        if (!key) return
+        if (typeof p.weight === 'number' && p.weight > 0) {
+          unitKgMap[key] = p.weightUnit === 'g' ? p.weight / 1000 : p.weight
+        } else if (p.category === 'Equipment') {
+          unitKgMap[key] = 0
+        } else {
+          unitKgMap[key] = 1
+        }
+      })
+
+    const total = orders
+      .filter((o) => o.status !== 'cancelled')
+      .reduce((sum, o) => {
+        const orderKg = (o.items || []).reduce((itemSum, it) => {
+          const nameKey = (it.name || '').trim().toLowerCase()
+          const unitKg = unitKgMap[nameKey] ?? 1
+          return itemSum + (Number(it.qty) || 0) * unitKg
+        }, 0)
+        return sum + orderKg
+      }, 0)
+    return Math.round(total * 100) / 100
+  }, [isFiltered, globalAnalytics, orders, cafeProducts])
 
   // Pagination helpers
   const totalPages = meta?.totalPages || (meta?.total ? Math.ceil(meta.total / (limit || 1)) : 1)
@@ -224,11 +261,10 @@ export default function CafeOrdersPage() {
             <div className="flex items-center bg-card border border-border rounded-lg p-0.5 shadow-sm">
               <button
                 onClick={() => handleViewModeChange('table')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  viewMode === 'table'
-                    ? 'font-bold shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === 'table'
+                  ? 'font-bold shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+                  }`}
                 style={
                   viewMode === 'table'
                     ? { background: 'rgba(212, 168, 83, 0.2)', color: '#d4a853', border: '1px solid rgba(212, 168, 83, 0.4)' }
@@ -241,11 +277,10 @@ export default function CafeOrdersPage() {
               </button>
               <button
                 onClick={() => handleViewModeChange('grid')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  viewMode === 'grid'
-                    ? 'font-bold shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === 'grid'
+                  ? 'font-bold shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+                  }`}
                 style={
                   viewMode === 'grid'
                     ? { background: 'rgba(212, 168, 83, 0.2)', color: '#d4a853', border: '1px solid rgba(212, 168, 83, 0.4)' }
@@ -363,8 +398,8 @@ export default function CafeOrdersPage() {
           </div>
         </div>
 
-        {/* Priority 2, 3, 4: Remaining 3 Secondary Cards */}
-        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-stretch">
+        {/* Priority 2, 3, 4, 5: Secondary KPI Cards (2x2 Grid) */}
+        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-stretch">
           {/* Card 2: Total Orders */}
           <div
             onClick={() => {
@@ -372,11 +407,10 @@ export default function CafeOrdersPage() {
               setPaymentStatus('')
               setPage(1)
             }}
-            className={`rounded-2xl border p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] ${
-              status === '' && paymentStatus === ''
-                ? 'border-primary/50 bg-card ring-1 ring-primary/20'
-                : 'border-border bg-card hover:border-primary/30'
-            }`}
+            className={`rounded-2xl border p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] ${status === '' && paymentStatus === ''
+              ? 'border-primary/50 bg-card ring-1 ring-primary/20'
+              : 'border-border bg-card hover:border-primary/30'
+              }`}
             title="Click to view all orders"
           >
             <div>
@@ -406,11 +440,10 @@ export default function CafeOrdersPage() {
               setStatus('pending')
               setPage(1)
             }}
-            className={`rounded-2xl border p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] ${
-              status === 'pending'
-                ? 'border-amber-500/60 bg-amber-500/5 ring-1 ring-amber-500/20'
-                : 'border-border bg-card hover:border-amber-500/40'
-            }`}
+            className={`rounded-2xl border p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] ${status === 'pending'
+              ? 'border-amber-500/60 bg-amber-500/5 ring-1 ring-amber-500/20'
+              : 'border-border bg-card hover:border-amber-500/40'
+              }`}
             title="Click to filter pending orders"
           >
             <div>
@@ -437,11 +470,10 @@ export default function CafeOrdersPage() {
               setStatus('completed')
               setPage(1)
             }}
-            className={`rounded-2xl border p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] ${
-              status === 'completed'
-                ? 'border-green-500/60 bg-green-500/5 ring-1 ring-green-500/20'
-                : 'border-border bg-card hover:border-green-500/40'
-            }`}
+            className={`rounded-2xl border p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] ${status === 'completed'
+              ? 'border-green-500/60 bg-green-500/5 ring-1 ring-green-500/20'
+              : 'border-border bg-card hover:border-green-500/40'
+              }`}
             title="Click to filter completed orders"
           >
             <div>
@@ -461,6 +493,34 @@ export default function CafeOrdersPage() {
               </span>
             </div>
           </div>
+
+          {/* Card 5: Total Sold Weight */}
+          <div
+            onClick={() => router.push('/cafe-dashboard')}
+            className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:border-primary/40"
+            title="Click to view monthly weight analytics"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-primary">Total Sold Weight</span>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: 'rgba(212, 168, 83, 0.15)', color: '#d4a853' }}
+                >
+                  <Scale className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl sm:text-3xl font-bold text-foreground mt-3">
+                {totalSoldWeight.toLocaleString('en-IN', { maximumFractionDigits: 2 })}{' '}
+                <span className="text-sm font-semibold text-muted-foreground">kg</span>
+              </p>
+            </div>
+            <div className="pt-3 border-t border-border/60 mt-3">
+              <span className="text-[11px] text-muted-foreground">
+                {isFiltered ? 'Matching filtered orders' : 'Across completed orders'}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -477,6 +537,7 @@ export default function CafeOrdersPage() {
                 setPage(1)
               }}
               placeholder="Search by order #, cafe name, or item..."
+              style={{ paddingLeft: '2.25rem', paddingRight: '2rem' }}
               className="w-full pl-9 pr-8 py-2 bg-card text-foreground border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
             />
             {search && (
@@ -591,11 +652,10 @@ export default function CafeOrdersPage() {
                 setPaymentStatus('')
                 setPage(1)
               }}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                status === '' && paymentStatus === ''
-                  ? 'font-bold shadow-xs'
-                  : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground'
-              }`}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${status === '' && paymentStatus === ''
+                ? 'font-bold shadow-xs'
+                : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground'
+                }`}
               style={
                 status === '' && paymentStatus === ''
                   ? { background: 'rgba(212, 168, 83, 0.22)', color: '#d4a853', border: '1px solid rgba(212, 168, 83, 0.5)' }
@@ -609,11 +669,10 @@ export default function CafeOrdersPage() {
                 setStatus('pending')
                 setPage(1)
               }}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                status === 'pending'
-                  ? 'font-bold shadow-xs'
-                  : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground'
-              }`}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${status === 'pending'
+                ? 'font-bold shadow-xs'
+                : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground'
+                }`}
               style={
                 status === 'pending'
                   ? { background: 'rgba(245, 158, 11, 0.22)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.5)' }
@@ -627,11 +686,10 @@ export default function CafeOrdersPage() {
                 setStatus('completed')
                 setPage(1)
               }}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                status === 'completed'
-                  ? 'font-bold shadow-xs'
-                  : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground'
-              }`}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${status === 'completed'
+                ? 'font-bold shadow-xs'
+                : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground'
+                }`}
               style={
                 status === 'completed'
                   ? { background: 'rgba(34, 197, 94, 0.22)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.5)' }
@@ -645,11 +703,10 @@ export default function CafeOrdersPage() {
                 setPaymentStatus('pending')
                 setPage(1)
               }}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                paymentStatus === 'pending'
-                  ? 'font-bold shadow-xs'
-                  : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground'
-              }`}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${paymentStatus === 'pending'
+                ? 'font-bold shadow-xs'
+                : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground'
+                }`}
               style={
                 paymentStatus === 'pending'
                   ? { background: 'rgba(249, 115, 22, 0.22)', color: '#f97316', border: '1px solid rgba(249, 115, 22, 0.5)' }
@@ -779,11 +836,10 @@ export default function CafeOrdersPage() {
                               <span>{order.paymentMethod || '—'}</span>
                             </div>
                             <span
-                              className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                                order.paymentStatus === 'paid'
-                                  ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                  : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                              }`}
+                              className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${order.paymentStatus === 'paid'
+                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                }`}
                             >
                               {order.paymentStatus}
                             </span>
@@ -935,11 +991,10 @@ export default function CafeOrdersPage() {
                       <button
                         key={`page-${p}`}
                         onClick={() => setPage(Number(p))}
-                        className={`min-w-[28px] h-7 px-2 rounded-md text-xs font-medium transition-all ${
-                          page === p
-                            ? 'font-bold shadow-xs'
-                            : 'border border-border text-muted-foreground hover:text-foreground hover:bg-accent'
-                        }`}
+                        className={`min-w-[28px] h-7 px-2 rounded-md text-xs font-medium transition-all ${page === p
+                          ? 'font-bold shadow-xs'
+                          : 'border border-border text-muted-foreground hover:text-foreground hover:bg-accent'
+                          }`}
                         style={
                           page === p
                             ? { background: 'rgba(212, 168, 83, 0.25)', color: '#d4a853', border: '1px solid rgba(212, 168, 83, 0.6)' }
@@ -1030,11 +1085,10 @@ export default function CafeOrdersPage() {
                               {order.paymentMethod}
                             </span>
                             <span
-                              className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                                order.paymentStatus === 'paid'
-                                  ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                  : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                              }`}
+                              className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${order.paymentStatus === 'paid'
+                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                }`}
                             >
                               {order.paymentStatus}
                             </span>
@@ -1187,11 +1241,10 @@ export default function CafeOrdersPage() {
                       <button
                         key={`page-grid-${p}`}
                         onClick={() => setPage(Number(p))}
-                        className={`min-w-[28px] h-7 px-2 rounded-md text-xs font-medium transition-all ${
-                          page === p
-                            ? 'font-bold shadow-xs'
-                            : 'border border-border text-muted-foreground hover:text-foreground hover:bg-accent'
-                        }`}
+                        className={`min-w-[28px] h-7 px-2 rounded-md text-xs font-medium transition-all ${page === p
+                          ? 'font-bold shadow-xs'
+                          : 'border border-border text-muted-foreground hover:text-foreground hover:bg-accent'
+                          }`}
                         style={
                           page === p
                             ? { background: 'rgba(212, 168, 83, 0.25)', color: '#d4a853', border: '1px solid rgba(212, 168, 83, 0.6)' }

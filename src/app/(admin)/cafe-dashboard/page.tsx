@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ShoppingCart, DollarSign, Store, TrendingUp, TrendingDown, Award, CheckCircle2, Clock } from 'lucide-react'
+import { ShoppingCart, DollarSign, Store, TrendingUp, TrendingDown, Award, CheckCircle2, Clock, Scale } from 'lucide-react'
 import { DashboardHeader } from '@/components/cafe-dashboard/DashboardHeader'
 import { useGlobalCafeAnalytics, useCafeOrders } from '@/hooks/useCafeOrders'
 import { useCafeProducts } from '@/hooks/useCafeProducts'
@@ -75,30 +75,30 @@ export default function CafeDashboardPage() {
 
   // Build per-unit kg map from Cafe Menu products (supports both g and kg)
   const productUnitKgMap: Record<string, number> = {}
-  ;(cafeProducts || []).forEach((p) => {
-    const key = (p.name || '').trim().toLowerCase()
-    if (!key) return
-    if (typeof p.weight === 'number' && p.weight > 0) {
-      productUnitKgMap[key] = p.weightUnit === 'g' ? p.weight / 1000 : p.weight
-    } else if (p.category === 'Equipment') {
-      productUnitKgMap[key] = 0
-    } else {
-      productUnitKgMap[key] = 1
-    }
-  })
+    ; (cafeProducts || []).forEach((p) => {
+      const key = (p.name || '').trim().toLowerCase()
+      if (!key) return
+      if (typeof p.weight === 'number' && p.weight > 0) {
+        productUnitKgMap[key] = p.weightUnit === 'g' ? p.weight / 1000 : p.weight
+      } else if (p.category === 'Equipment') {
+        productUnitKgMap[key] = 0
+      } else {
+        productUnitKgMap[key] = 1
+      }
+    })
 
   // Fallback monthly weight lookup from loaded orders if backend monthlyStats omits weight
   const fallbackWeightByMonth: Record<string, number> = {}
-  ;(ordersData?.data || []).forEach((order: any) => {
-    if (order.status !== 'completed' || !order.createdAt) return
-    const monthKey = String(order.createdAt).slice(0, 7)
-    const orderWeight = (order.items || []).reduce((sum: number, item: any) => {
-      const nameKey = String(item.name || '').trim().toLowerCase()
-      const unitKg = productUnitKgMap[nameKey] ?? 1
-      return sum + (Number(item.qty) || 0) * unitKg
-    }, 0)
-    fallbackWeightByMonth[monthKey] = (fallbackWeightByMonth[monthKey] || 0) + orderWeight
-  })
+    ; (ordersData?.data || []).forEach((order: any) => {
+      if (order.status !== 'completed' || !order.createdAt) return
+      const monthKey = String(order.createdAt).slice(0, 7)
+      const orderWeight = (order.items || []).reduce((sum: number, item: any) => {
+        const nameKey = String(item.name || '').trim().toLowerCase()
+        const unitKg = productUnitKgMap[nameKey] ?? 1
+        return sum + (Number(item.qty) || 0) * unitKg
+      }, 0)
+      fallbackWeightByMonth[monthKey] = (fallbackWeightByMonth[monthKey] || 0) + orderWeight
+    })
 
   const revenueData = analytics?.monthlyStats?.map((s: any) => ({
     label: s.month,
@@ -109,6 +109,21 @@ export default function CafeDashboardPage() {
     weight: Math.round(((s.weight ?? fallbackWeightByMonth[s.month] ?? 0)) * 100) / 100,
     aov: s.count > 0 ? Math.round((s.amount ?? 0) / s.count) : 0,
   })) || []
+
+  const totalSoldWeight = region
+    ? Math.round(
+      (ordersData?.data || [])
+        .filter((o: any) => o.status !== 'cancelled' && (o.cafeId as any)?.region === region)
+        .reduce((sum: number, o: any) => {
+          const orderKg = (o.items || []).reduce((itemSum: number, it: any) => {
+            const nameKey = String(it.name || '').trim().toLowerCase()
+            const unitKg = productUnitKgMap[nameKey] ?? 1
+            return itemSum + (Number(it.qty) || 0) * unitKg
+          }, 0)
+          return sum + orderKg
+        }, 0) * 100
+    ) / 100
+    : Math.round(revenueData.reduce((sum: number, r: any) => sum + (Number(r.weight) || 0), 0) * 100) / 100
 
   const filteredRevenueData =
     timeRange === '3m'
@@ -257,8 +272,8 @@ export default function CafeDashboardPage() {
           </div>
         </div>
 
-        {/* Priority 2, 3, 4: Remaining 3 Secondary Cards */}
-        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-stretch">
+        {/* Priority 2, 3, 4, 5: Secondary KPI Cards (2x2 Grid) */}
+        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-stretch">
           {/* Card 2: Total Orders */}
           <div
             onClick={() => router.push('/cafe-orders')}
@@ -337,6 +352,38 @@ export default function CafeDashboardPage() {
               <span className="text-[11px] text-muted-foreground">Per order basket</span>
             </div>
           </div>
+
+          {/* Card 5: Total Sold Weight */}
+          <div
+            onClick={() => setGrowthMetric('weight')}
+            className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:border-primary/40"
+            title="Click to view monthly weight trend"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-primary">Total Sold Weight</span>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: 'rgba(212, 168, 83, 0.15)', color: '#d4a853' }}
+                >
+                  <Scale className="w-4 h-4" />
+                </div>
+              </div>
+              {analyticsLoading ? (
+                <div className="h-8 w-20 rounded bg-muted animate-pulse mt-3" />
+              ) : (
+                <p className="text-2xl sm:text-3xl font-bold text-foreground mt-3">
+                  {totalSoldWeight.toLocaleString('en-IN', { maximumFractionDigits: 2 })}{' '}
+                  <span className="text-sm font-semibold text-muted-foreground">kg</span>
+                </p>
+              )}
+            </div>
+            <div className="pt-3 border-t border-border/60 mt-3">
+              <span className="text-[11px] text-muted-foreground">
+                {region ? `Sold in ${region}` : 'Across completed orders'}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -397,8 +444,8 @@ export default function CafeDashboardPage() {
                       type="button"
                       onClick={() => setGrowthMetric(m.id)}
                       className={`px-2.5 py-1 rounded-md font-semibold transition-all ${active
-                          ? 'shadow-xs'
-                          : 'text-muted-foreground hover:text-foreground'
+                        ? 'shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
                         }`}
                       style={
                         active ? { background: '#d4a853', color: '#1a1713' } : {}
@@ -426,8 +473,8 @@ export default function CafeDashboardPage() {
                       type="button"
                       onClick={() => setTimeRange(range.id)}
                       className={`px-2.5 py-1 rounded-md font-semibold transition-all ${active
-                          ? 'bg-foreground shadow-xs'
-                          : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
                       {range.label}
