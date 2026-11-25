@@ -119,25 +119,25 @@ export default function CafeOrdersPage() {
   // Quick stats calculation
   const totalOrdersCount = meta?.total ?? orders.length
   const totalRevenue = useMemo(() => {
-    if (globalAnalytics?.stats && Array.isArray(globalAnalytics.stats)) {
-      return globalAnalytics.stats.reduce((acc: number, s: any) => acc + (s.totalSales || 0), 0)
+    if (!isFiltered && typeof globalAnalytics?.totalRevenue === 'number') {
+      return globalAnalytics.totalRevenue
     }
     return orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0)
-  }, [globalAnalytics, orders])
+  }, [isFiltered, globalAnalytics, orders])
 
   const paidRevenue = useMemo(() => {
-    if (globalAnalytics?.stats && Array.isArray(globalAnalytics.stats)) {
-      return globalAnalytics.stats.reduce((acc: number, s: any) => acc + (s.paidSales || 0), 0)
+    if (!isFiltered && typeof globalAnalytics?.totalPaid === 'number') {
+      return globalAnalytics.totalPaid
     }
     return orders.filter(o => o.paymentStatus === 'paid').reduce((sum, o) => sum + (o.totalAmount || 0), 0)
-  }, [globalAnalytics, orders])
+  }, [isFiltered, globalAnalytics, orders])
 
   const pendingRevenue = useMemo(() => {
-    if (globalAnalytics?.stats && Array.isArray(globalAnalytics.stats)) {
-      return globalAnalytics.stats.reduce((acc: number, s: any) => acc + (s.pendingSales || 0), 0)
+    if (!isFiltered && typeof globalAnalytics?.totalPending === 'number') {
+      return globalAnalytics.totalPending
     }
     return orders.filter(o => o.paymentStatus === 'pending').reduce((sum, o) => sum + (o.totalAmount || 0), 0)
-  }, [globalAnalytics, orders])
+  }, [isFiltered, globalAnalytics, orders])
 
   const totalSoldWeight = useMemo(() => {
     if (!isFiltered && Array.isArray(globalAnalytics?.monthlyStats)) {
@@ -429,7 +429,7 @@ export default function CafeOrdersPage() {
             </div>
             <div className="pt-3 border-t border-border/60 mt-3">
               <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                <span>Partner cafe orders</span>
+                <span>{isFiltered ? 'Matching filtered orders' : 'All statuses (incl. pending)'}</span>
               </span>
             </div>
           </div>

@@ -274,7 +274,7 @@ export default function CafeDashboardPage() {
 
         {/* Priority 2, 3, 4, 5: Secondary KPI Cards (2x2 Grid) */}
         <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-stretch">
-          {/* Card 2: Total Orders */}
+          {/* Card 2: Completed Orders */}
           <div
             onClick={() => router.push('/cafe-orders')}
             className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] hover:border-primary/40"
@@ -282,7 +282,7 @@ export default function CafeDashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground">Total Orders</span>
+                <span className="text-xs font-semibold text-muted-foreground">Completed Orders</span>
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                   style={{ background: 'rgba(212, 168, 83, 0.15)', color: '#d4a853' }}
@@ -299,7 +299,7 @@ export default function CafeDashboardPage() {
               )}
             </div>
             <div className="pt-3 border-t border-border/60 mt-3">
-              <span className="text-[11px] text-muted-foreground">Cafe order volume</span>
+              <span className="text-[11px] text-muted-foreground">Fulfilled orders (excl. pending)</span>
             </div>
           </div>
 
