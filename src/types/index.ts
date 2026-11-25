@@ -220,12 +220,15 @@ export interface CafeOrderItem {
 }
 
 export type CafeCategory = 'Coffee Beans' | 'Equipment' | 'Other'
+export type CafeWeightUnit = 'g' | 'kg'
 
 export interface CafeProduct {
   _id: string
   name: string
   category: CafeCategory
   price: number
+  weight?: number
+  weightUnit?: CafeWeightUnit
   roast?: string
   variety?: string
   origin?: string

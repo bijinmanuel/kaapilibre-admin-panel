@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { X, Coffee, Sparkles } from 'lucide-react'
 import { useCreateCafeProduct, useUpdateCafeProduct } from '@/hooks/useCafeProducts'
 import { useCafes, useUpdateCafe } from '@/hooks/useCafes'
-import type { CafeCategory, CafeProduct } from '@/types'
+import type { CafeCategory, CafeProduct, CafeWeightUnit } from '@/types'
 
 export function AddCafeProductModal({
   onClose,
@@ -16,6 +16,8 @@ export function AddCafeProductModal({
     name: initialData?.name || '',
     category: (initialData?.category || 'Coffee Beans') as CafeCategory,
     price: initialData?.price?.toString() || '',
+    weight: initialData?.weight !== undefined && initialData?.weight !== null ? initialData.weight.toString() : '',
+    weightUnit: (initialData?.weightUnit || 'kg') as CafeWeightUnit,
     roast: initialData?.roast || 'Medium-Dark Roast',
     variety: initialData?.variety || '',
     origin: initialData?.origin || '',
@@ -33,9 +35,12 @@ export function AddCafeProductModal({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const parsedWeight = formData.weight.trim() !== '' ? parseFloat(formData.weight) : undefined
     const payload: any = {
       ...formData,
       price: parseFloat(formData.price),
+      weight: parsedWeight !== undefined && !Number.isNaN(parsedWeight) ? parsedWeight : null,
+      weightUnit: formData.weightUnit,
       ...(assignCafeId ? { cafeId: assignCafeId } : {})
     }
 
@@ -69,62 +74,91 @@ export function AddCafeProductModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="bg-card border border-border w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between p-6 border-b border-border">
+      <div className="bg-card border border-border w-full max-w-md max-h-[90vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
           <h3 className="text-xl font-bold text-foreground">{isEdit ? 'Edit Menu Item' : 'Add Menu Item'}</h3>
           <button onClick={onClose} className="p-2 hover:bg-accent rounded-full transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Item Name</label>
-            <div className="relative">
-              {/* <Coffee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
-              <input
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Arabica Beans"
-                className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="p-6 space-y-4 overflow-y-auto flex-1">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Price</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Item Name</label>
               <div className="relative">
-                {/* <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
+                {/* <Coffee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
                 <input
                   required
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
-                  className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g. Arabica Beans"
+                  className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Category</label>
-              <div className="relative">
-                {/* <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Price</label>
+                <div className="relative">
+                  {/* <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
+                  <input
+                    required
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="0.00"
+                    className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Category</label>
+                <div className="relative">
+                  {/* <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /> */}
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                    className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                  >
+                    <option value="Coffee Beans">Coffee Beans</option>
+                    <option value="Equipment">Equipment</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Weight & Unit (Grams / Kilograms) */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Weight / Pack Size</label>
+                <input
+                  type="number"
+                  step="any"
+                  min="0"
+                  value={formData.weight}
+                  onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                  placeholder={formData.weightUnit === 'g' ? 'e.g. 250, 500' : 'e.g. 1, 5'}
+                  className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Unit (g / kg)</label>
                 <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                  className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                  value={formData.weightUnit}
+                  onChange={(e) => setFormData({ ...formData, weightUnit: e.target.value as CafeWeightUnit })}
+                  className="w-full px-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
                 >
-                  <option value="Coffee Beans">Coffee Beans</option>
-                  <option value="Equipment">Equipment</option>
-                  <option value="Other">Other</option>
+                  <option value="kg">Kilograms (kg)</option>
+                  <option value="g">Grams (g)</option>
                 </select>
               </div>
             </div>
-          </div>
 
           {formData.category === 'Coffee Beans' && (
             <div className="space-y-4 pt-1 border-t border-border/50">
@@ -200,7 +234,9 @@ export function AddCafeProductModal({
             </div>
           )}
 
-          <div className="pt-4">
+          </div>
+
+          <div className="p-6 pt-4 border-t border-border bg-card flex-shrink-0">
             <button
               type="submit"
               disabled={isPending}

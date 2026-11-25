@@ -100,10 +100,22 @@ export default function CafeMenuPage() {
               </div>
 
               <h4 className="font-bold text-foreground mb-1">{product.name}</h4>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex flex-wrap items-center gap-2 mb-4">
                 <span className="px-2 py-0.5 rounded-full bg-accent text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                   {product.category}
                 </span>
+                {product.weight !== undefined && product.weight !== null && (
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider border"
+                    style={{
+                      background: 'rgba(212, 168, 83, 0.12)',
+                      color: '#d4a853',
+                      borderColor: 'rgba(212, 168, 83, 0.3)',
+                    }}
+                  >
+                    {product.weight} {product.weightUnit || 'kg'}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center justify-between mt-auto">

@@ -58,6 +58,7 @@ export function useAdminReply() {
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['complaints'] })
       qc.invalidateQueries({ queryKey: ['complaint', vars.id] })
+      qc.invalidateQueries({ queryKey: ['notifications'] })
       toast.success('Reply sent')
     },
     onError: (e: Error) => toast.error(e.message),
@@ -72,6 +73,7 @@ export function useUpdateComplaintStatus() {
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['complaints'] })
       qc.invalidateQueries({ queryKey: ['complaint', vars.id] })
+      qc.invalidateQueries({ queryKey: ['notifications'] })
       toast.success('Complaint updated')
     },
     onError: (e: Error) => toast.error(e.message),

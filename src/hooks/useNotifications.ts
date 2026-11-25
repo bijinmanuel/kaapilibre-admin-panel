@@ -12,17 +12,61 @@ export interface Notification {
   createdAt: string
 }
 
-export function useNotifications() {
-  return useQuery<{ notifications: Notification[]; unreadCount: number }>({
+export interface LiveNotificationSummary {
+  notifications: Notification[]
+  unreadCount: number
+  openCafeComplaints: any[]
+  openCustomerComplaints: any[]
+  unreadContacts: any[]
+  recentCafeOrders: any[]
+  openCafeCount: number
+  openCustomerCount: number
+  unreadContactCount: number
+}
+
+function useLiveNotificationFeed() {
+  return useQuery<LiveNotificationSummary>({
     queryKey: ['notifications'],
     queryFn: async () => {
-      const res = await api.get('/notifications') as any
+      const res = (await api.get('/notifications/live-summary')) as any
       return res.data
     },
-    refetchInterval: 15_000, // poll every 15s for real-time push alerts
-    refetchIntervalInBackground: true, // keep polling even when tab/PWA is in background
-    staleTime: 5_000,
+    refetchInterval: 60_000, // single lightweight poll every 60s
+    refetchIntervalInBackground: false, // pause polling when tab is in background
+    refetchOnWindowFocus: true, // refresh immediately when admin returns to tab
+    staleTime: 30_000,
   })
+}
+
+export function useNotifications() {
+  const query = useLiveNotificationFeed()
+  return {
+    ...query,
+    data: query.data
+      ? {
+          notifications: query.data.notifications ?? [],
+          unreadCount: query.data.unreadCount ?? 0,
+        }
+      : undefined,
+  }
+}
+
+export function useOpenComplaintsSummary() {
+  const query = useLiveNotificationFeed()
+  return {
+    ...query,
+    data: query.data
+      ? {
+          openCafeComplaints: query.data.openCafeComplaints ?? [],
+          openCustomerComplaints: query.data.openCustomerComplaints ?? [],
+          unreadContacts: query.data.unreadContacts ?? [],
+          recentCafeOrders: query.data.recentCafeOrders ?? [],
+          openCafeCount: query.data.openCafeCount ?? 0,
+          openCustomerCount: query.data.openCustomerCount ?? 0,
+          unreadContactCount: query.data.unreadContactCount ?? 0,
+        }
+      : undefined,
+  }
 }
 
 export function useMarkOneRead() {
@@ -46,83 +90,5 @@ export function useClearAll() {
   return useMutation({
     mutationFn: () => api.delete('/notifications/clear-all'),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
-  })
-}
-
-export function useOpenComplaintsSummary() {
-  return useQuery<{
-    openCafeComplaints: any[]
-    openCustomerComplaints: any[]
-    unreadContacts: any[]
-    recentCafeOrders: any[]
-    openCafeCount: number
-    openCustomerCount: number
-    unreadContactCount: number
-  }>({
-    queryKey: ['open-complaints-summary'],
-    queryFn: async () => {
-      const [cafeRes, custRes, contactRes, cafeOrdersRes] = await Promise.allSettled([
-        api.get('/cafe-portal/admin/complaints?status=open'),
-        api.get('/complaints', { params: { status: 'open', limit: 20 } }),
-        api.get('/contact', { params: { isRead: false, limit: 20 } }),
-        api.get('/cafe/orders', { params: { limit: 10 } }),
-      ])
-
-      let openCafeComplaints: any[] = []
-      if (cafeRes.status === 'fulfilled') {
-        const val = cafeRes.value as any
-        openCafeComplaints = Array.isArray(val)
-          ? val
-          : Array.isArray(val?.data)
-          ? val.data
-          : Array.isArray(val?.data?.data)
-          ? val.data.data
-          : []
-      }
-
-      let openCustomerComplaints: any[] = []
-      let openCustomerTotal = 0
-      if (custRes.status === 'fulfilled') {
-        const val = custRes.value as any
-        openCustomerComplaints = Array.isArray(val?.data)
-          ? val.data
-          : Array.isArray(val)
-          ? val
-          : []
-        openCustomerTotal = val?.meta?.total ?? openCustomerComplaints.length
-      }
-
-      let unreadContacts: any[] = []
-      let unreadContactTotal = 0
-      if (contactRes.status === 'fulfilled') {
-        const val = contactRes.value as any
-        const list = Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []
-        unreadContacts = list.filter((c: any) => !c.isRead)
-        unreadContactTotal = val?.meta?.total ?? unreadContacts.length
-      }
-
-      let recentCafeOrders: any[] = []
-      if (cafeOrdersRes.status === 'fulfilled') {
-        const val = cafeOrdersRes.value as any
-        recentCafeOrders = Array.isArray(val?.data)
-          ? val.data
-          : Array.isArray(val)
-          ? val
-          : []
-      }
-
-      return {
-        openCafeComplaints,
-        openCustomerComplaints,
-        unreadContacts,
-        recentCafeOrders,
-        openCafeCount: openCafeComplaints.length,
-        openCustomerCount: openCustomerTotal,
-        unreadContactCount: unreadContactTotal,
-      }
-    },
-    refetchInterval: 15_000, // poll every 15s for live push notifications
-    refetchIntervalInBackground: true, // keep polling even when tab/PWA is in background
-    staleTime: 5_000,
   })
 }
